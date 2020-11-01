@@ -127,28 +127,30 @@ new TypedValue(410, "Model")
 
         // Define Command "CalcBlocks"
         [CommandMethod("CalcBlocks")]
-        //static public void CalcBlocks()
-        //{
-        //    Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
-        //    Database db = HostApplicationServices.WorkingDatabase;
-        //    PromptResult res = ed.GetString("\nType name of block: ");
-        //    if (res.Status == PromptStatus.OK)
-        //    {
-        //        ObjectIdCollection ids = GetAllBlockReferenceByName(res.StringResult, db);
-        //        if (ids != null)
-        //        {
-        //            ed.WriteMessage("\nNumber of blocks with name <{0}> in Model Space is {1}", res.StringResult, ids.Count);
-        //        }
-        //        else
-        //        {
-        //            ed.WriteMessage("\nNo blocks with name <{0}>", res.StringResult);
-        //        }
-        //    }
-        //}
+        static public void CalcBlocks()
+        {
+            Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+            Database db = HostApplicationServices.WorkingDatabase;
+            PromptResult res = ed.GetString("\nType name of block: ");
+            if (res.Status == PromptStatus.OK)
+            {
 
-        static public List<ObjectId> GetAllBlockReferenceByName(string name, Database db)
+                ObjectIdCollection ids = GetAllBlockReferenceByName(res.StringResult, db);
+                if (ids != null)
+                {
+                    ed.WriteMessage("\nNumber of blocks with name <{0}> in Model Space is {1}", res.StringResult, ids.Count);
+                }
+                else
+                {
+                    ed.WriteMessage("\nNo blocks with name <{0}>", res.StringResult);
+                }
+            }
+        }
+
+        static public ObjectIdCollection GetAllBlockReferenceByName(string name, Database db)
         {
             ObjectIdCollection ids_temp = null, ids = new ObjectIdCollection();
+            
             List<ObjectId> objectIds = new List<ObjectId>();
             Transaction tr = db.TransactionManager.StartTransaction();
             try
@@ -175,7 +177,7 @@ new TypedValue(410, "Model")
                 tr.Dispose();
             }
 
-            return objectIds;
+            return ids;
         }
 
 
@@ -198,8 +200,6 @@ new TypedValue(410, "Model")
             options.SetRejectMessage("\nSelect only block reference");
 
             options.AddAllowedClass(typeof(BlockReference), false);
-
-
 
             PromptEntityResult acSSPrompt = ed.GetEntity(options);
 
