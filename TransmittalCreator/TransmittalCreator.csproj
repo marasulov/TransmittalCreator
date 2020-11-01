@@ -57,17 +57,20 @@
     <Reference Include="AcCoreMgd">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\AutoCAD 2019\accoremgd.dll</HintPath>
     </Reference>
     <Reference Include="AcDbMgd">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\AutoCAD 2019\acdbmgd.dll</HintPath>
     </Reference>
     <Reference Include="AcMgd">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\AutoCAD 2019\acmgd.dll</HintPath>
     </Reference>
     <Reference Include="DV2177.Common">
-      <HintPath>E:\docs\sharp\DV2177_Code\source\DV2177.Delegates\bin\Debug\DV2177.Common.dll</HintPath>
+      <HintPath>D:\soft\sharp\DV2177_Code\source\DV2177.Common\bin\Debug\DV2177.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="EPPlus, Version=5.4.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">

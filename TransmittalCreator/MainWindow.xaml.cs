@@ -64,6 +64,13 @@ namespace TransmittalCreator
             BlockModel comboBox2SelectedItem = (BlockModel)ComboBoxNomination.SelectedItem;
             MessageBox.Show(comboBox1SelectedItem.AttributName + comboBox1SelectedItem.AttributName + _blockName);
             this.Close();
+
+            ObjectId[] blocksIds = (MyCommands.GetAllBlockReferenceByName(_blockName, Active.Database)).ToArray();
+            List<Sheet> dict = new List<Sheet>();
+            Transaction tr = Active.Database.TransactionManager.StartTransaction();
+            MyCommands.GetSheetsFromBlocks(Active.Editor, dict,tr, blocksIds);
+
+
         }
     }
 }

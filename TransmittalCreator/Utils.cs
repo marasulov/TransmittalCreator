@@ -71,21 +71,21 @@ namespace TransmittalCreator
         /// <param name="dict"> коллекция листов</param>
         /// <param name="tr"> транзакция </param>
         /// <returns>коллекция листов </returns>
-        public List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Transaction tr)
+        public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Transaction tr, ObjectId[] idArray)
         {
 
             // Build a filter list so that only
             // block references are selected
-            TypedValue[] filList = new TypedValue[1] { new TypedValue((int)DxfCode.Start, "INSERT") };
-            SelectionFilter filter = new SelectionFilter(filList);
-            PromptSelectionOptions opts = new PromptSelectionOptions();
-            opts.MessageForAdding = "Select block references: ";
-            PromptSelectionResult res = ed.GetSelection(opts, filter);
+            //TypedValue[] filList = new TypedValue[1] { new TypedValue((int)DxfCode.Start, "INSERT") };
+            //SelectionFilter filter = new SelectionFilter(filList);
+            //PromptSelectionOptions opts = new PromptSelectionOptions();
+            //opts.MessageForAdding = "Select block references: ";
+            //PromptSelectionResult res = ed.GetSelection(opts, filter);
 
-            if (res.Status != PromptStatus.OK)
-                throw new ArgumentException("Выберите блок");
-            SelectionSet selSet = res.Value;
-            ObjectId[] idArray = selSet.GetObjectIds();
+            //if (res.Status != PromptStatus.OK)
+            //    throw new ArgumentException("Выберите блок");
+            //SelectionSet selSet = res.Value;
+            
             string sheetNumber = "", docNumber = "", objectNameEng = "", docTitleEng = "", objectNameRu = "", docTitleRu = "";
 
             foreach (ObjectId blkId in idArray)
@@ -142,7 +142,7 @@ namespace TransmittalCreator
             try
             {
 
-                GetSheetsFromBlocks(ed, dict, tr);
+                //GetSheetsFromBlocks(ed, dict, tr);
 
                 tr.Commit();
 
@@ -170,7 +170,7 @@ namespace TransmittalCreator
 
             try
             {
-                GetSheetsFromBlocks(ed, dict, tr);
+                //GetSheetsFromBlocks(ed, dict, tr);
 
                 tr.Commit();
 

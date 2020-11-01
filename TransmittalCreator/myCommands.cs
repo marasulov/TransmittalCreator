@@ -20,7 +20,7 @@ namespace TransmittalCreator
     // a command is called by the user the first time in the context
     // of a given document. In other words, non static data in this class
     // is implicitly per-document!
-    public class MyCommands:Utils, IExtensionApplication
+    public class MyCommands : Utils, IExtensionApplication
     {
         // The CommandMethod attribute can be applied to any public  member 
         // function of any public class.
@@ -83,20 +83,105 @@ namespace TransmittalCreator
             return 1;
         }
 
-        [CommandMethod("CrTransm")]
+        [CommandMethod("Cttransm")]
         public void ListAttributes()
         {
-            Dictionary<string,string> attrList = new Dictionary<string, string>();
-            
+            Dictionary<string, string> attrList = new Dictionary<string, string>();
+
             MainWindow window = new MainWindow(new BlockViewModel(attrList));
-            
+
             Application.ShowModalWindow(window);
 
         }
 
-        [CommandMethod("blockName")]
+        [CommandMethod("CalcBlocks1")]
+        static public void CalcBlocks1()
+        {
+            Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+            Database db = HostApplicationServices.WorkingDatabase;
+            PromptResult res = ed.GetString("\nType name of block: ");
+            if (res.Status == PromptStatus.OK)
+            {
+                TypedValue[] flt =
+                {
+new TypedValue(0, "INSERT"),
+new TypedValue(2, res.StringResult),
+new TypedValue(410, "Model")
+};
+                PromptSelectionResult rs = ed.SelectAll(new SelectionFilter(flt));
+                if (rs.Status == PromptStatus.OK && rs.Value.Count > 0)
+                {
+                    ed.WriteMessage("\nNumber of blocks with name <{0}> in Model Space is {1}", res.StringResult, rs.Value.Count);
+                }
+                else
+                {
+                    ed.WriteMessage("\nNo blocks with name <{0}>", res.StringResult);
+                }
+            }
+        }
 
-        static public void blockName()
+
+        /// <summary>
+        /// Summary description for Class.
+        /// </summary>
+
+        // Define Command "CalcBlocks"
+        [CommandMethod("CalcBlocks")]
+        //static public void CalcBlocks()
+        //{
+        //    Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        //    Database db = HostApplicationServices.WorkingDatabase;
+        //    PromptResult res = ed.GetString("\nType name of block: ");
+        //    if (res.Status == PromptStatus.OK)
+        //    {
+        //        ObjectIdCollection ids = GetAllBlockReferenceByName(res.StringResult, db);
+        //        if (ids != null)
+        //        {
+        //            ed.WriteMessage("\nNumber of blocks with name <{0}> in Model Space is {1}", res.StringResult, ids.Count);
+        //        }
+        //        else
+        //        {
+        //            ed.WriteMessage("\nNo blocks with name <{0}>", res.StringResult);
+        //        }
+        //    }
+        //}
+
+        static public List<ObjectId> GetAllBlockReferenceByName(string name, Database db)
+        {
+            ObjectIdCollection ids_temp = null, ids = new ObjectIdCollection();
+            List<ObjectId> objectIds = new List<ObjectId>();
+            Transaction tr = db.TransactionManager.StartTransaction();
+            try
+            {
+                BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(bt[name], OpenMode.ForRead);
+                BlockTableRecord btr_model = (BlockTableRecord)tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForRead);
+                ObjectId id_model = btr_model.ObjectId;
+                ids_temp = btr.GetBlockReferenceIds(true, true);
+                foreach (ObjectId id in ids_temp)
+                {
+                    DBObject obj = (DBObject)tr.GetObject(id, OpenMode.ForRead);
+                    // If BlockReference owned with Model Space - add it to collection
+                    if (obj.OwnerId == id_model)
+                    {
+                        ids.Add(id);
+                        objectIds.Add(id);
+                    }
+                }
+                tr.Commit();
+            }
+            finally
+            {
+                tr.Dispose();
+            }
+
+            return objectIds;
+        }
+
+
+
+        [CommandMethod("blockName")]
+        static public void GetBlockName()
 
         {
 
@@ -105,8 +190,6 @@ namespace TransmittalCreator
             Database db = doc.Database;
 
             Editor ed = doc.Editor;
-
-
 
             PromptEntityOptions options =
 
