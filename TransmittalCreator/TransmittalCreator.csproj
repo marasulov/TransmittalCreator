@@ -53,6 +53,9 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="AcCoreMgd">
       <SpecificVersion>False</SpecificVersion>
@@ -82,6 +85,9 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
       <HintPath>..\..\..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.Office.Interop.Excel\15.0.0.0__71e9bce111e9429c\Microsoft.Office.Interop.Excel.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <!--ACA References Begin-->
     <!--ACA Refences End-->
     <!--AME Referebces Begin-->
@@ -109,13 +115,16 @@
     <Folder Include="Views\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Archive.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\AttributModel.cs" />
     <Compile Include="Models\BlockModel.cs" />
+    <Compile Include="Models\FileModel.cs" />
     <Compile Include="Models\RelayCommand.cs" />
     <Compile Include="Models\Sheet.cs" />
     <Compile Include="Models\SpesSheetModel.cs" />
@@ -126,13 +135,18 @@
     </Compile>
     <Compile Include="myPlugin.cs" />
     <Compile Include="myCommands.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\Params.cs" />
+    <Compile Include="Services\PdfCreator.cs" />
+    <Compile Include="Services\StandartCopier.cs" />
     <Compile Include="Styles\VS2012\VS2012WindowStyle.cs" />
     <Compile Include="Styles\VS2012\VS2012WindowStyle.xaml.cs">
       <DependentUpon>VS2012WindowStyle.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Utils.cs" />
+    <Compile Include="Services\Utils.cs" />
     <Compile Include="ViewModel\BlockViewModel.cs" />
+    <Compile Include="ViewModel\FileNameViewModel.cs" />
     <Compile Include="ViewModel\SheetViewModel.cs" />
     <Compile Include="Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
@@ -186,6 +200,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <None Include="conf.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

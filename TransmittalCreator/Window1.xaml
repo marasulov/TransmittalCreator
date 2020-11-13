@@ -5,8 +5,41 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TransmittalCreator"
         mc:Ignorable="d"
-        Title="Window1" Height="450" Width="800">
+        Height="Auto"
+        Width="Auto"
+        WindowStyle="ToolWindow"
+        AllowsTransparency="False"
+        ShowInTaskbar="False"
+        BorderBrush="Transparent"
+        Foreground="Black"
+        Background="DimGray"
+        ResizeMode="NoResize"
+        FontFamily="ISOCPEUR"
+        FontSize="14"
+        SizeToContent="WidthAndHeight">
+
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Border BorderBrush="Gray" Background="Gray" BorderThickness="1">
+            <Grid Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Drawing Path"/>
+                    <TextBlock Width="100"></TextBlock>
+                </StackPanel>
+
+
+            </Grid>
+        </Border>
         
+
     </Grid>
 </Window>

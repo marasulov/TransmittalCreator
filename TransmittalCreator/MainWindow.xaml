@@ -7,14 +7,15 @@
         xmlns:vm="clr-namespace:TransmittalCreator.ViewModel"
         xmlns:col="clr-namespace:System.Collections;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="MainWindow"
+        Title="Создание ведомости и трансмиттела"
         Height="Auto"
         Width="Auto"
-        WindowStyle="SingleBorderWindow"
+        WindowStyle="ToolWindow"
         AllowsTransparency="False"
         ShowInTaskbar="False"
         BorderBrush="Transparent"
-        Foreground="Gray"
+        Foreground="Black"
+        Background="DimGray"
         ResizeMode="NoResize"
         FontFamily="ISOCPEUR"
         FontSize="14"
@@ -26,7 +27,22 @@
                 <ContentControl Margin="5" HorizontalAlignment="Center" VerticalAlignment="Center" Content="Hello" />
             </Border>
         </ControlTemplate>
+        <Style TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="50" ></Setter>
+        </Style>
         <BooleanToVisibilityConverter x:Key="b2v" />
+        <Style TargetType="Border">
+            <Setter Property="Background" Value="AliceBlue"></Setter>
+            <Setter Property="CornerRadius" Value="10"></Setter>
+            <Setter Property="BorderThickness" Value="1"></Setter>
+            <Setter Property="BorderBrush" Value="DarkOliveGreen"></Setter>
+            <Setter Property="Padding" Value="3"></Setter>
+        </Style>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="NewCommand_Executed" CanExecute="NewCommand_CanExecute" />
@@ -35,198 +51,287 @@
         <StatusBar
             DockPanel.Dock="Bottom"
             Height="24" >
-            <TextBlock Margin="3,0,0,0" >Ready</TextBlock>
+            <TextBlock Name="NameBlock" Margin="3,0,0,0" Text="{Binding Path=_blockName}">Ready</TextBlock>
             <StatusBarItem HorizontalAlignment="Right">
                 <ResizeGrip Opacity="0.75" />
             </StatusBarItem>
         </StatusBar>
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition></ColumnDefinition>
-                <ColumnDefinition></ColumnDefinition>
-            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>
                 <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
             </Grid.RowDefinitions>
+            <StackPanel  HorizontalAlignment="Left" Grid.Row="0" Margin="5,0,10,0" VerticalAlignment="Center">
+                <Border  Grid.Row="1">
+                    <Grid Grid.Row="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition MinWidth="150"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" >Выберите название <LineBreak/>объета на английском</TextBlock>
+                        <ComboBox Grid.Column="1"
+                            Name="ComboObjectNameEn"
+                            ItemsSource="{Binding}" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Grid.Row="1" >Выберите название <LineBreak/>объета на русском</TextBlock>
+                        <ComboBox Grid.Column="1" Grid.Row="1"
+                                  Name="ComboObjectNameRu"
+                                  ItemsSource="{Binding}" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+            
 
-            <StackPanel HorizontalAlignment="Center" Grid.Column="0" Margin="5,0,10,0">
-            <TextBlock Margin="1" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Height="20" >
-                Ведомость основных чертежей рабочего комплекта
-            </TextBlock>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition ></RowDefinition>
-                    <RowDefinition></RowDefinition>
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Column="0" Grid.Row="0" >Позиция</TextBlock>
-                <TextBlock Grid.Column="1" Grid.Row="0">Наименование</TextBlock>
-                <TextBlock Grid.Column="2" Grid.Row="0">Примечание</TextBlock>
+            <!-- Ведомость-->
+            <StackPanel HorizontalAlignment="Left" Grid.Row="1" Margin="5,0,10,0" VerticalAlignment="Center">
+                <TextBlock Margin="1" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Height="20" >
+                Выберите атрибуты для создания ведомости
+                </TextBlock>
+                <Border  BorderThickness="1" >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition ></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                        </Grid.RowDefinitions>
 
-                <ComboBox Grid.Column="0" Grid.Row="1"
+                        <TextBlock Grid.Column="0" Grid.Row="0" >Позиция</TextBlock>
+                        <TextBlock Grid.Column="1" Grid.Row="0">Наименование</TextBlock>
+                        <TextBlock Grid.Column="2" Grid.Row="0">Примечание</TextBlock>
+
+                        <ComboBox Grid.Column="0" Grid.Row="1"
+                                  IsSynchronizedWithCurrentItem="True"
                           Name="ComboBoxPosition"
-                          ItemsSource="{Binding}" Height="40" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
-                                <StackPanel Orientation="Vertical">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontWeight="Thin">Атрибут: </TextBlock>
-                                        <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontWeight="Thin">Значение: </TextBlock>
-                                        <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-                <ComboBox Grid.Column="1" Grid.Row="1"
+                          ItemsSource="{Binding}" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ComboBox Grid.Column="1" Grid.Row="1"
                           Name="ComboBoxNomination"
-                          ItemsSource="{Binding }" Height="40" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
-                                <StackPanel Orientation="Vertical">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
-                                        <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontWeight="Thin">Значение:</TextBlock>
-                                        <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-                <ComboBox Grid.Column="2" Grid.Row="1"
+                          ItemsSource="{Binding }" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ComboBox Grid.Column="2" Grid.Row="1"
                           Name="ComboBoxComment"
-                          ItemsSource="{Binding }" Height="40" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
-                                <StackPanel Orientation="Vertical">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
-                                        <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock FontWeight="Thin">Значение:</TextBlock>
-                                        <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-            </Grid>
+                          ItemsSource="{Binding }" MinWidth="100" MaxWidth="200" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                    </Grid>
+                </Border>
             </StackPanel>
             <!-- Трансмиттел -->
-            <StackPanel Name="TransmittalPanel" HorizontalAlignment="Center" Grid.Column="1" Margin="10,0,5,0" 
-                        Visibility="{Binding IsChecked,ElementName=transmittalCheckBox,Converter={StaticResource b2v}}">
-                <TextBlock Margin="1" DockPanel.Dock="Top" 
-                           VerticalAlignment="Top" 
-                           HorizontalAlignment="Center" Height="20" >
-                Выберите атрибуты для создания Трансмиттела
+            <StackPanel Name="TransmittalPanel" 
+                        Grid.Column="0" Margin="5,20,10,0" 
+                        
+                        Visibility="{Binding IsChecked,ElementName=transmittalCheckBox,Converter={StaticResource b2v}}"
+                        VerticalAlignment="Center" Grid.Row="2"
+                        >
+                <!--Visibility="{Binding IsChecked,ElementName=transmittalCheckBox,Converter={StaticResource b2v}}"-->
+                <TextBlock Margin="1" DockPanel.Dock="Top" VerticalAlignment="Top" HorizontalAlignment="Center" Height="20" >
+                Выберите атрибуты для создания трансмиттела
                 </TextBlock>
-                <Grid ShowGridLines="True">
-                    <Grid.ColumnDefinitions >
-                        <ColumnDefinition></ColumnDefinition>
-                        <ColumnDefinition></ColumnDefinition>
-                        <ColumnDefinition></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                        <RowDefinition></RowDefinition>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Column="0" Grid.Row="0">Позиция</TextBlock>
-                    <TextBlock Grid.Column="1" Grid.Row="0">Наименование</TextBlock>
-                    <TextBlock Grid.Column="2" Grid.Row="0">Примечание</TextBlock>
+                <Border  BorderThickness="1" >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                            <ColumnDefinition></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition ></RowDefinition>
+                            <RowDefinition></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Column="0" Grid.Row="0" >Item<LineBreak/>Номер</TextBlock>
+                        <TextBlock Grid.Column="1" Grid.Row="0">Document Number<LineBreak/>Номер Документа</TextBlock>
+                        <TextBlock Grid.Column="2" Grid.Row="0">Document Title (Eng) <LineBreak/> Наименование документа(Англ)</TextBlock>
+                        <TextBlock Grid.Column="3" Grid.Row="0">Document Title (Rus) <LineBreak/> Наименование документа(Rus)</TextBlock>
 
-                    <ComboBox Grid.Column="0" Grid.Row="1"
-                          Name="ComboBox5"
-                          ItemsSource="{Binding Sheets}" Height="40" >
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
-                                    <StackPanel Orientation="Vertical">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
-                                            <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                        <ComboBox Grid.Column="0" Grid.Row="1"
+                              Name="ComboBoxTrItem"
+                              IsSynchronizedWithCurrentItem="True"
+                              
+                              ItemsSource="{Binding}" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="Thin">Значение:</TextBlock>
-                                            <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ComboBox Grid.Column="1" Grid.Row="1"
+                          Name="ComboBoxTrDocNumber"
+                          ItemsSource="{Binding }" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <ComboBox Grid.Column="1" Grid.Row="1"
-                          Name="ComboBox6"
-                          ItemsSource="{Binding Sheets}" Height="40">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="BlueViolet" BorderThickness="0,1,0,1" Margin="0" Width="{Binding ElementName=comboBox, Path=Width}" >
-                                    <StackPanel Orientation="Vertical" Margin="0">
-                                        <StackPanel Orientation="Horizontal" Margin="0">
-                                            <TextBlock FontWeight="Thin" Margin="0">Атрибут:</TextBlock>
-                                            <TextBlock FontWeight="Bold" Margin="0" Text="{Binding DocNumber}" ></TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ComboBox Grid.Column="2" Grid.Row="1"
+                          Name="ComboBoxTrDocTitleEn"
+                          ItemsSource="{Binding }" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="Thin">Значение:</TextBlock>
-                                            <TextBlock FontWeight="Bold" Text="{Binding SheetNumber}"></TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ComboBox Grid.Column="3" Grid.Row="1"
+                              Name="ComboBoxTrDocTitleRu"
+                              ItemsSource="{Binding }" MinWidth="100" MaxWidth="200" SelectedIndex="0" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="2" BorderBrush="Gray"  BorderThickness="0,1,0,0"   Width="{Binding ElementName=comboBox, Path=Width}" >
+                                        <StackPanel Orientation="Vertical">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
+                                                <TextBlock FontWeight="Bold" Text="{Binding Path=AttributName}" ></TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock FontWeight="Thin">Значение:</TextBlock>
+                                                <TextBlock FontWeight="DemiBold" Text="{Binding Path = AttributValue}"></TextBlock>
+                                            </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <ComboBox Grid.Column="2" Grid.Row="1"
-                          Name="ComboBox7"
-                          ItemsSource="{Binding Sheets}" Height="40">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="LightYellow" BorderThickness="1.5" Width="{Binding ElementName=comboBox, Path=Width}" >
-                                    <StackPanel Orientation="Vertical">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="Thin">Атрибут:</TextBlock>
-                                            <TextBlock FontWeight="Bold" Text="{Binding DocNumber}" ></TextBlock>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock FontWeight="Thin">Значение:</TextBlock>
-                                            <TextBlock FontWeight="Bold" Text="{Binding SheetNumber}"></TextBlock>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </Grid>
-                <StackPanel/>
+                                    </Border>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+                </Border>
             </StackPanel>
-            <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="10" >
-                <Button Width="70" Height="25" 
+
+            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="25" >
+                <Button Width="70" Height="25" Name="ButtonCreate"
                         Command="ApplicationCommands.New">
                     <TextBlock>Create</TextBlock>
                 </Button>
             </StackPanel>
-            <StackPanel Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <StackPanel Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5">
                 <CheckBox x:Name="transmittalCheckBox"
                           Command="{Binding }"
                           CommandParameter="{Binding IsChecked, RelativeSource={RelativeSource Self}}">
-                    <TextBlock>Трансмиттел</TextBlock>
+                    <TextBlock Foreground="Black">Создать Трансмиттел</TextBlock>
                 </CheckBox>
             </StackPanel>
         </Grid>

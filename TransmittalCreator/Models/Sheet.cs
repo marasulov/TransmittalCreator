@@ -5,6 +5,7 @@ using System.Text;
 using Excel = Microsoft.Office.Interop.Excel;
 using OfficeOpenXml;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace TransmittalCreator
 {
@@ -19,9 +20,16 @@ namespace TransmittalCreator
         /// Document Number
         /// </summary>
         public string DocNumber { get; set; }
+
+        /// <summary>
+        /// Comment
+        /// </summary>
+        public string Comment { get; set; }
+
         /// <summary>
         /// Document Name in English
         /// </summary>
+
         public string ObjectNameEng { get; set; }
 
         /// <summary>
@@ -40,13 +48,27 @@ namespace TransmittalCreator
 
         public Sheet(string sheetNumber, string docNumber, string objectNameEng, string docTitleEng, string objectNameRu,  string docTitleRu)
         {
-            this.SheetNumber = int.Parse(sheetNumber);
+            Int32.TryParse(sheetNumber, out int tempNumber);
+            this.SheetNumber = tempNumber;
             this.DocNumber = docNumber;
             this.ObjectNameEng = objectNameEng;
             this.DocTitleEng= docTitleEng;
             this.ObjectNameRu = objectNameRu;
             this.DocTitleRu = docTitleRu;
         }
+
+        public Sheet(string sheetNumber, string docNumber, string commment, string objectNameEng, string docTitleEng, string objectNameRu, string docTitleRu)
+        {
+            Int32.TryParse(sheetNumber, out int tempNumber);
+            this.SheetNumber = tempNumber;
+            this.DocNumber = docNumber;
+            this.Comment = commment;
+            this.ObjectNameEng = objectNameEng;
+            this.DocTitleEng = docTitleEng;
+            this.ObjectNameRu = objectNameRu;
+            this.DocTitleRu = docTitleRu;
+        }
+
 
         public Sheet(string docNumber, string objectNameEng)
         {
@@ -105,8 +127,10 @@ namespace TransmittalCreator
             
             FileInfo existingFile = new FileInfo(templatePath);
             FileInfo fNewFile = new FileInfo(allTransFileName);
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (ExcelPackage excelFile = new ExcelPackage(existingFile))
             {
+
                 ExcelWorksheet ws = excelFile.Workbook.Worksheets["Transmittal"];
                 double rowHeight = 65;
                 ws.DefaultRowHeight = rowHeight;

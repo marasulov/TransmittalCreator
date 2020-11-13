@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using DV2177.Common;
+using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Input;
 using TransmittalCreator.Models;
+using TransmittalCreator.Services;
 using TransmittalCreator.ViewModel;
+using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace TransmittalCreator
 {
@@ -23,8 +15,9 @@ namespace TransmittalCreator
     /// </summary>
     public partial class MainWindow : Window
     {
+        public bool isClicked = false;
         BlockViewModel _data;
-        string _blockName;
+        public string _blockName;
         public MainWindow(BlockViewModel data)
         {
             InitializeComponent();
@@ -45,11 +38,19 @@ namespace TransmittalCreator
                 combolist.Add(new BlockModel(entry.Key, entry.Value));
             }
 
+            ComboObjectNameEn.ItemsSource = combolist;
+            ComboObjectNameRu.ItemsSource = combolist;
 
             ComboBoxPosition.ItemsSource = combolist;
             ComboBoxNomination.ItemsSource = combolist;
-            ComboBoxPosition.ItemsSource = combolist;
+            ComboBoxComment.ItemsSource = combolist;
 
+            ComboBoxTrItem.ItemsSource = combolist;
+            ComboBoxTrDocNumber.ItemsSource = combolist;
+            ComboBoxTrDocTitleEn.ItemsSource = combolist;
+            ComboBoxTrDocTitleRu.ItemsSource = combolist;
+
+            NameBlock.Text = _blockName;
         }
 
         private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -59,18 +60,8 @@ namespace TransmittalCreator
 
         private void NewCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-
-            BlockModel comboBox1SelectedItem = (BlockModel)ComboBoxPosition.SelectedItem;
-            BlockModel comboBox2SelectedItem = (BlockModel)ComboBoxNomination.SelectedItem;
-            MessageBox.Show(comboBox1SelectedItem.AttributName + comboBox1SelectedItem.AttributName + _blockName);
+            isClicked = true;
             this.Close();
-
-            ObjectIdCollection blocksIds = MyCommands.GetAllBlockReferenceByName(_blockName, Active.Database);
-            List<Sheet> dict = new List<Sheet>();
-            Transaction tr = Active.Database.TransactionManager.StartTransaction();
-            MyCommands.GetSheetsFromBlocks(Active.Editor, dict,tr,blocksIds);
-
-
         }
     }
 }

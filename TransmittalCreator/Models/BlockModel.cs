@@ -49,6 +49,11 @@ namespace TransmittalCreator.Models
             this.AttributValue = attrValue;
         }
 
+        public string GetAttrName(BlockModel blockModel)
+        {
+            return blockModel.AttributName;
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName] string prop = "")
         {
