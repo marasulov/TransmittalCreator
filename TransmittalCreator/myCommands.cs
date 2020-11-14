@@ -102,15 +102,15 @@ namespace TransmittalCreator
 
 
         [CommandMethod("PlotCurrentLayout")]
-        public static void PlotCurrentLayout()
+        public static void PlotCurrentLayout(string pdfFileName, Extents3d extents3d)
         {
             // Get the current document and database, and start a transaction
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database acCurDb = acDoc.Database;
 
             acDoc.SendStringToExecute("REGENALL ", true, false, true);
-            short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
-            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+            //short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
+            //Application.SetSystemVariable("BACKGROUNDPLOT", 0);
 
             using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
             {
@@ -139,7 +139,7 @@ namespace TransmittalCreator
                 Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
                 //Point3d maxPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(maxPoint3dWcs, false);
                 //Extents2d points = new Extents2d(new Point2d(minPoint3d[0], minPoint3d[1]), new Point2d(maxPoint3d[0], maxPoint3d[1]));
-                Extents3d extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
+                //extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
                 PdfCreator pdfCreator = new PdfCreator(extents3d);
                 Extents2d points = pdfCreator.Extents3dToExtents2d();
                 bool isHor = pdfCreator.IsFormatHorizontal();
@@ -152,7 +152,7 @@ namespace TransmittalCreator
                 acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
                 // Center the plot
                 acPlSetVdr.SetPlotCentered(acPlSet, true);
-                string curCanonName = GetLocalNameByAtrrValue();
+                string curCanonName = PdfCreator.GetLocalNameByAtrrValue();
                 acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", curCanonName);
                 //acPlSetVdr.SetCanonicalMediaName(acPlSet, curCanonName);
 
@@ -192,7 +192,8 @@ namespace TransmittalCreator
                             // Start to plot the layout
                             acPlEng.BeginPlot(acPlProgDlg, null);
                             // Define the plot output
-                            acPlEng.BeginDocument(acPlInfo, acDoc.Name, null, 1, true, "d:\\myplot");
+
+                            acPlEng.BeginDocument(acPlInfo, acDoc.Name, null, 1, true, "d:\\myplot"+pdfFileName);
                             // Display information about the current plot
                             acPlProgDlg.set_PlotMsgString(PlotMessageIndex.Status, "Plotting: " + acDoc.Name + " - " + acLayout.LayoutName);
                             // Set the sheet progress range
@@ -221,38 +222,7 @@ namespace TransmittalCreator
             }
         }
 
-        private static string GetLocalNameByAtrrValue(string attrvalue = "А3")
-        {
-            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig("C:\\Users\\yusufzhon.marasulov\\AppData\\Roaming\\Autodesk\\AutoCAD 2019\\R23.0\\enu\\Plotters\\DWG To PDF.pc3");
-            string canonName = "";
-            foreach (var canonicalMediaName in pConfig.CanonicalMediaNames)
-            {
-                string localName = pConfig.GetLocalMediaName(canonicalMediaName);
-                if (localName == attrvalue)
-                {
-                    canonName = canonicalMediaName;
-                    Active.Editor.WriteMessage("\n  " + canonicalMediaName + " | " + localName);
-                }
-                
-            }
-
-            //int cnt = 0;
-            //string canonName = "";
-            //foreach (string mediaName in acPlSetVdr.GetCanonicalMediaNameList(acPlSet))
-            //{
-            //    string localName = acPlSetVdr.GetLocaleMediaName(acPlSet, cnt);
-            //    if (localName == attrvalue)
-            //    {
-            //        canonName = mediaName;
-            //        Active.Editor.WriteMessage("\n распечатано на " + mediaName + " | " + localName);
-            //    }
-            //    // Выводим имена форматов (Locale и Canonical) принтера текущей настройки принтера
-            //    Active.Editor.WriteMessage("\n  " + mediaName + " | " + localName);
-            //    cnt = cnt + 1;
-            //}
-
-            return canonName;
-        }
+        
 
         [CommandMethod("Cttransm")]
         public void ListAttributes()
@@ -270,6 +240,7 @@ namespace TransmittalCreator
                 ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences(window.NameBlock.Text);
 
                 List<Sheet> dict = new List<Sheet>();
+                Dictionary<string, Extents3d> dictNamExtents3ds = new Dictionary<string, Extents3d>();
 
                 BlockModel objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockModel;
                 BlockModel objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockModel;
@@ -288,17 +259,25 @@ namespace TransmittalCreator
                 using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
                 {
                     MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds, attributModel);
-
+                    MyCommands.GetExtentsNamePdf(Active.Editor, dictNamExtents3ds, tr, objectIds);
+                    
                     if (window.transmittalCheckBox.IsChecked == true)
                     {
                         Utils utils = new Utils();
-                        utils.CreateOnlyVed(dict);
-                        utils.CreateOnlytrans(dict);
+                        //utils.CreateOnlyVed(dict);
+                        //utils.CreateOnlytrans(dict);
+
+                        foreach (KeyValuePair<string, Extents3d> kvp in dictNamExtents3ds)
+                        {
+                            PlotCurrentLayout(kvp.Key,kvp.Value);
+                        }
                     }
                     else
                     {
                         Utils utils = new Utils();
                         utils.CreateOnlyVed(dict);
+
+
                     }
 
                     tr.Commit();

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.PlottingServices;
+using DV2177.Common;
 
 namespace TransmittalCreator.Services
 {
@@ -56,6 +53,37 @@ namespace TransmittalCreator.Services
             return true;
         }
 
+        public static string GetLocalNameByAtrrValue(string attrvalue = "А3")
+        {
+            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig("C:\\Users\\yusufzhon.marasulov\\AppData\\Roaming\\Autodesk\\AutoCAD 2019\\R23.0\\enu\\Plotters\\DWG To PDF.pc3");
+            string canonName = "";
+            foreach (var canonicalMediaName in pConfig.CanonicalMediaNames)
+            {
+                string localName = pConfig.GetLocalMediaName(canonicalMediaName);
+                if (localName == attrvalue)
+                {
+                    canonName = canonicalMediaName;
+                    Active.Editor.WriteMessage("\n  " + canonicalMediaName + " | " + localName);
+                }
 
+            }
+
+            //int cnt = 0;
+            //string canonName = "";
+            //foreach (string mediaName in acPlSetVdr.GetCanonicalMediaNameList(acPlSet))
+            //{
+            //    string localName = acPlSetVdr.GetLocaleMediaName(acPlSet, cnt);
+            //    if (localName == attrvalue)
+            //    {
+            //        canonName = mediaName;
+            //        Active.Editor.WriteMessage("\n распечатано на " + mediaName + " | " + localName);
+            //    }
+            //    // Выводим имена форматов (Locale и Canonical) принтера текущей настройки принтера
+            //    Active.Editor.WriteMessage("\n  " + mediaName + " | " + localName);
+            //    cnt = cnt + 1;
+            //}
+
+            return canonName;
+        }
     }
 }

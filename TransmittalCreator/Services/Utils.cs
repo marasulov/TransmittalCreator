@@ -115,15 +115,15 @@ namespace TransmittalCreator.Services
                 BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
 
                 BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
-                ed.WriteMessage("\nBlock: " + btr.Name);
+
+                Extents3d extents3d = blkRef.GeometricExtents;
+                ed.WriteMessage("\nBlock:{0} габариты {1} ", btr.Name, extents3d.MinPoint.ToString(), extents3d.MaxPoint.ToString());
                 btr.Dispose();
 
                 AttributeCollection attCol = blkRef.AttributeCollection;
 
-                //TODO have to finish here
                 var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-
-
+                
                 docTitleEng = attrDict.FirstOrDefault(x => x.Key == objectNameEn).Value;
                 docTitleRu = attrDict.FirstOrDefault(x => x.Key == objectNameRu).Value;
 
@@ -145,9 +145,6 @@ namespace TransmittalCreator.Services
                 //        attribut.GetValue(attributModel);
 
                 //    }
-
-
-
 
                 //    //switch (attRef.Tag)
                 //    //{
@@ -179,6 +176,35 @@ namespace TransmittalCreator.Services
         }
 
 
+
+
+
+        /// <summary>
+        /// find print area and pdf name by block id
+        /// </summary>
+        public static Dictionary<string, Extents3d> GetExtentsNamePdf(Editor ed, Dictionary<string, Extents3d> dict, Transaction tr,
+            ObjectIdCollection objectIdCollection)
+        {
+            string sheetNumber = "";
+            foreach (ObjectId blkId in objectIdCollection)
+            {
+                BlockReference blkRef = (BlockReference) tr.GetObject(blkId, OpenMode.ForRead);
+
+                BlockTableRecord btr = (BlockTableRecord) tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
+
+                Extents3d extents3d = blkRef.GeometricExtents;
+                AttributeCollection attCol = blkRef.AttributeCollection;
+                var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
+                sheetNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
+
+                ed.WriteMessage("\nBlock:{0} - {1} габариты {2} ", btr.Name, sheetNumber,extents3d.MinPoint.ToString());
+                btr.Dispose();
+
+                dict[sheetNumber] = extents3d;
+            }
+
+            return dict;
+        }
         //private string GetAttributeValue(string attrTag, AttributeCollection attCol)
         //{
         //    foreach (var attr in attCol)
@@ -189,6 +215,66 @@ namespace TransmittalCreator.Services
         //        }
         //    }
         //}
+
+
+        public static Dictionary<string, string> GetAttribs(string blockName, string tag)
+        {
+            // create a new instance of Dictionary<string, string>
+            var attribs = new Dictionary<string, string>();
+
+            // get the documents collection
+            var docs = Application.DocumentManager;
+
+            // use an OpenCloseTransaction which is not related to a document or database
+            using (var tr = new OpenCloseTransaction())
+            {
+                // iterate through the documents
+                foreach (Document doc in docs)
+                {
+                    // get the document database
+                    var db = doc.Database;
+
+                    // get the database block table
+                    var bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+
+                    // if the block table contains a block definitions named 'blockName'...
+                    if (bt.Has(blockName))
+                    {
+                        // open the block definition
+                        var btr = (BlockTableRecord)tr.GetObject(bt[blockName], OpenMode.ForRead);
+
+                        // get the inserted block references ObjectIds
+                        var ids = btr.GetBlockReferenceIds(true, true);
+
+                        // if any...
+                        if (0 < ids.Count)
+                        {
+                            // open the first block reference
+                            var br = (BlockReference)tr.GetObject(ids[0], OpenMode.ForRead);
+
+                            // iterate through the attribute collection
+                            foreach (ObjectId id in br.AttributeCollection)
+                            {
+                                // open the attribute reference
+                                var attRef = (AttributeReference)tr.GetObject(id, OpenMode.ForRead);
+
+                                // if the attribute tag is equal to 'tag'
+                                if (attRef.Tag.Equals(tag, StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    // add an entry to the dictionary
+                                    attribs[doc.Name] = attRef.TextString;
+                                    // break the loop
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // return the dictionary
+            return attribs;
+        }
+
 
         public void CreateOnlyVed(List<Sheet> dict)
         {
@@ -357,9 +443,8 @@ namespace TransmittalCreator.Services
         /// <param name="blockName"></param>
         /// <returns></returns>
         [CommandMethod("selb")]
-        public static ObjectIdCollection SelectDynamicBlockReferences(string blockName)
+        public static ObjectIdCollection SelectDynamicBlockReferences(string blockName="Формат")
         {
-
             Editor ed = Active.Editor;
             Database db = Active.Database;
             List<ObjectId> listObjectIds = new List<ObjectId>();
@@ -381,7 +466,6 @@ namespace TransmittalCreator.Services
                         ObjectId mSpaceId = SymbolUtilityServices.GetBlockModelSpaceId(db);
                         foreach (ObjectId anonymousBtrId in anonymousIds)
                         {
-
                             // open the model space BlockTableRecord
                             //var modelSpace = (BlockTableRecord)tr.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForRead);
 
@@ -394,7 +478,6 @@ namespace TransmittalCreator.Services
 
                             SymbolTableRecord symTableRecord =
                                 (SymbolTableRecord)trans.GetObject(anonymousBtrId, OpenMode.ForRead);
-
 
                             foreach (ObjectId id in blockRefIds)
                             {
