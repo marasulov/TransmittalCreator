@@ -125,6 +125,7 @@
     <Compile Include="Models\AttributModel.cs" />
     <Compile Include="Models\BlockModel.cs" />
     <Compile Include="Models\FileModel.cs" />
+    <Compile Include="Models\PrintModel.cs" />
     <Compile Include="Models\RelayCommand.cs" />
     <Compile Include="Models\Sheet.cs" />
     <Compile Include="Models\SpesSheetModel.cs" />

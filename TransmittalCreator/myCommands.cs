@@ -100,9 +100,8 @@ namespace TransmittalCreator
             
         }
 
-
         [CommandMethod("PlotCurrentLayout")]
-        public static void PlotCurrentLayout(string pdfFileName, Extents3d extents3d)
+        public static void PlotCurrentLayout(string pdfFileName, Extents3d extents3d, string formatValue)
         {
             // Get the current document and database, and start a transaction
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
@@ -134,15 +133,17 @@ namespace TransmittalCreator
 
                 acPlSetVdr.SetPlotPaperUnits(acPlSet, PlotPaperUnit.Millimeters);
                 // Set the plot type
-                Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
+                //Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
                 //Point3d minPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(minPoint3dWcs, false);
-                Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
+                //Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
                 //Point3d maxPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(maxPoint3dWcs, false);
                 //Extents2d points = new Extents2d(new Point2d(minPoint3d[0], minPoint3d[1]), new Point2d(maxPoint3d[0], maxPoint3d[1]));
                 //extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
                 PdfCreator pdfCreator = new PdfCreator(extents3d);
                 Extents2d points = pdfCreator.Extents3dToExtents2d();
                 bool isHor = pdfCreator.IsFormatHorizontal();
+                pdfCreator.GetBlockDimensions();
+                string canonName = pdfCreator.GetCanonNameByExtents();
 
                 //acDoc.Utility.TranslateCoordinates(point1, acWorld, acDisplayDCS, False);
                 acPlSetVdr.SetPlotWindowArea(acPlSet, points);
@@ -152,8 +153,8 @@ namespace TransmittalCreator
                 acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
                 // Center the plot
                 acPlSetVdr.SetPlotCentered(acPlSet, true);
-                string curCanonName = PdfCreator.GetLocalNameByAtrrValue();
-                acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", curCanonName);
+                //string curCanonName = PdfCreator.GetLocalNameByAtrrValue(formatValue);
+                acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", canonName);
                 //acPlSetVdr.SetCanonicalMediaName(acPlSet, curCanonName);
 
                 // Set the plot device to use
@@ -222,9 +223,59 @@ namespace TransmittalCreator
             }
         }
 
-        
+        [CommandMethod("SetDynamicBlkProperty")]
+        static public void SetDynamicBlkProperty()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor ed = doc.Editor;
 
-        [CommandMethod("Cttransm")]
+            PromptEntityOptions prEntOptions = new PromptEntityOptions(
+                "Выберите вставку динамического блока...");
+
+            PromptEntityResult prEntResult = ed.GetEntity(prEntOptions);
+
+            if (prEntResult.Status != PromptStatus.OK)
+            {
+                ed.WriteMessage("Ошибка...");
+                return;
+            }
+
+            using (Transaction Tx = db.TransactionManager.StartTransaction())
+            {
+                BlockReference bref = Tx.GetObject(
+                        prEntResult.ObjectId,
+                        OpenMode.ForWrite)
+                    as BlockReference;
+
+                double blockWidth = 0, blockHeidht = 0;
+                if (bref.IsDynamicBlock)
+                {
+                    DynamicBlockReferencePropertyCollection props =
+                        bref.DynamicBlockReferencePropertyCollection;
+
+                    foreach (DynamicBlockReferenceProperty prop in props)
+                    {
+                        object[] values = prop.GetAllowedValues();
+
+                        if (prop.PropertyName == "Ширина")
+                        {
+                            blockWidth = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                            ed.WriteMessage(blockWidth.ToString());
+                        }
+                        if (prop.PropertyName == "Высота")
+                        {
+                            blockHeidht = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                            ed.WriteMessage("\n{0}", blockHeidht.ToString());
+                        }
+                    }
+                }
+
+                Tx.Commit();
+            }
+        }
+
+        [CommandMethod("CtTransm")]
         public void ListAttributes()
         {
             Dictionary<string, string> attrList = new Dictionary<string, string>();
@@ -235,12 +286,11 @@ namespace TransmittalCreator
 
             if (window.isClicked == true)
             {
-
                 //var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
                 ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences(window.NameBlock.Text);
 
                 List<Sheet> dict = new List<Sheet>();
-                Dictionary<string, Extents3d> dictNamExtents3ds = new Dictionary<string, Extents3d>();
+                List<PrintModel> printModels = new List<PrintModel>();
 
                 BlockModel objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockModel;
                 BlockModel objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockModel;
@@ -259,25 +309,26 @@ namespace TransmittalCreator
                 using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
                 {
                     MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds, attributModel);
-                    MyCommands.GetExtentsNamePdf(Active.Editor, dictNamExtents3ds, tr, objectIds);
+                    MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, objectIds);
                     
                     if (window.transmittalCheckBox.IsChecked == true)
                     {
                         Utils utils = new Utils();
                         //utils.CreateOnlyVed(dict);
                         //utils.CreateOnlytrans(dict);
-
-                        foreach (KeyValuePair<string, Extents3d> kvp in dictNamExtents3ds)
+                        foreach (var printModel in printModels)
                         {
-                            PlotCurrentLayout(kvp.Key,kvp.Value);
+                            PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.FormatValue);
                         }
                     }
                     else
                     {
-                        Utils utils = new Utils();
-                        utils.CreateOnlyVed(dict);
-
-
+                        //Utils utils = new Utils();
+                        //utils.CreateOnlyVed(dict);
+                        foreach (var printModel in printModels)
+                        {
+                            PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.FormatValue);
+                        }
                     }
 
                     tr.Commit();
@@ -294,6 +345,171 @@ namespace TransmittalCreator
         {
             throw new NotImplementedException();
         }
+
+
+        #region из сети
+        [CommandMethod("BlockExt")]
+        public void BlockExt()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+            Editor ed = doc.Editor;
+            PromptEntityOptions enOpt =
+              new PromptEntityOptions("\nВыберите примитив: ");
+            PromptEntityResult enRes = ed.GetEntity(enOpt);
+            if (enRes.Status == PromptStatus.OK)
+            {
+                Extents3d blockExt =
+                  new Extents3d(Point3d.Origin, Point3d.Origin);
+                Matrix3d mat = Matrix3d.Identity;
+                using (Entity en =
+                  enRes.ObjectId.Open(OpenMode.ForRead) as Entity)
+                {
+                    GetBlockExtents(en, ref blockExt, ref mat);
+                }
+                string s =
+                  "MinPoint: " + blockExt.MinPoint.ToString() + " " +
+                  "MaxPoint: " + blockExt.MaxPoint.ToString();
+                ed.WriteMessage(s);
+                //------------------------------------------------------------
+                // Только для тестирования полученного габаритного контейнера
+                //------------------------------------------------------------
+                #region TestinExts
+                using (BlockTableRecord curSpace =
+                  doc.Database.CurrentSpaceId.Open(OpenMode.ForWrite) as BlockTableRecord)
+                {
+                    Point3dCollection pts = new Point3dCollection();
+                    pts.Add(blockExt.MinPoint);
+                    pts.Add(new Point3d(blockExt.MinPoint.X,
+                      blockExt.MaxPoint.Y, blockExt.MinPoint.Z));
+                    pts.Add(blockExt.MaxPoint);
+                    pts.Add(new Point3d(blockExt.MaxPoint.X,
+                      blockExt.MinPoint.Y, blockExt.MinPoint.Z));
+                    using (Polyline3d poly =
+                      new Polyline3d(Poly3dType.SimplePoly, pts, true))
+                    {
+                        curSpace.AppendEntity(poly);
+                    }
+                }
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Рекурсивное получение габаритного контейнера для выбранного примитива.
+        /// </summary>
+        /// <param name="en">Имя примитива</param>
+        /// <param name="ext">Габаритный контейнер</param>
+        /// <param name="mat">Матрица преобразования из системы координат блока в МСК.</param>
+        void GetBlockExtents(Entity en, ref Extents3d ext, ref Matrix3d mat)
+        {
+            if (!IsLayerOn(en.LayerId))
+                return;
+            if (en is BlockReference)
+            {
+                BlockReference bref = en as BlockReference;
+                Matrix3d matIns = mat * bref.BlockTransform;
+                using (BlockTableRecord btr =
+                  bref.BlockTableRecord.Open(OpenMode.ForRead) as BlockTableRecord)
+                {
+                    foreach (ObjectId id in btr)
+                    {
+                        using (DBObject obj = id.Open(OpenMode.ForRead) as DBObject)
+                        {
+                            Entity enCur = obj as Entity;
+                            if (enCur == null || enCur.Visible != true)
+                                continue;
+                            // Пропускаем неконстантные и невидимые определения атрибутов
+                            AttributeDefinition attDef = enCur as AttributeDefinition;
+                            if (attDef != null && (!attDef.Constant || attDef.Invisible))
+                                continue;
+                            GetBlockExtents(enCur, ref ext, ref matIns);
+                        }
+                    }
+                }
+                // Отдельно обрабатываем атрибуты блока
+                if (bref.AttributeCollection.Count > 0)
+                {
+                    foreach (ObjectId idAtt in bref.AttributeCollection)
+                    {
+                        using (AttributeReference attRef =
+                          idAtt.Open(OpenMode.ForRead) as AttributeReference)
+                        {
+                            if (!attRef.Invisible && attRef.Visible)
+                                GetBlockExtents(attRef, ref ext, ref mat);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (mat.IsUniscaledOrtho())
+                {
+                    using (Entity enTr = en.GetTransformedCopy(mat))
+                    {
+                        if (enTr is Dimension)
+                            (enTr as Dimension).RecomputeDimensionBlock(true);
+                        if (enTr is Table)
+                            (enTr as Table).RecomputeTableBlock(true);
+                        if (IsEmptyExt(ref ext))
+                        {
+                            try { ext = enTr.GeometricExtents; } catch { };
+                        }
+                        else
+                        {
+                            try { ext.AddExtents(enTr.GeometricExtents); } catch { };
+                        }
+                        return;
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        Extents3d curExt = en.GeometricExtents;
+                        curExt.TransformBy(mat);
+                        if (IsEmptyExt(ref ext))
+                            ext = curExt;
+                        else
+                            ext.AddExtents(curExt);
+                    }
+                    catch { }
+                    return;
+                }
+            }
+
+            return;
+
+        }
+        /// <summary>
+        /// Определяет видны ли объекты на слое, указанном его ObjectId.
+        /// </summary>
+        /// <param name="layerId">ObjectId слоя.</param>
+        /// <returns></returns>
+        bool IsLayerOn(ObjectId layerId)
+        {
+            using (LayerTableRecord ltr = layerId.Open(OpenMode.ForRead) as LayerTableRecord)
+            {
+                if (ltr.IsFrozen) return false;
+                if (ltr.IsOff) return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// Определят не пустой ли габаритный контейнер.
+        /// </summary>
+        /// <param name="ext">Габаритный контейнер.</param>
+        /// <returns></returns>
+        bool IsEmptyExt(ref Extents3d ext)
+        {
+            if (ext.MinPoint.DistanceTo(ext.MaxPoint) < Tolerance.Global.EqualPoint)
+                return true;
+            else
+                return false;
+        }
+
+
+        #endregion
     }
 
 }

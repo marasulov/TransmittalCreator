@@ -10,6 +10,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
+using TransmittalCreator.Models;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
 namespace TransmittalCreator.Services
@@ -182,28 +183,29 @@ namespace TransmittalCreator.Services
         /// <summary>
         /// find print area and pdf name by block id
         /// </summary>
-        public static Dictionary<string, Extents3d> GetExtentsNamePdf(Editor ed, Dictionary<string, Extents3d> dict, Transaction tr,
+        public static List<PrintModel> GetExtentsNamePdf(Editor ed, List<PrintModel> printModels, Transaction tr,
             ObjectIdCollection objectIdCollection)
         {
-            string sheetNumber = "";
+            string docNumber = "", formatValue="";
             foreach (ObjectId blkId in objectIdCollection)
             {
                 BlockReference blkRef = (BlockReference) tr.GetObject(blkId, OpenMode.ForRead);
 
                 BlockTableRecord btr = (BlockTableRecord) tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
-
+                
                 Extents3d extents3d = blkRef.GeometricExtents;
                 AttributeCollection attCol = blkRef.AttributeCollection;
                 var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-                sheetNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
-
-                ed.WriteMessage("\nBlock:{0} - {1} габариты {2} ", btr.Name, sheetNumber,extents3d.MinPoint.ToString());
+                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
+                formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
+                ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber,extents3d.MinPoint.ToString(), formatValue);
+                printModels.Add(new PrintModel(docNumber,formatValue,extents3d));
                 btr.Dispose();
 
-                dict[sheetNumber] = extents3d;
+                
             }
 
-            return dict;
+            return printModels;
         }
         //private string GetAttributeValue(string attrTag, AttributeCollection attCol)
         //{
