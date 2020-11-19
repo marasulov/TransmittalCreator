@@ -57,11 +57,6 @@ namespace TestConsole
                     matchCollections.Add(str2);
                 }
             }
-
-            
-            
-            
-            
             string list = GetWithIn(str);
             Console.ReadLine();
         }

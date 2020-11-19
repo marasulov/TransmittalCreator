@@ -9,6 +9,9 @@ using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.ViewModel;
@@ -19,23 +22,8 @@ using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 
 namespace TransmittalCreator
 {
-
-    // This class is instantiated by AutoCAD for each document when
-    // a command is called by the user the first time in the context
-    // of a given document. In other words, non static data in this class
-    // is implicitly per-document!
     public class MyCommands : Utils, IExtensionApplication
     {
-        // The CommandMethod attribute can be applied to any public  member 
-        // function of any public class.
-        // The function should take no arguments and return nothing.
-        // If the method is an intance member then the enclosing class is 
-        // intantiated for each document. If the member is a static member then
-        // the enclosing class is NOT intantiated.
-        //
-        // NOTE: CommandMethod has overloads where you can provide helpid and
-        // context menu.
-
         // Modal Command with localized name
         [CommandMethod("MyGroup", "MyCommand", "MyCommandLocal", CommandFlags.Modal)]
         public void MyCommand() // This method can have any name
@@ -58,6 +46,7 @@ namespace TransmittalCreator
             //PromptSelectionResult result = Application.DocumentManager.MdiActiveDocument.Editor.GetSelection();
             StandartCopier stdCopier = new StandartCopier();
             bool isCopied = stdCopier.CopyParamsFiles();
+            if(isCopied) Active.Editor.WriteMessage("Файлы {0}, {1} скопированы",stdCopier.Pc3Location,stdCopier.PmpLocation);
         }
 
         [CommandMethod("LISTATT")]
@@ -73,7 +62,7 @@ namespace TransmittalCreator
             if (res.Status != PromptStatus.OK)
                 return;
             string str = "";
-            string str1 = "sadsadsa";
+            string str1 = "";
             using (var tr = db.TransactionManager.StartTransaction())
             {
                 foreach (SelectedObject so in res.Value)
@@ -97,248 +86,287 @@ namespace TransmittalCreator
             }
             ed.WriteMessage(str);
             ed.WriteMessage(str1);
-            
+
         }
 
         [CommandMethod("PlotCurrentLayout")]
-        public static void PlotCurrentLayout(string pdfFileName, Extents3d extents3d, string formatValue)
+        public static void PlotCurrentLayout(string pdfFileName, PrintModel printModel)
         {
             // Get the current document and database, and start a transaction
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database acCurDb = acDoc.Database;
 
-            acDoc.SendStringToExecute("REGENALL ", true, false, true);
-            //short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
-            //Application.SetSystemVariable("BACKGROUNDPLOT", 0);
-
-            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+            short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
+            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+            try
             {
-                // Reference the Layout Manager
-                LayoutManager acLayoutMgr;
-                acLayoutMgr = LayoutManager.Current;
-                // Get the current layout and output its name in the Command Line window
-                Layout acLayout;
-                acLayout = acTrans.GetObject(acLayoutMgr.GetLayoutId(acLayoutMgr.CurrentLayout), OpenMode.ForRead) as Layout;
-
-                // Get the PlotInfo from the layout
-                PlotInfo acPlInfo = new PlotInfo();
-                acPlInfo.Layout = acLayout.ObjectId;
-
-                // Get a copy of the PlotSettings from the layout
-
-                PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
-                acPlSet.CopyFrom(acLayout);
-                // Update the PlotSettings object
-                PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
-
-                acPlSetVdr.SetPlotPaperUnits(acPlSet, PlotPaperUnit.Millimeters);
-                // Set the plot type
-                //Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
-                //Point3d minPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(minPoint3dWcs, false);
-                //Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
-                //Point3d maxPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(maxPoint3dWcs, false);
-                //Extents2d points = new Extents2d(new Point2d(minPoint3d[0], minPoint3d[1]), new Point2d(maxPoint3d[0], maxPoint3d[1]));
-                //extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
-                PdfCreator pdfCreator = new PdfCreator(extents3d);
-                Extents2d points = pdfCreator.Extents3dToExtents2d();
-                bool isHor = pdfCreator.IsFormatHorizontal();
-                pdfCreator.GetBlockDimensions();
-                string canonName = pdfCreator.GetCanonNameByExtents();
-
-                //acDoc.Utility.TranslateCoordinates(point1, acWorld, acDisplayDCS, False);
-                acPlSetVdr.SetPlotWindowArea(acPlSet, points);
-                acPlSetVdr.SetPlotType(acPlSet, Autodesk.AutoCAD.DatabaseServices.PlotType.Window);
-                // Set the plot scale
-                acPlSetVdr.SetUseStandardScale(acPlSet, false);
-                acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
-                // Center the plot
-                acPlSetVdr.SetPlotCentered(acPlSet, true);
-                //string curCanonName = PdfCreator.GetLocalNameByAtrrValue(formatValue);
-                acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", canonName);
-                //acPlSetVdr.SetCanonicalMediaName(acPlSet, curCanonName);
-
-                // Set the plot device to use
-                
-                // Set the plot info as an override since it will
-                // not be saved back to the layout
-                acPlInfo.OverrideSettings = acPlSet;
-                // Validate the plot info
-                PlotInfoValidator acPlInfoVdr = new PlotInfoValidator();
-                acPlInfoVdr.MediaMatchingPolicy = MatchingPolicy.MatchEnabled;
-                acPlInfoVdr.Validate(acPlInfo);
-
-
-                // Check to see if a plot is already in progress
-                if (PlotFactory.ProcessPlotState == ProcessPlotState.NotPlotting)
+                using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
                 {
-                    using (PlotEngine acPlEng = PlotFactory.CreatePublishEngine())
-                    {
-                        // Track the plot progress with a Progress dialog
-                        PlotProgressDialog acPlProgDlg = new PlotProgressDialog(false, 1, true);
-                        using (acPlProgDlg)
-                        {
-                            // Define the status messages to display when plotting starts
-                            acPlProgDlg.set_PlotMsgString(PlotMessageIndex.DialogTitle, "Plot Progress");
-                            acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelJobButtonMessage, "Cancel Job");
-                            acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelSheetButtonMessage, "Cancel Sheet");
-                            acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetSetProgressCaption, "Sheet Set Progress");
-                            acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetProgressCaption, "Sheet Progress");
-                            // Set the plot progress range
-                            acPlProgDlg.LowerPlotProgressRange = 0;
-                            acPlProgDlg.UpperPlotProgressRange = 100;
-                            acPlProgDlg.PlotProgressPos = 0;
-                            // Display the Progress dialog
-                            acPlProgDlg.OnBeginPlot();
-                            acPlProgDlg.IsVisible = true;
-                            // Start to plot the layout
-                            acPlEng.BeginPlot(acPlProgDlg, null);
-                            // Define the plot output
+                    // Reference the Layout Manager
+                    LayoutManager acLayoutMgr;
+                    acLayoutMgr = LayoutManager.Current;
+                    // Get the current layout and output its name in the Command Line window
+                    Layout acLayout;
+                    acLayout = acTrans.GetObject(acLayoutMgr.GetLayoutId(acLayoutMgr.CurrentLayout), OpenMode.ForRead) as Layout;
 
-                            acPlEng.BeginDocument(acPlInfo, acDoc.Name, null, 1, true, "d:\\myplot"+pdfFileName);
-                            // Display information about the current plot
-                            acPlProgDlg.set_PlotMsgString(PlotMessageIndex.Status, "Plotting: " + acDoc.Name + " - " + acLayout.LayoutName);
-                            // Set the sheet progress range
-                            acPlProgDlg.OnBeginSheet();
-                            acPlProgDlg.LowerSheetProgressRange = 0;
-                            acPlProgDlg.UpperSheetProgressRange = 100;
-                            acPlProgDlg.SheetProgressPos = 0;
-                            // Plot the first sheet/layout
-                            PlotPageInfo acPlPageInfo = new PlotPageInfo();
-                            acPlEng.BeginPage(acPlPageInfo, acPlInfo, true, null);
-                            acPlEng.BeginGenerateGraphics(null);
-                            acPlEng.EndGenerateGraphics(null);
-                            // Finish plotting the sheet/layout
-                            acPlEng.EndPage(null);
-                            acPlProgDlg.SheetProgressPos = 100;
-                            acPlProgDlg.OnEndSheet();
-                            // Finish plotting the document
-                            acPlEng.EndDocument(null);
-                            // Finish the plot
-                            acPlProgDlg.PlotProgressPos = 100;
-                            acPlProgDlg.OnEndPlot();
-                            acPlEng.EndPlot(null);
+                    // Get the PlotInfo from the layout
+                    PlotInfo acPlInfo = new PlotInfo();
+                    acPlInfo.Layout = acLayout.ObjectId;
+
+                    // Get a copy of the PlotSettings from the layout
+
+                    PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
+                    acPlSet.CopyFrom(acLayout);
+                    // Update the PlotSettings object
+                    PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
+
+                    //acPlSetVdr.SetPlotPaperUnits(acPlSet, PlotPaperUnit.Millimeters);
+                    // Set the plot type
+                    //Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
+                    //Point3d minPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(minPoint3dWcs, false);
+                    //Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
+                    //Point3d maxPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(maxPoint3dWcs, false);
+                    //Extents2d points = new Extents2d(new Point2d(minPoint3d[0], minPoint3d[1]), new Point2d(maxPoint3d[0], maxPoint3d[1]));
+                    //extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
+                    //PdfCreator pdfCreator = new PdfCreator(extents3d);
+
+                    Extents2d points = new Extents2d(printModel.BlockPosition, printModel.BlockDimensions);
+
+                    bool isHor = printModel.IsFormatHorizontal();
+                    //pdfCreator.GetBlockDimensions();
+                    string canonName = printModel.GetCanonNameByExtents();
+
+                    //acDoc.Utility.TranslateCoordinates(point1, acWorld, acDisplayDCS, False);
+                    acPlSetVdr.SetPlotWindowArea(acPlSet, points);
+                    acPlSetVdr.SetPlotType(acPlSet, Autodesk.AutoCAD.DatabaseServices.PlotType.Window);
+                    if (!isHor)
+                        acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees090);
+                    acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees000);
+                    // Set the plot scale
+                    acPlSetVdr.SetUseStandardScale(acPlSet, false);
+                    acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
+                    // Center the plot
+                    acPlSetVdr.SetPlotCentered(acPlSet, true);
+                    //acPlSetVdr.SetClosestMediaName(acPlSet,printModel.width,printModel.height,PlotPaperUnit.Millimeters,true);
+                    //string curCanonName = PdfCreator.GetLocalNameByAtrrValue(formatValue);
+                    acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", canonName);
+                    //acPlSetVdr.SetCanonicalMediaName(acPlSet, curCanonName);
+
+                    // Set the plot device to use
+
+                    // Set the plot info as an override since it will
+                    // not be saved back to the layout
+                    acPlInfo.OverrideSettings = acPlSet;
+                    // Validate the plot info
+                    PlotInfoValidator acPlInfoVdr = new PlotInfoValidator();
+                    acPlInfoVdr.MediaMatchingPolicy = MatchingPolicy.MatchEnabled;
+                    acPlInfoVdr.Validate(acPlInfo);
+
+                    // Check to see if a plot is already in progress
+                    if (PlotFactory.ProcessPlotState == ProcessPlotState.NotPlotting)
+                    {
+                        using (PlotEngine acPlEng = PlotFactory.CreatePublishEngine())
+                        {
+                            // Track the plot progress with a Progress dialog
+                            PlotProgressDialog acPlProgDlg = new PlotProgressDialog(false, 1, true);
+                            using (acPlProgDlg)
+                            {
+                                // Define the status messages to display when plotting starts
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.DialogTitle, "Plot Progress");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelJobButtonMessage, "Cancel Job");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelSheetButtonMessage, "Cancel Sheet");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetSetProgressCaption, "Sheet Set Progress");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetProgressCaption, "Sheet Progress");
+                                // Set the plot progress range
+                                acPlProgDlg.LowerPlotProgressRange = 0;
+                                acPlProgDlg.UpperPlotProgressRange = 100;
+                                acPlProgDlg.PlotProgressPos = 0;
+                                // Display the Progress dialog
+                                acPlProgDlg.OnBeginPlot();
+                                acPlProgDlg.IsVisible = true;
+                                // Start to plot the layout
+                                acPlEng.BeginPlot(acPlProgDlg, null);
+                                // Define the plot output
+                                string filename = Path.Combine(Path.GetDirectoryName(acDoc.Name), pdfFileName);
+                                Active.Editor.WriteMessage(filename);
+
+                                acPlEng.BeginDocument(acPlInfo, acDoc.Name, null, 1, true, filename);
+                                // Display information about the current plot
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.Status, "Plotting: " + acDoc.Name + " - " + acLayout.LayoutName);
+                                // Set the sheet progress range
+                                acPlProgDlg.OnBeginSheet();
+                                acPlProgDlg.LowerSheetProgressRange = 0;
+                                acPlProgDlg.UpperSheetProgressRange = 100;
+                                acPlProgDlg.SheetProgressPos = 0;
+                                // Plot the first sheet/layout
+                                PlotPageInfo acPlPageInfo = new PlotPageInfo();
+                                acPlEng.BeginPage(acPlPageInfo, acPlInfo, true, null);
+                                acPlEng.BeginGenerateGraphics(null);
+                                acPlEng.EndGenerateGraphics(null);
+                                // Finish plotting the sheet/layout
+                                acPlEng.EndPage(null);
+                                acPlProgDlg.SheetProgressPos = 100;
+                                acPlProgDlg.OnEndSheet();
+                                // Finish plotting the document
+                                acPlEng.EndDocument(null);
+                                // Finish the plot
+                                acPlProgDlg.PlotProgressPos = 100;
+                                acPlProgDlg.OnEndPlot();
+                                acPlEng.EndPlot(null);
+                            }
                         }
                     }
                 }
             }
+            catch (Autodesk.AutoCAD.Runtime.Exception e)
+            {
+                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(e.Message);
+                throw;
+            }
+           
         }
 
-        [CommandMethod("SetDynamicBlkProperty")]
-        static public void SetDynamicBlkProperty()
+        [CommandMethod("CreateTranspdf")]
+        public void CreateTransmittalAndPDF()
         {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-            Editor ed = doc.Editor;
+            List<Sheet> dict = new List<Sheet>();
+            List<PrintModel> printModels = new List<PrintModel>();
+            Active.Document.SendStringToExecute("REGENALL ", true, false, true);
 
-            PromptEntityOptions prEntOptions = new PromptEntityOptions(
-                "Выберите вставку динамического блока...");
-
-            PromptEntityResult prEntResult = ed.GetEntity(prEntOptions);
-
-            if (prEntResult.Status != PromptStatus.OK)
+            using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                ed.WriteMessage("Ошибка...");
-                return;
-            }
+                TypedValue[] filList = new TypedValue[1] { new TypedValue((int)DxfCode.Start, "INSERT") };
+                SelectionFilter filter = new SelectionFilter(filList);
+                PromptSelectionOptions opts = new PromptSelectionOptions();
+                opts.MessageForAdding = "Select block references: ";
+                PromptSelectionResult res = Active.Editor.GetSelection(opts, filter);
 
-            using (Transaction Tx = db.TransactionManager.StartTransaction())
-            {
-                BlockReference bref = Tx.GetObject(
-                        prEntResult.ObjectId,
-                        OpenMode.ForWrite)
-                    as BlockReference;
+                if (res.Status != PromptStatus.OK)
+                    throw new ArgumentException("Надо выбрать блок");
+                SelectionSet selSet = res.Value;
+                ObjectId[] idArrayTemp = selSet.GetObjectIds();
 
-                double blockWidth = 0, blockHeidht = 0;
-                if (bref.IsDynamicBlock)
+                //idArray.Select(id => (BlockReference) tr.GetObject(id, OpenMode.ForRead))
+                //    .Where(br =>
+                //        ((BlockTableRecord) tr.GetObject(br.DynamicBlockTableRecord, OpenMode.ForRead)).Name ==
+                //        "Формат")
+                //    .Select(br => br.ObjectId);
+
+                ObjectIdCollection idArray = new ObjectIdCollection();
+                foreach (var objectId in idArrayTemp)
                 {
-                    DynamicBlockReferencePropertyCollection props =
-                        bref.DynamicBlockReferencePropertyCollection;
-
-                    foreach (DynamicBlockReferenceProperty prop in props)
-                    {
-                        object[] values = prop.GetAllowedValues();
-
-                        if (prop.PropertyName == "Ширина")
-                        {
-                            blockWidth = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                            ed.WriteMessage(blockWidth.ToString());
-                        }
-                        if (prop.PropertyName == "Высота")
-                        {
-                            blockHeidht = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                            ed.WriteMessage("\n{0}", blockHeidht.ToString());
-                        }
-                    }
-                }
-
-                Tx.Commit();
-            }
-        }
-
-        [CommandMethod("CtTransm")]
-        public void ListAttributes()
-        {
-            Dictionary<string, string> attrList = new Dictionary<string, string>();
-
-            MainWindow window = new MainWindow(new BlockViewModel(attrList));
-
-            Application.ShowModalWindow(window);
-
-            if (window.isClicked == true)
-            {
-                //var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
-                ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences(window.NameBlock.Text);
-
-                List<Sheet> dict = new List<Sheet>();
-                List<PrintModel> printModels = new List<PrintModel>();
-
-                BlockModel objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockModel;
-                BlockModel objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockModel;
-
-                BlockModel position = window.ComboBoxPosition.SelectedItem as BlockModel;
-                BlockModel nomination = window.ComboBoxNomination.SelectedItem as BlockModel;
-                BlockModel comment = window.ComboBoxComment.SelectedItem as BlockModel;
-                BlockModel trItem = window.ComboBoxTrItem.SelectedItem as BlockModel;
-                BlockModel trDocNumber = window.ComboBoxTrDocNumber.SelectedItem as BlockModel;
-                BlockModel trDocTitleEn = window.ComboBoxTrDocTitleEn.SelectedItem as BlockModel;
-                BlockModel trDocTitleRu = window.ComboBoxTrDocTitleRu.SelectedItem as BlockModel;
-
-                AttributModel attributModel = new AttributModel(objectNameEn, objectNameRu, position, nomination,
-                    comment, trItem, trDocNumber, trDocTitleEn, trDocTitleRu);
-
-                using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-                {
-                    MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds, attributModel);
-                    MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, objectIds);
                     
-                    if (window.transmittalCheckBox.IsChecked == true)
-                    {
-                        Utils utils = new Utils();
-                        //utils.CreateOnlyVed(dict);
-                        //utils.CreateOnlytrans(dict);
-                        foreach (var printModel in printModels)
-                        {
-                            PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.FormatValue);
-                        }
-                    }
-                    else
-                    {
-                        //Utils utils = new Utils();
-                        //utils.CreateOnlyVed(dict);
-                        foreach (var printModel in printModels)
-                        {
-                            PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.FormatValue);
-                        }
-                    }
+                    BlockReference blRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
+                    BlockTableRecord block = tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+                    string blockName= block.Name;
 
-                    tr.Commit();
+                    if (blockName == "Формат" | blockName == "ФорматМ25") idArray.Add(objectId);
+
+                    Active.Document.Editor.WriteMessage(blockName);
                 }
+                
+                MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, idArray);
+                //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
+
+                Utils utils = new Utils();
+                utils.CreateOnlyVed(dict);
+                utils.CreateJsonFile(dict);
+
+                foreach (var printModel in printModels)
+                {
+                    Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
+                    PlotCurrentLayout(printModel.DocNumber, printModel);
+                }
+
+                //utils.CreateOnlytrans(dict);
+
+                tr.Commit();
             }
         }
+
+
+
+        //[CommandMethod("CtTransm")]
+        //public void ListAttributes()
+        //{
+        //    //Dictionary<string, string> attrList = new Dictionary<string, string>();
+
+        //    //MainWindow window = new MainWindow(new BlockViewModel(attrList));
+
+        //    //Application.ShowModalWindow(window);
+
+        //    //if (window.isClicked == true)
+        //    //{
+        //    //var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
+        //    ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+
+        //    List<Sheet> dict = new List<Sheet>();
+        //    List<PrintModel> printModels = new List<PrintModel>();
+
+        //    //BlockModel objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockModel;
+        //    //BlockModel objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockModel;
+
+        //    //BlockModel position = window.ComboBoxPosition.SelectedItem as BlockModel;
+        //    //BlockModel nomination = window.ComboBoxNomination.SelectedItem as BlockModel;
+        //    //BlockModel comment = window.ComboBoxComment.SelectedItem as BlockModel;
+        //    //BlockModel trItem = window.ComboBoxTrItem.SelectedItem as BlockModel;
+        //    //BlockModel trDocNumber = window.ComboBoxTrDocNumber.SelectedItem as BlockModel;
+        //    //BlockModel trDocTitleEn = window.ComboBoxTrDocTitleEn.SelectedItem as BlockModel;
+        //    //BlockModel trDocTitleRu = window.ComboBoxTrDocTitleRu.SelectedItem as BlockModel;
+
+        //    //AttributModel attributModel = new AttributModel(objectNameEn, objectNameRu, position, nomination,
+        //    //    comment, trItem, trDocNumber, trDocTitleEn, trDocTitleRu);
+
+        //    using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+        //    {
+        //        //MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds);
+        //        //MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, objectIds);
+
+        //        //if (window.transmittalCheckBox.IsChecked == true)
+        //        //{
+        //            Utils utils = new Utils();
+        //            //utils.CreateOnlyVed(dict);
+        //            //utils.CreateOnlytrans(dict);
+        //            foreach (var printModel in printModels)
+        //            {
+        //                //PlotCurrentLayout(printModel.DocNumber, printModel., printModel.FormatValue);
+        //            }
+        //        //}
+        //        //else
+        //        //{
+        //        //    //Utils utils = new Utils();
+        //        //    //utils.CreateOnlyVed(dict);
+        //        //    foreach (var printModel in printModels)
+        //        //    {
+        //        //        //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.FormatValue);
+        //        //    }
+        //        //}
+
+        //        tr.Commit();
+        //    }
+        //    //}
+        //}
 
         public void Initialize()
         {
-            throw new NotImplementedException();
+            StandartCopier standartCopier = new StandartCopier();
+            if (!File.Exists(standartCopier.Pc3Location) & !File.Exists(standartCopier.PmpLocation))
+            {
+                bool isCopied = standartCopier.CopyParamsFiles();
+                if (isCopied) Active.Editor.WriteMessage("Файлы {0}, {1} скопированы", standartCopier.Pc3Location, standartCopier.PmpLocation);
+                else
+                {
+                    
+                    Active.Editor.WriteMessage("Не удалось скопировать файлы настройки, скопируйте с сервера \\\\uz-fs\\install\\CAD\\Blocks файлы {0}  в {1} и {2} ",
+                        standartCopier.Pc3Dest, standartCopier.Pc3Location, standartCopier.PmpLocation);
+                }
+            }
+            else
+            {
+                Active.Editor.WriteMessage("Файлы настройки присутствуют, для перевода в pdf наберите CreateTranspdf");
+            }
+            Active.Editor.WriteMessage("Файлы настройки присутствуют, для перевода в pdf наберите CreateTranspdf");
         }
 
         public void Terminate()

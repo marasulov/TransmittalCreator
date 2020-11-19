@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing.Text;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -8,8 +9,10 @@ using System.Threading.Tasks;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
+using Newtonsoft.Json;
 using TransmittalCreator.Models;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
@@ -58,7 +61,6 @@ namespace TransmittalCreator.Services
                         Active.Editor.WriteMessage(str);
                     }
                 }
-
                 tr.Commit();
             }
             catch (Autodesk.AutoCAD.Runtime.Exception ex)
@@ -73,7 +75,57 @@ namespace TransmittalCreator.Services
             return (blockName, attrList);
         }
 
+        public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Transaction tr, ObjectIdCollection idArray)
+        {
 
+            // Build a filter list so that only
+            // block references are selected
+            
+            string sheetNumber = "", docNumber = "", objectNameEng = "", docTitleEng = "", objectNameRu = "", docTitleRu = "";
+
+            foreach (ObjectId blkId in idArray)
+            {
+                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+
+                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
+                ed.WriteMessage("\nBlock: " + btr.Name);
+                btr.Dispose();
+                AttributeCollection attCol = blkRef.AttributeCollection;
+                string str = "";
+
+                foreach (ObjectId attId in attCol)
+                {
+                    AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
+                    bool vis = attRef.Visible;
+                    //ed.WriteMessage("\n{0} значение {1} видимость {2}", attRef.Tag, attRef.TextString, vis.ToString());
+                    switch (attRef.Tag)
+                    {
+                        case "НОМЕР_ЛИСТА":
+                            docNumber = attRef.TextString;
+                            break;
+                        case "НАЗВАНИЕEN":
+                            objectNameEng = attRef.TextString;
+                            break;
+                        case "ЛИСТEN":
+                            docTitleEng = attRef.TextString;
+                            break;
+                        case "НАЗВАНИЕRU":
+                            objectNameRu = attRef.TextString;
+                            break;
+                        case "НАЗВАНИЕ_ЛИСТАRU":
+                            docTitleRu = attRef.TextString;
+                            break;
+                        case "ЛИСТ":
+                            sheetNumber = attRef.TextString;
+                            break;
+                    }
+                }
+
+                dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu));
+            }
+
+            return dict;
+        }
 
         /// <summary>
         /// создает колекцию листов из блоков штампа
@@ -122,6 +174,7 @@ namespace TransmittalCreator.Services
                 btr.Dispose();
 
                 AttributeCollection attCol = blkRef.AttributeCollection;
+                
 
                 var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
                 
@@ -193,16 +246,15 @@ namespace TransmittalCreator.Services
 
                 BlockTableRecord btr = (BlockTableRecord) tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
                 
-                Extents3d extents3d = blkRef.GeometricExtents;
-                AttributeCollection attCol = blkRef.AttributeCollection;
-                var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
-                formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
-                ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber,extents3d.MinPoint.ToString(), formatValue);
-                printModels.Add(new PrintModel(docNumber,formatValue,extents3d));
-                btr.Dispose();
-
+                Point2d posPoint2d = new Point2d(blkRef.Position.X, blkRef.Position.Y);
                 
+                var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
+                
+                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
+                //formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
+                //ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber, posPoint2d.ToString(), formatValue);
+                printModels.Add(new PrintModel(docNumber,blkId));
+                btr.Dispose();
             }
 
             return printModels;
@@ -218,7 +270,24 @@ namespace TransmittalCreator.Services
         //    }
         //}
 
+        public void CreateJsonFile(List<Sheet> dict)
+        {
+            dict = dict.OrderBy(x => x.SheetNumber).ToList();
+            string json = JsonConvert.SerializeObject(dict, Formatting.Indented);
+            string path = DrawingPath();
+            string dirName = Path.GetDirectoryName(path);
+            string pathExtension = Path.GetFileNameWithoutExtension(path) + ".json";
+            string jsonFile = Path.Combine(dirName, pathExtension);
+            System.IO.File.WriteAllText(jsonFile, json);
+        }
 
+        private static string DrawingPath()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            HostApplicationServices hs = HostApplicationServices.Current;
+            string path = hs.FindFile(doc.Name, doc.Database, FindFileHint.Default);
+            return path;
+        }
         public static Dictionary<string, string> GetAttribs(string blockName, string tag)
         {
             // create a new instance of Dictionary<string, string>
@@ -282,20 +351,12 @@ namespace TransmittalCreator.Services
         {
             Editor ed = Active.Editor;
             Transaction tr = Active.Database.TransactionManager.StartTransaction();
-
-
             // Start the transaction
-
             try
             {
-
                 //GetSheetsFromBlocks(ed, dict, tr);
-
-
                 CreateTableFromList(dict);
-
                 tr.Commit();
-
             }
             catch (Autodesk.AutoCAD.Runtime.Exception ex)
             {
@@ -306,27 +367,21 @@ namespace TransmittalCreator.Services
                 tr.Dispose();
             }
         }
-
         public void CreateOnlytrans(List<Sheet> dict)
         {
             Editor ed = Active.Editor;
             //Transaction tr = Active.Database.TransactionManager.StartTransaction();
-
             // Start the transaction
-
             try
             {
                 //GetSheetsFromBlocks(ed, dict, tr);
-
                 //tr.Commit();
-
                 Sheet.WriteToExcel(dict);
             }
             catch (Autodesk.AutoCAD.Runtime.Exception ex)
             {
                 ed.WriteMessage(("Exception: " + ex.Message + " " + ex.InnerException));
             }
-
         }
 
         public void CreateTableFromList(List<Sheet> dict)
@@ -334,75 +389,51 @@ namespace TransmittalCreator.Services
             dict = dict.OrderBy(x => x.SheetNumber).ToList();
             Database db = Active.Database;
             Editor ed = Active.Editor;
-
-
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
-
                 PromptPointResult pr = ed.GetPoint("\nEnter table insertion point: ");
                 BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
                 ObjectId msId = bt[BlockTableRecord.ModelSpace];
-
                 BlockTableRecord btr = (BlockTableRecord)tr.GetObject(msId, OpenMode.ForWrite);
-
                 Table tb = new Table();
                 tb.TableStyle = db.Tablestyle;
-
                 //tb.TableStyle = db.Tablestyle;
                 btr.AppendEntity(tb);
-
                 // Число строк
                 int RowsNum = dict.Count;
                 // Число столбцов
                 int ColumnsNum = 3;
-
                 // Высота строки
                 double rowheight = 8;
                 // Ширина столбца
                 double columnwidth = 15;
-
                 // Добавляем строки и колонки
                 tb.InsertRows(0, rowheight, RowsNum + 1);
                 tb.InsertColumns(0, columnwidth, ColumnsNum - 1);
-
                 tb.SetRowHeight(rowheight);
                 tb.SetColumnWidth(columnwidth);
-
                 tb.Position = pr.Value;
-
                 // Объединяем ячейки
                 CellRange range = CellRange.Create(tb, 0, 0, 0, 2);
                 tb.MergeCells(range);
-
                 range.Borders.Top.IsVisible = false;
                 range.Borders.Bottom.IsVisible = true;
                 range.Borders.Left.IsVisible = false;
                 range.Borders.Right.IsVisible = false;
-
                 //var row = tb.Rows[RowsNum];
-
-
                 range = CellRange.Create(tb, 1, 1, 1, 2);
-
                 tb.UnmergeCells(range);
                 tb.Columns[0].Width = 15;
                 tb.Cells[0, 0].TextHeight = 5;
-
                 tb.Cells[0, 0].Alignment = CellAlignment.MiddleCenter;
                 tb.Cells[0, 0].TextString = "Ведомость рабочих чертежей основного комплекта";
-
-
                 var row = tb.Rows[RowsNum + 1];
                 tb.UnmergeCells(row);
                 tb.Cells[1, 0].TextString = "Лист";
-
                 tb.Columns[1].Width = 140;
                 tb.Cells[1, 1].TextString = "Наименование";
-
                 tb.Columns[2].Width = 30;
                 tb.Cells[1, 2].TextString = "Примечание";
-
-
                 //заполняем по одной все ячейки
                 int curRow = 2;
                 foreach (var item in dict)
@@ -414,15 +445,12 @@ namespace TransmittalCreator.Services
                         tb.Cells[curRow, 1].TextHeight = 3.5;
                         tb.Cells[curRow, 1].TextString = item.DocNumber + "_" + item.DocTitleRu;
                         tb.Cells[curRow, 1].Alignment = CellAlignment.MiddleLeft;
-
                         if (!string.IsNullOrEmpty(item.Comment))
                         {
                             tb.Cells[curRow, 2].TextHeight = 3.5;
                             tb.Cells[curRow, 2].TextString = item.Comment;
                             tb.Cells[curRow, 2].Alignment = CellAlignment.MiddleLeft;
                         }
-
-
                     }
                     //tb.Cells[curRow, 6].TextString = item.DocTitleEng;
                     //tb.Cells[curRow, 4].TextString = item.DocTitleRu;
@@ -430,7 +458,6 @@ namespace TransmittalCreator.Services
                 }
                 range = CellRange.Create(tb, RowsNum, 0, RowsNum, RowsNum);
                 tb.UnmergeCells(range);
-
                 tb.GenerateLayout();
                 tr.AddNewlyCreatedDBObject(tb, true);
                 tr.Commit();
@@ -438,6 +465,58 @@ namespace TransmittalCreator.Services
         }
 
 
+        [CommandMethod("SetDynamicBlkProperty")]
+        static public void SetDynamicBlkProperty()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor ed = doc.Editor;
+
+            PromptEntityOptions prEntOptions = new PromptEntityOptions("Выберите вставку динамического блока...");
+
+            PromptEntityResult prEntResult = ed.GetEntity(prEntOptions);
+
+            if (prEntResult.Status != PromptStatus.OK)
+            {
+                ed.WriteMessage("Ошибка...");
+                return;
+            }
+
+            using (Transaction Tx = db.TransactionManager.StartTransaction())
+            {
+                BlockReference bref = Tx.GetObject(prEntResult.ObjectId, OpenMode.ForWrite) as BlockReference;
+
+                double blockWidth = 0, blockHeidht = 0;
+                if (bref.IsDynamicBlock)
+                {
+                    DynamicBlockReferencePropertyCollection props = bref.DynamicBlockReferencePropertyCollection;
+
+                    foreach (DynamicBlockReferenceProperty prop in props)
+                    {
+                        object[] values = prop.GetAllowedValues();
+
+                        if (prop.PropertyName == "Штамп")
+                        {
+                            BlockTableRecord btr = (BlockTableRecord)Tx.GetObject(bref.BlockTableRecord, OpenMode.ForRead);
+                            btr.Dispose();
+
+                            AttributeCollection attCol = bref.AttributeCollection;
+                            var attrDict = AttributeExtensions.GetAttributesValues(bref);
+                            if (prop.Value == "Форма 3 ГОСТ Р 21.1101 - 2009")
+                                blockWidth = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                            ed.WriteMessage(blockWidth.ToString());
+                        }
+                        //if (prop.PropertyName == "Высота")
+                        //{
+                        //    blockHeidht = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                        //    ed.WriteMessage("\n{0}", blockHeidht.ToString());
+                        //}
+                    }
+                }
+
+                Tx.Commit();
+            }
+        }
 
         /// <summary>
         /// select from model dynblocks byName
@@ -530,8 +609,6 @@ namespace TransmittalCreator.Services
             }
         }
 
-
-
         [CommandMethod("blockName")]
         static public void GetBlockName()
         {
@@ -568,33 +645,5 @@ namespace TransmittalCreator.Services
         }
     }
 
-    public static class AttributeExtensions
-    {
-        public static IEnumerable<AttributeReference> GetAttributes(this AttributeCollection attribs)
-        {
-            foreach (ObjectId id in attribs)
-            {
-                yield return (AttributeReference)id.GetObject(OpenMode.ForRead, false, false);
-            }
-        }
 
-        public static Dictionary<string, string> GetAttributesValues(this BlockReference br)
-        {
-            return br.AttributeCollection
-                .GetAttributes()
-                .ToDictionary(att => att.Tag, att => att.TextString);
-        }
-
-        public static void SetAttributesValues(this BlockReference br, Dictionary<string, string> atts)
-        {
-            foreach (AttributeReference attRef in br.AttributeCollection.GetAttributes())
-            {
-                if (atts.ContainsKey(attRef.Tag))
-                {
-                    attRef.UpgradeOpen();
-                    attRef.TextString = atts[attRef.Tag];
-                }
-            }
-        }
-    }
 }

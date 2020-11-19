@@ -73,8 +73,9 @@
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\AutoCAD 2019\acmgd.dll</HintPath>
     </Reference>
     <Reference Include="DV2177.Common">
-      <HintPath>D:\soft\sharp\DV2177_Code\source\DV2177.Common\bin\Debug\DV2177.Common.dll</HintPath>
+      <HintPath>E:\docs\sharp\DV2177_Code\source\DV2177.Delegates\bin\Debug\DV2177.Common.dll</HintPath>
       <Private>True</Private>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="EPPlus, Version=5.4.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.5.4.0\lib\net45\EPPlus.dll</HintPath>
@@ -95,6 +96,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ComponentModel.Annotations.4.7.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
@@ -138,6 +140,7 @@
     <Compile Include="myCommands.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AttributeExtensions.cs" />
     <Compile Include="Services\Params.cs" />
     <Compile Include="Services\PdfCreator.cs" />
     <Compile Include="Services\StandartCopier.cs" />

@@ -13,10 +13,10 @@ namespace TransmittalCreator.Services
         private string pathEnvPc3Dir = HostApplicationServices.Current.GetEnvironmentVariable("PrinterConfigDir");
         private string pathEnvPmpDir = HostApplicationServices.Current.GetEnvironmentVariable("PrinterDescDir");
 
-        private string Pc3Dest { get; set; }
-        private string PmpDest { get; set; }
-        private string Pc3Location { get; set; }
-        private string PmpLocation { get; set; }
+        public string Pc3Dest { get; set; }
+        public string PmpDest { get; set; }
+        public string Pc3Location { get; set; }
+        public string PmpLocation { get; set; }
 
 
         public StandartCopier()
@@ -32,19 +32,17 @@ namespace TransmittalCreator.Services
             string locationFolder = Path.GetDirectoryName(confFile);
             this.Pc3Location = Path.Combine(locationFolder, pParams.Pc3);
             this.PmpLocation = Path.Combine(locationFolder, pParams.Pmp);
-
-
         }
 
         public bool CopyParamsFiles()
         {
-            if (!File.Exists(this.Pc3Dest)) FileCopy(this.Pc3Location, this.Pc3Dest);
-            if (!File.Exists(this.PmpDest)) FileCopy(this.PmpLocation, this.PmpDest);
+            if (!File.Exists(this.Pc3Dest)) IsFileCopied(this.Pc3Location, this.Pc3Dest);
+            if (!File.Exists(this.PmpDest)) IsFileCopied(this.PmpLocation, this.PmpDest);
 
             return true;
         }
 
-        private bool FileCopy(string location, string destination )
+        private bool IsFileCopied(string location, string destination )
         {
             try
             {
