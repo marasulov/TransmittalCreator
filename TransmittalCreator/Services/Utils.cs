@@ -16,6 +16,8 @@ using Newtonsoft.Json;
 using TransmittalCreator.Models;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
+using Db = Autodesk.AutoCAD.DatabaseServices;
+
 namespace TransmittalCreator.Services
 {
     public class Utils
@@ -230,7 +232,17 @@ namespace TransmittalCreator.Services
         }
 
 
-
+        public static Db.Database CreateDatabaseFromTemplate(String templateName, String password)
+        {
+            if (templateName == null || templateName.Trim() == String.Empty) return null;
+            Db.Database templateDb = new Db.Database(false, true);
+            if (password == null) password = String.Empty;
+            templateDb.ReadDwgFile(Environment.ExpandEnvironmentVariables(templateName),
+                Db.FileOpenMode.OpenForReadAndWriteNoShare, true, password);
+            templateDb.CloseInput(true);
+            Db.Database result = templateDb.Wblock();
+            return result;
+        }
 
 
         /// <summary>
