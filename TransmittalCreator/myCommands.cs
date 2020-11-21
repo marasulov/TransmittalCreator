@@ -31,21 +31,21 @@ namespace TransmittalCreator
         [CommandMethod("MyGroup", "MyCommand", "MyCommandLocal", CommandFlags.Modal)]
         public void MyCommand() // This method can have any name
         {
-            // Put your command code here
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Editor ed;
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            var db = doc.Database;
+            var ed = doc.Editor;
 
-            var opts = new PromptSelectionOptions();
-            opts.MessageForAdding = "Select block references: [Abbb Baaa]"; 
+            var promptResult = ed.GetString("\nEnter the parameter: [[Acc] [Baaa]]");
+            if (promptResult.Status != PromptStatus.OK)
+                return;
             
-                ed = doc.Editor;
-                ed.WriteMessage("Hello, this is your first command.helooooooo");
+            ed.WriteMessage(promptResult.StringResult);
+            //doc.SendStringToExecute("MyCommand " +  "\n", false, false, false);
 
-            
         }
 
         // Modal Command with pickfirst selection
-        [CommandMethod("MyGroup", "MyPickFirst", "MyPickFirstLocal", CommandFlags.Modal | CommandFlags.UsePickSet)]
+        [CommandMethod("MyGroup1", "MyPickFirst", "MyPickFirstLocal", CommandFlags.Modal | CommandFlags.UsePickSet)]
         public void MyPickFirst() // This method can have any name
         {
             //PromptSelectionResult result = Application.DocumentManager.MdiActiveDocument.Editor.GetSelection();
