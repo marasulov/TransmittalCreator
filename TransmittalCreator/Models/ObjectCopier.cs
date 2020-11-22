@@ -25,6 +25,7 @@ namespace TransmittalCreator.Models
         public ObjectCopier()
         {
 
+
         }
     }
 }
