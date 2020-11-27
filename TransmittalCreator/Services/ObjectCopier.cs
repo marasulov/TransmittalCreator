@@ -109,7 +109,7 @@ namespace TransmittalCreator.Services
             // Get the current document and database
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database acCurDb = acDoc.Database;
-            
+
             // Lock the new document
             try
             {
@@ -188,7 +188,7 @@ namespace TransmittalCreator.Services
             // Get the current document and database
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database acCurDb = acDoc.Database;
-            
+
             // Change the file and path to match a drawing template on your workstation
             string sLocalRoot = Application.GetSystemVariable("LOCALROOTPREFIX") as string;
             string sTemplatePath = sLocalRoot + "Template\\acadiso.dwt";
@@ -197,7 +197,7 @@ namespace TransmittalCreator.Services
             Document acNewDoc = acDocMgr.Add(sTemplatePath);
             Database acDbNewDoc = acNewDoc.Database;
 
-            
+
             acDocMgr.MdiActiveDocument = acNewDoc;
             // Lock the new document
             using (DocumentLock acLckDoc = acNewDoc.LockDocument())
@@ -224,20 +224,17 @@ namespace TransmittalCreator.Services
                 // Unlock the document
             }
             // Set the new document current
-            
+
             dynamic acadApp = Autodesk.AutoCAD.ApplicationServices.Application.AcadApplication;
             acadApp.ZoomExtents();
             //Active.Document.SendStringToExecute("_.zoom _all ", true, true, false);
-            
-            acDbNewDoc.SaveAs(dwgFilename,DwgVersion.Current);
+
+            acDbNewDoc.SaveAs(dwgFilename, DwgVersion.Current);
             acDocMgr.MdiActiveDocument = acNewDoc;
             //acNewDoc.CloseAndDiscard();
 
             acDocMgr.MdiActiveDocument = acDoc;
-            
+
         }
-
-
-       
-  }
+    }
 }

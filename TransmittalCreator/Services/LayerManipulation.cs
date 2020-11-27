@@ -9,88 +9,52 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 
-[assembly: PerDocumentClass(typeof(TransmittalCreator.Services.UnlockCommands))]
 namespace TransmittalCreator.Services
 {
-    public class UnlockCommands : System.IDisposable
+    public static class LayerManipulation
     {
-        public const string RecordName = "TtifLayerUnlockData";
-        // Map commands to layers to unlock and relock
-        public Dictionary<string, ObjectIdCollection> CommandMap =
-          new Dictionary<string, ObjectIdCollection>();
-        private Document _doc = null;
-        private bool _disposed = false;
-        // Constructor
-        public UnlockCommands(Document doc)
+        public static Dictionary<ObjectId, bool> GetLayersIsBlockedCol()
         {
-            _doc = doc;
-            doc.UserData.Add(RecordName, this);
-            // Add our command handlers
-            doc.CommandWillStart += OnCommandWillStart;
-            doc.CommandEnded += OnCommandEnded;
-            doc.CommandCancelled += OnCommandEnded;
-            doc.CommandFailed += OnCommandEnded;
-        }
-        void OnCommandWillStart(object sender, CommandEventArgs e)
-        {
-            var doc = (Document)sender;
-            var uc = doc.UserData[UnlockCommands.RecordName] as UnlockCommands;
-            // If the command ending is in our list, unlock the layer(s)
-            if (uc != null && uc.CommandMap.ContainsKey(e.GlobalCommandName))
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            var db = doc.Database;
+            var ed = doc.Editor;
+            // A list of the layers' names & IDs contained
+            // in the current database, sorted by layer name
+            Dictionary<ObjectId, bool> layersIsBlockedCol = new Dictionary<ObjectId, bool>();
+            // A list of the selected layers' IDs
+            var lids = new ObjectIdCollection();
+            // Start by populating the list of names/IDs
+            // from the LayerTable
+            using (var tr = db.TransactionManager.StartOpenCloseTransaction())
             {
-                doc.LockOrUnlockLayers(false, uc.CommandMap[e.GlobalCommandName], false);
+                var lt = (LayerTable)tr.GetObject(db.LayerTableId, OpenMode.ForRead);
+                foreach (ObjectId lid in lt)
+                {
+                    var ltr = (LayerTableRecord)tr.GetObject(lid, OpenMode.ForRead);
+                    layersIsBlockedCol.Add(lid, ltr.IsLocked);
+                }
             }
+            // Display a numbered list of the available layers
+            return layersIsBlockedCol;
         }
-        void OnCommandEnded(object sender, CommandEventArgs e)
-        {
-            var doc = (Document)sender;
-            var uc = doc.UserData[UnlockCommands.RecordName] as UnlockCommands;
-            // If the command ending is in our list, relock the layer(s)
-            if (uc != null && uc.CommandMap.ContainsKey(e.GlobalCommandName))
-            {
-                doc.LockOrUnlockLayers(true, uc.CommandMap[e.GlobalCommandName], false);
-            }
-        }
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-                return;
-            // Remove our command handlers
-            _doc.CommandWillStart -= OnCommandWillStart;
-            _doc.CommandEnded -= OnCommandEnded;
-            _doc.CommandCancelled -= OnCommandEnded;
-            _doc.CommandFailed += OnCommandEnded;
-            _disposed = true;
-        }
-    }
 
-    public static class Extensions
-    {
         public static void LockOrUnlockLayers(this Document doc, bool dolock,
             ObjectIdCollection layers = null, bool ignoreCurrent = true,
-            bool lockZero = false
-        )
+            bool lockZero = false)
         {
             var db = doc.Database;
             var ed = doc.Editor;
             using (var tr = db.TransactionManager.StartTransaction())
             {
-                var layerIds =
-                  (layers != null ? (IEnumerable)layers :
+                var layerIds = (layers != null ? (IEnumerable)layers :
                     (IEnumerable)tr.GetObject(db.LayerTableId, OpenMode.ForRead));
+
                 foreach (ObjectId ltrId in layerIds)
                 {
                     // Don't try to lock/unlock either the current layer or layer 0
                     // (depending on whether lockZero == true for the latter)
-                    if (
-                      (!ignoreCurrent || ltrId != db.Clayer) &&
-                      (lockZero || ltrId != db.LayerZero)
-                    )
+                    if ((!ignoreCurrent || ltrId != db.Clayer) &&
+                        (lockZero || ltrId != db.LayerZero))
                     {
                         // Open the layer for write and lock/unlock it
                         var ltr = (LayerTableRecord)tr.GetObject(ltrId, OpenMode.ForWrite);
@@ -105,6 +69,36 @@ namespace TransmittalCreator.Services
             ed.ApplyCurDwgLayerTableChanges();
             ed.Regen();
         }
+
+        public static void LockLayers(this Document doc, Dictionary<ObjectId, bool> layersLockDict)
+        {
+            var db = doc.Database;
+            var ed = doc.Editor;
+            using (var tr = db.TransactionManager.StartTransaction())
+            {
+                
+                //var layerIds = (layersLockDict.Keys != null ? (IEnumerable)layersLockDict.Keys :
+                //    (IEnumerable)tr.GetObject(db.LayerTableId, OpenMode.ForRead));
+
+                foreach ( KeyValuePair<ObjectId, bool> layerPos in layersLockDict)
+                {
+                    // Don't try to lock/unlock either the current layer or layer 0
+                    // (depending on whether lockZero == true for the latter)
+    
+                        // Open the layer for write and lock/unlock it
+                        var ltr = (LayerTableRecord)tr.GetObject(layerPos.Key, OpenMode.ForWrite);
+                        ltr.IsLocked = layerPos.Value;
+                        ltr.IsOff = ltr.IsOff; // This is needed to force a graphics update
+    
+                }
+                tr.Commit();
+            }
+            // These two calls will result in the layer's geometry fading/unfading
+            // appropriately
+            ed.ApplyCurDwgLayerTableChanges();
+            ed.Regen();
+        }
+
         public static ObjectIdCollection SelectLayers(this Document doc)
         {
             var db = doc.Database;
@@ -130,11 +124,7 @@ namespace TransmittalCreator.Services
             ed.SelectNamedLayers(ld, lids);
             return lids;
         }
-        private static void SelectNamedLayers(
-          this Editor ed,
-          SortedList<string, ObjectId> ld,
-          ObjectIdCollection lids
-        )
+        private static void SelectNamedLayers(this Editor ed, SortedList<string, ObjectId> ld, ObjectIdCollection lids)
         {
             int i = 1;
             foreach (KeyValuePair<string, ObjectId> kv in ld)

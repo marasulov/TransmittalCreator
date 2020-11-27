@@ -16,6 +16,7 @@ namespace TransmittalCreator.Models
     {
 
 
+
         private string _docNumber;
 
         /// <summary>
@@ -26,7 +27,7 @@ namespace TransmittalCreator.Models
         /// <summary>
         /// Pdf Document Name
         /// </summary>
-        public string FormatValue { get; }
+        public string StampViewName { get; set; }
 
         /// <summary>
         /// Position of block
@@ -37,10 +38,21 @@ namespace TransmittalCreator.Models
 
         private double ScaleX { get; set; }
 
-        public double width;
-        public double height;
+        private double width;
+        public double Width
+        {
+            get { return width; }
+            set { width = value; }
+        }
 
+        private double height;
+        public double Height
+        {
+            get { return height; }
+            set { height = value; }
+        }
 
+        
 
         public PrintModel(string _docNumber, ObjectId objectId)
         {
@@ -95,19 +107,20 @@ namespace TransmittalCreator.Models
             double maxPointX = this.BlockDimensions.X;
             double maxPointY = this.BlockDimensions.Y;
 
-            this.width = maxPointX - minPointX;
-            this.height = maxPointY - minPointY;
+            this.Width = maxPointX - minPointX;
+            this.Height = maxPointY - minPointY;
 
-            if (width > height) return true;
+            if (Width > Height) return true;
 
             return false;
         }
 
-        public string GetCanonNameByExtents()
+        public string GetCanonNameByWidthAndHeight()
         {
             StandartCopier standartCopier = new StandartCopier();
             PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
-                
+
+            //паттерн для размера листов
             string pat = @"\d{1,}?\.\d{2}";
 
             //double width = this.Width;
@@ -122,7 +135,6 @@ namespace TransmittalCreator.Models
                 //string str2 = Regex.Split(str, pattern);
                 if (pattern.IsMatch(line))
                 {
-
                     MatchCollection str2 = pattern.Matches(line, 0);
 
                     string strWidth = str2[0].ToString();
@@ -130,10 +142,7 @@ namespace TransmittalCreator.Models
                     double strWidthD = Convert.ToDouble(strWidth, System.Globalization.CultureInfo.InvariantCulture);
                     double strheightD = Convert.ToDouble(strheight, System.Globalization.CultureInfo.InvariantCulture);
 
-                    Console.WriteLine(strWidthD);
-
                     //double strheight = Convert.ToDouble(str2[1]);
-
 
                     double curWidth = this.width / this.ScaleX;
                     double curHeight = this.height / this.ScaleX;

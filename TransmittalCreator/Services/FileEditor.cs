@@ -43,8 +43,5 @@ namespace TransmittalCreator.Services
             var ed = Application.DocumentManager.MdiActiveDocument.Editor;
             ed.Command("_.zoom", "_extents");
         }
-
-
-
     }
 }

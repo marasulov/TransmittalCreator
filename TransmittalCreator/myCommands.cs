@@ -24,63 +24,6 @@ namespace TransmittalCreator
 {
     public class MyCommands : Utils, IExtensionApplication
     {
-        [CommandMethod("GetKeywordFromUser")]
-        public static void GetKeywordFromUser()
-        {
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
-            pKeyOpts.Message = "\nEnter an option ";
-            pKeyOpts.Keywords.Add("CREatedwg");
-            pKeyOpts.Keywords.Add("ONlydwg");
-
-            pKeyOpts.AllowNone = true;
-            PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
-            if (pKeyRes.StringResult == "CREatedwg")
-            {
-                Application.ShowAlertDialog("Entered kaseyword: " +
-                                          pKeyRes.StringResult);
-
-            }
-            else if (pKeyRes.StringResult == "ONlydwg")
-            {
-                Application.ShowAlertDialog("Entered keysdfsdfword: " +
-                                          pKeyOpts.Message);
-            }
-            else
-            {
-                ListAttributes1();
-            }
-
-        }
-
-        private static SearchOption IncludeSubdirs(Editor ed, DirectoryInfo dir)
-        {
-            // Вопрос - включая подпапки?
-            SearchOption recursive = SearchOption.AllDirectories;
-            if (dir.GetDirectories().Length > 0)
-            {
-                var opt = new PromptKeywordOptions("\nВключая подпапки");
-                opt.Keywords.Add("Да");
-                opt.Keywords.Add("Нет");
-                opt.Keywords.Default = "Да";
-                var res = ed.GetKeywords(opt);
-                if (res.Status == PromptStatus.OK)
-                {
-                    if (res.StringResult == "Нет")
-                    {
-                        recursive = SearchOption.TopDirectoryOnly;
-                    }
-                }
-            }
-            ed.WriteMessage("\nПапка для переопределения блока " + dir.FullName);
-            if (recursive == SearchOption.AllDirectories)
-                ed.WriteMessage("\nВключая подпапки");
-            else
-                ed.WriteMessage("\nТолько в этой папке, без подпапок.");
-            return recursive;
-        }
-
-        [CommandMethod("CreatePdfDwg")]
         public static void GetSelectionWithKeywords()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
@@ -127,36 +70,23 @@ namespace TransmittalCreator
 
             // Finally run the selection and show any results
             PromptSelectionResult psr = ed.GetSelection(pso);
-            //if (psr.Status == PromptStatus.OK)
-            //{
-            //    if (inputStr == "createPDf")
-            //    {
-            //        ed.WriteMessage("\n здесь метод для pdf");
-            //        ListAttributes1();
-            //        return;
-            //    }
-            //    else if (inputStr == "createDwg")
-            //    {
-            //        ed.WriteMessage("\nздесь метод для dwg");
-            //        CreateTransmittalAndPDF();
-            //        return;
-            //    }
-            //    else if (inputStr == "creatEPdfwg")
-            //    {
-            //        ed.WriteMessage("\nздесь метод для pdf and dwg");
-            //        return;
-            //    }
-            //}
+
         }
 
         // Modal Command with pickfirst selection
         [CommandMethod("MyGroup1", "MyPickFirst", "MyPickFirstLocal", CommandFlags.Modal | CommandFlags.UsePickSet)]
         public void MyPickFirst() // This method can have any name
         {
-            //PromptSelectionResult result = Application.DocumentManager.MdiActiveDocument.Editor.GetSelection();
-            StandartCopier stdCopier = new StandartCopier();
-            bool isCopied = stdCopier.CopyParamsFiles();
-            if (isCopied) Active.Editor.WriteMessage("Файлы {0}, {1} скопированы", stdCopier.Pc3Location, stdCopier.PmpLocation);
+            Dictionary<ObjectId, bool> layersDictionary = LayerManipulation.GetLayersIsBlockedCol();
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            if (doc == null) return;
+            doc.LockOrUnlockLayers(false);
+            foreach (var item in layersDictionary)
+            {
+                Active.Editor.WriteMessage("\n{0}-{1}",item.Key.ToString(), item.Value.ToString());
+            }
+            doc.LockLayers(layersDictionary);
+
         }
 
         [CommandMethod("LISTATT")]
@@ -196,7 +126,6 @@ namespace TransmittalCreator
             }
             ed.WriteMessage(str);
             ed.WriteMessage(str1);
-
         }
 
         [CommandMethod("CreateTranspdf")]
@@ -213,17 +142,15 @@ namespace TransmittalCreator
                 PromptSelectionOptions opts = new PromptSelectionOptions();
                 opts.MessageForAdding = "Select block references: ";
                 PromptSelectionResult res = Active.Editor.GetSelection(opts, filter);
-
+                
                 if (res.Status != PromptStatus.OK)
+                {
                     Active.Editor.WriteMessage("Надо выбрать блок");
+                    return;
+                }
+
                 SelectionSet selSet = res.Value;
                 ObjectId[] idArrayTemp = selSet.GetObjectIds();
-
-                //idArray.Select(id => (BlockReference) tr.GetObject(id, OpenMode.ForRead))
-                //    .Where(br =>
-                //        ((BlockTableRecord) tr.GetObject(br.DynamicBlockTableRecord, OpenMode.ForRead)).Name ==
-                //        "Формат")
-                //    .Select(br => br.ObjectId);
 
                 ObjectIdCollection idArray = new ObjectIdCollection();
                 foreach (var objectId in idArrayTemp)
@@ -277,6 +204,12 @@ namespace TransmittalCreator
             Active.Document.SendStringToExecute("REGENALL ", true, false, true);
             Document doc = Application.DocumentManager.MdiActiveDocument;
             Database db = doc.Database;
+
+            Dictionary<ObjectId, bool> layersDictionary = LayerManipulation.GetLayersIsBlockedCol();
+            
+            if (doc == null) return;
+            doc.LockOrUnlockLayers(false, ignoreCurrent:false, lockZero:true);
+
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
                 TypedValue[] filList = new TypedValue[1] { new TypedValue((int)DxfCode.Start, "INSERT") };
@@ -286,7 +219,10 @@ namespace TransmittalCreator
                 PromptSelectionResult res = Active.Editor.GetSelection(opts, filter);
 
                 if (res.Status != PromptStatus.OK)
+                {
                     Active.Editor.WriteMessage("Надо выбрать блок");
+                    return;
+                }
                 SelectionSet selSet = res.Value;
                 ObjectId[] idArrayTemp = selSet.GetObjectIds();
 
@@ -299,7 +235,6 @@ namespace TransmittalCreator
                 ObjectIdCollection idArray = new ObjectIdCollection();
                 foreach (var objectId in idArrayTemp)
                 {
-
                     BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
                     BlockTableRecord block = tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
                     string blockName = block.Name;
@@ -332,10 +267,11 @@ namespace TransmittalCreator
                     objectCopier.CopyObjectsNewDatabases(objectIds, dwgFilename);
                     // objectCopier.CopyObjectsBetweenDatabases(objectIds, dwgFilename);
                     Active.Editor.WriteMessage("{0} сохранен", dwgFilename);
-                    string newFileName = ZoomFiles(dwgFilename);
+                    string newFileName = ZoomFilesAndSave(dwgFilename);
                     File.Delete(dwgFilename);
                     System.IO.File.Move(newFileName, dwgFilename);
 
+                    
                 }
 
                 //Utils utils = new Utils();
@@ -353,8 +289,8 @@ namespace TransmittalCreator
 
                 tr.Commit();
             }
+            doc.LockLayers(layersDictionary);
         }
-
 
         [CommandMethod("UL")]
         public void UnlockLayers()
@@ -363,115 +299,6 @@ namespace TransmittalCreator
             if (doc == null) return;
             doc.LockOrUnlockLayers(false);
         }
-        
-
-
-        
-        [CommandMethod("CreateDatabaseFromDwgFile")]
-        public static void CreateDatabaseFromDwgFile_Method(ObjectIdCollection acObjIdColl, string dwgFilename)
-        {
-            Editor ed = Active.Editor;
-            try
-            {
-                using (Database db = new Database(false, true))
-                {
-
-                    using (Transaction tr = db.TransactionManager.StartTransaction())
-                    {
-                        BlockTableRecord btr = (BlockTableRecord)tr.GetObject(SymbolUtilityServices.GetBlockModelSpaceId(db), OpenMode.ForRead);
-                        foreach (ObjectId id in btr)
-                        {
-                            Entity ent = (Entity)tr.GetObject(id, OpenMode.ForWrite);
-                            ent.ColorIndex = 1;
-                        }
-
-                        tr.Commit();
-                    }
-                    db.SaveAs(@"c:\temp\test_2red.dwg", DwgVersion.Current);
-                }
-            }
-            catch (System.Exception ex)
-            {
-                ed.WriteMessage(ex.ToString());
-            }
-        }
-
-
-        [CommandMethod("ListLayerStates")]
-        public static void ListLayerStates()
-        {
-            // Get the current document and database
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
-            // Start a transaction
-            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-            {
-                LayerStateManager acLyrStMan;
-                acLyrStMan = acCurDb.LayerStateManager;
-                DBDictionary acDbDict;
-                acDbDict = acTrans.GetObject(acLyrStMan.LayerStatesDictionaryId(true),
-                    OpenMode.ForRead) as DBDictionary;
-                string sLayerStateNames = "";
-                foreach (DBDictionaryEntry acDbDictEnt in acDbDict)
-                {
-                    sLayerStateNames = sLayerStateNames + "\n" + acDbDictEnt.Key;
-                }
-                Application.ShowAlertDialog("The saved layer settings in this drawing are:" +
-                                            sLayerStateNames);
-                // Dispose of the transaction
-            }
-        }
-
-        /* Чтобы переключать документы, необходим контекст приложения. */
-        [CommandMethod("WBCLONE", CommandFlags.Session)]
-        public void TestWBCLONE()
-        {
-            DocumentCollection docs = Application.DocumentManager;
-            Document doc = docs.MdiActiveDocument;
-            Database db = doc.Database;
-            Editor Ed = doc.Editor;
-            Document destDoc = null;
-            foreach (Document tmpDoc in docs)
-            {
-                destDoc = tmpDoc;
-            }
-            try
-            {
-                PromptEntityResult entRes = Ed.GetEntity("Выберите вставку блока: ");
-                if (entRes.Status != PromptStatus.OK)
-                {
-                    return;
-                }
-                ObjectIdCollection objIds = new ObjectIdCollection();
-
-                /* Добавляем id вставки блока */
-                objIds.Add(entRes.ObjectId);
-
-                /* Этот финт мы делаем для установки целевого документа текущим */
-                Database destdb = destDoc.Database;
-                docs.MdiActiveDocument = destDoc;
-                using (DocumentLock docLock = destDoc.LockDocument())
-                {
-                    using (Transaction trans = destdb.TransactionManager.StartTransaction())
-                    {
-                        /* Пожалуйста не забудьте сделать целевой чертеж текущим
-                         * до использования TransactionManager.QueueForGraphicsFlush()
-                         * в противном случае это не даст никакого эффекта.
-                         * Также не забудьте блокировать/разблокировать документ. */
-                        trans.TransactionManager.QueueForGraphicsFlush();
-                        IdMapping iMap = new IdMapping();
-                        db.WblockCloneObjects(objIds, destdb.CurrentSpaceId, iMap, DuplicateRecordCloning.Ignore, false);
-                        trans.Commit();
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(ex.Message);
-            }
-        }
-
-
 
         public static void PlotCurrentLayout(string pdfFileName, PrintModel printModel)
         {
@@ -497,7 +324,6 @@ namespace TransmittalCreator
                     acPlInfo.Layout = acLayout.ObjectId;
 
                     // Get a copy of the PlotSettings from the layout
-
                     PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
                     acPlSet.CopyFrom(acLayout);
                     // Update the PlotSettings object
@@ -517,7 +343,7 @@ namespace TransmittalCreator
 
                     bool isHor = printModel.IsFormatHorizontal();
                     //pdfCreator.GetBlockDimensions();
-                    string canonName = printModel.GetCanonNameByExtents();
+                    string canonName = printModel.GetCanonNameByWidthAndHeight();
 
                     //acDoc.Utility.TranslateCoordinates(point1, acWorld, acDisplayDCS, False);
                     acPlSetVdr.SetPlotWindowArea(acPlSet, points);
@@ -606,10 +432,9 @@ namespace TransmittalCreator
                 Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(e.Message);
                 throw;
             }
-
         }
 
-        public static string ZoomFiles(string fileName)
+        public static string ZoomFilesAndSave(string fileName)
         {
             string newFileName = "";
             using (Database db = new Database(false, false))
@@ -652,137 +477,7 @@ namespace TransmittalCreator
             return newFileName;
         }
 
-        [CommandMethod("ZoomExtDB")]
-        public void zoomdb()
-        {
-            Microsoft.Win32.OpenFileDialog openFileDialog =
-              new Microsoft.Win32.OpenFileDialog();
-            openFileDialog.Title =
-              "Выберите dwg-файл";
-            openFileDialog.Filter = "dwg-файлы|*.dwg";
-            bool? bClickedOK = openFileDialog.ShowDialog();
-            if (!bClickedOK.HasValue || !bClickedOK.Value) return;
-            using (Database db = new Database(false, false))
-            {
-                db.ReadDwgFile(openFileDialog.FileName, FileOpenMode.OpenForReadAndReadShare, true, null);
-                Database prevDb = HostApplicationServices.WorkingDatabase;
-                HostApplicationServices.WorkingDatabase = db;
-                db.UpdateExt(true);
-                using (ViewportTable vTab = db.ViewportTableId.Open(OpenMode.ForRead) as ViewportTable)
-                {
-                    ObjectId acVptId = vTab["*Active"];
-                    using (ViewportTableRecord vpTabRec = acVptId.Open(OpenMode.ForWrite) as ViewportTableRecord)
-                    {
-                        double scrRatio = (vpTabRec.Width / vpTabRec.Height);
-                        Matrix3d matWCS2DCS = Matrix3d.PlaneToWorld(vpTabRec.ViewDirection);
-                        matWCS2DCS = Matrix3d.Displacement(vpTabRec.Target - Point3d.Origin) * matWCS2DCS;
-                        matWCS2DCS = Matrix3d.Rotation(-vpTabRec.ViewTwist,
-                                                        vpTabRec.ViewDirection,
-                                                        vpTabRec.Target)
-                                                        * matWCS2DCS;
-                        matWCS2DCS = matWCS2DCS.Inverse();
-                        Extents3d extents = new Extents3d(db.Extmin, db.Extmax);
-                        extents.TransformBy(matWCS2DCS);
-                        double width = (extents.MaxPoint.X - extents.MinPoint.X);
-                        double height = (extents.MaxPoint.Y - extents.MinPoint.Y);
-                        Point2d center = new Point2d((extents.MaxPoint.X + extents.MinPoint.X) * 0.5,
-                                                     (extents.MaxPoint.Y + extents.MinPoint.Y) * 0.5);
-                        if (width > (height * scrRatio))
-                            height = width / scrRatio;
-                        vpTabRec.Height = height;
-                        vpTabRec.Width = height * scrRatio;
-                        vpTabRec.CenterPoint = center;
-                    }
-                }
-                HostApplicationServices.WorkingDatabase = prevDb;
-                db.SaveAs(openFileDialog.FileName.Substring(0, openFileDialog.FileName.Length - 4) +
-                  "z.dwg", DwgVersion.Current);
-            }
-        }
-
-        [CommandMethod("NewDBTest")]
-        public void NewDBTest()
-        {
-            Db.Database db2 = Utils.CreateDatabaseFromTemplate(
-                @"C:\Users\yusufzhon.marasulov\AppData\Local\Autodesk\AutoCAD 2019\R23.0\enu\Template\UzleAll.dwt", null);
-
-            db2.SaveAs(@"d:\23.dwg", Db.DwgVersion.Current);
-        }
-
-
-        [CommandMethod("sel24")]
-        public void SelectCrossingWindow_24()
-        {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Point3d p1 = new Point3d(5112.2723, 1697.3971, 0);
-            Point3d p2 = new Point3d(6388.6557, 2291.3971, 0);
-            PromptSelectionResult psr = doc.Editor.SelectCrossingWindow(p1, p2);
-            if (psr.Status == PromptStatus.OK)
-            {
-                int cnt = 0;
-                using (doc.TransactionManager.StartTransaction())
-                {
-                    foreach (ObjectId oID in psr.Value.GetObjectIds())
-                    {
-                        Entity ent = (Entity)oID.GetObject(Autodesk.AutoCAD.DatabaseServices.OpenMode.ForRead);
-                        cnt += 1;
-                        doc.Editor.WriteMessage("\n{0} -SelectCrossingWindow Entity -{1} ", ent.ToString(), cnt.ToString());
-                    }
-                }
-            }
-
-        }
-
-
-
-        [CommandMethod("test")]
-        public void Test()
-        {
-            try
-            {
-                Document Doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
-                Database currentDb = Doc.Database;
-                Editor ed = Doc.Editor;
-                Database sourceDb = new Database(false, true);
-                var acObjIdCollsource = new ObjectIdCollection();
-                var opf = new Autodesk.AutoCAD.Windows.OpenFileDialog("title", "", "dwg", "name",
-                    Autodesk.AutoCAD.Windows.OpenFileDialog.OpenFileDialogFlags.AllowAnyExtension);
-                if (opf.ShowDialog() == DialogResult.OK)
-                {
-                    sourceDb.ReadDwgFile(opf.Filename, FileShare.Read, true, "");
-                }
-
-                using (var tr = sourceDb.TransactionManager.StartTransaction())
-                {
-                    var acBlkTblCurrentDoc = tr.GetObject(sourceDb.BlockTableId, OpenMode.ForRead, false, false) as BlockTable;
-                    var acBlkTblRecCurrentDoc = tr.GetObject(acBlkTblCurrentDoc[BlockTableRecord.ModelSpace], OpenMode.ForRead, false, true) as BlockTableRecord;
-                    foreach (ObjectId ObjId in acBlkTblRecCurrentDoc)
-                    {
-                        acObjIdCollsource.Add(ObjId);
-                    }
-                    tr.Commit();
-                }
-                using (var tr = currentDb.TransactionManager.StartTransaction())
-                {
-                    var bt = tr.GetObject(currentDb.BlockTableId, OpenMode.ForRead) as BlockTable;
-                    var btr = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForRead) as BlockTableRecord;
-                    IdMapping acIdMap = new IdMapping();
-                    sourceDb.WblockCloneObjects(
-                        acObjIdCollsource,
-                        btr.ObjectId,
-                        acIdMap, DuplicateRecordCloning.Replace, false);
-                    tr.Commit();
-                }
-            }
-            catch (Autodesk.AutoCAD.Runtime.Exception exception)
-            {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(exception.Message + exception.StackTrace);
-            }
-        }
-
-
         [CommandMethod("LockLayer")]
-
         public static void LockLayer()
         {
             // Get the current document and database
@@ -866,7 +561,7 @@ namespace TransmittalCreator
         //            //utils.CreateOnlytrans(dict);
         //            foreach (var printModel in printModels)
         //            {
-        //                //PlotCurrentLayout(printModel.DocNumber, printModel., printModel.FormatValue);
+        //                //PlotCurrentLayout(printModel.DocNumber, printModel., printModel.StampViewName);
         //            }
         //        //}
         //        //else
@@ -875,7 +570,7 @@ namespace TransmittalCreator
         //        //    //utils.CreateOnlyVed(dict);
         //        //    foreach (var printModel in printModels)
         //        //    {
-        //        //        //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.FormatValue);
+        //        //        //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
         //        //    }
         //        //}
 
@@ -912,6 +607,62 @@ namespace TransmittalCreator
 
 
         #region из сети
+
+        public static void GetKeywordFromUser()
+        {
+            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+            PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
+            pKeyOpts.Message = "\nEnter an option ";
+            pKeyOpts.Keywords.Add("CREatedwg");
+            pKeyOpts.Keywords.Add("ONlydwg");
+
+            pKeyOpts.AllowNone = true;
+            PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
+            if (pKeyRes.StringResult == "CREatedwg")
+            {
+                Application.ShowAlertDialog("Entered kaseyword: " +
+                                          pKeyRes.StringResult);
+
+            }
+            else if (pKeyRes.StringResult == "ONlydwg")
+            {
+                Application.ShowAlertDialog("Entered keysdfsdfword: " +
+                                          pKeyOpts.Message);
+            }
+            else
+            {
+                ListAttributes1();
+            }
+
+        }
+
+        private static SearchOption IncludeSubdirs(Editor ed, DirectoryInfo dir)
+        {
+            // Вопрос - включая подпапки?
+            SearchOption recursive = SearchOption.AllDirectories;
+            if (dir.GetDirectories().Length > 0)
+            {
+                var opt = new PromptKeywordOptions("\nВключая подпапки");
+                opt.Keywords.Add("Да");
+                opt.Keywords.Add("Нет");
+                opt.Keywords.Default = "Да";
+                var res = ed.GetKeywords(opt);
+                if (res.Status == PromptStatus.OK)
+                {
+                    if (res.StringResult == "Нет")
+                    {
+                        recursive = SearchOption.TopDirectoryOnly;
+                    }
+                }
+            }
+            ed.WriteMessage("\nПапка для переопределения блока " + dir.FullName);
+            if (recursive == SearchOption.AllDirectories)
+                ed.WriteMessage("\nВключая подпапки");
+            else
+                ed.WriteMessage("\nТолько в этой папке, без подпапок.");
+            return recursive;
+        }
+
         [CommandMethod("BlockExt")]
         public void BlockExt()
         {
