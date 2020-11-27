@@ -257,9 +257,7 @@ namespace TransmittalCreator.Services
                 BlockReference blkRef = (BlockReference) tr.GetObject(blkId, OpenMode.ForRead);
 
                 BlockTableRecord btr = (BlockTableRecord) tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
-                
-                Point2d posPoint2d = new Point2d(blkRef.Position.X, blkRef.Position.Y);
-                
+              
                 var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
                 
                 docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
@@ -281,6 +279,19 @@ namespace TransmittalCreator.Services
         //        }
         //    }
         //}
+
+        public static string GetFileNameFromBlockAttribute(Transaction tr, ObjectId blkId)
+        {
+            BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+
+            BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
+
+            var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
+
+            string docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
+
+            return docNumber;
+        }
 
         public void CreateJsonFile(List<Sheet> dict)
         {

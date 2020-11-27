@@ -50,7 +50,7 @@ namespace TransmittalCreator.Models
             this.BlockDimensions = posPoints.Item2;
         }
 
-        private (Point2d, Point2d) GetBlockLengths(ObjectId objectId)
+        public (Point2d, Point2d) GetBlockLengths(ObjectId objectId)
         {
             double blockWidth = 0, blockHeidht = 0;
             Point2d blockPosition;

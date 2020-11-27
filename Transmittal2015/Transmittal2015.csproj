@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{87B4F50C-9855-4B13-BCCF-F75E4B0FA0A0}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TransmittalCreator</RootNamespace>
+    <AssemblyName>Transmittal2015</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AcCoreMgd">
+      <HintPath>..\..\..\..\..\..\ObjectARX 2015\inc\AcCoreMgd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="AcDbMgd">
+      <HintPath>..\..\..\..\..\..\ObjectARX 2015\inc\AcDbMgd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="AcMgd">
+      <HintPath>..\..\..\..\..\..\ObjectARX 2015\inc\AcMgd.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DV2177.Common">
+      <HintPath>E:\docs\sharp\DV2177_Code\source\DV2177.Delegates\bin\Debug\DV2177.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\..\..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.Office.Interop.Excel\15.0.0.0__71e9bce111e9429c\Microsoft.Office.Interop.Excel.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>E:\docs\test\test\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\TransmittalCreator\App.xaml.cs">
+      <Link>App.xaml.cs</Link>
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Archive.cs">
+      <Link>Archive.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\MainWindow.xaml.cs">
+      <Link>MainWindow.xaml.cs</Link>
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\AttributModel.cs">
+      <Link>Models\AttributModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\BlockModel.cs">
+      <Link>Models\BlockModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\FileModel.cs">
+      <Link>Models\FileModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\ObjectCopier.cs">
+      <Link>Models\ObjectCopier.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\PrintModel.cs">
+      <Link>Models\PrintModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\RelayCommand.cs">
+      <Link>Models\RelayCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\Sheet.cs">
+      <Link>Models\Sheet.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Models\SpesSheetModel.cs">
+      <Link>Models\SpesSheetModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\myCommands.cs">
+      <Link>myCommands.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\myCommands.designer.cs">
+      <Link>myCommands.designer.cs</Link>
+      <DependentUpon>myCommands.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\myPlugin.cs">
+      <Link>myPlugin.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Services\AttributeExtensions.cs">
+      <Link>Services\AttributeExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Services\Params.cs">
+      <Link>Services\Params.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Services\PdfCreator.cs">
+      <Link>Services\PdfCreator.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Services\StandartCopier.cs">
+      <Link>Services\StandartCopier.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Services\Utils.cs">
+      <Link>Services\Utils.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Styles\VS2012\VS2012WindowStyle.cs">
+      <Link>Styles\VS2012\VS2012WindowStyle.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Styles\VS2012\VS2012WindowStyle.xaml.cs">
+      <Link>Styles\VS2012\VS2012WindowStyle.xaml.cs</Link>
+      <DependentUpon>VS2012WindowStyle.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\ViewModel\BlockViewModel.cs">
+      <Link>ViewModel\BlockViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\ViewModel\FileNameViewModel.cs">
+      <Link>ViewModel\FileNameViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\ViewModel\SheetViewModel.cs">
+      <Link>ViewModel\SheetViewModel.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Window1.xaml.cs">
+      <Link>Window1.xaml.cs</Link>
+      <DependentUpon>Window1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="..\TransmittalCreator\App.xaml">
+      <Link>App.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\TransmittalCreator\MainWindow.xaml">
+      <Link>MainWindow.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\TransmittalCreator\Styles\VS2012\VS2012WindowStyle.xaml">
+      <Link>Styles\VS2012\VS2012WindowStyle.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="..\TransmittalCreator\Window1.xaml">
+      <Link>Window1.xaml</Link>
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\TransmittalCreator\conf.json">
+      <Link>conf.json</Link>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\TransmittalCreator\myCommands.resx">
+      <Link>myCommands.resx</Link>
+      <DependentUpon>myCommands.cs</DependentUpon>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>myCommands.designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Logic\" />
+    <Folder Include="Views\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
