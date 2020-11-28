@@ -15,8 +15,6 @@ namespace TransmittalCreator.Models
     public class PrintModel
     {
 
-
-
         private string _docNumber;
 
         /// <summary>
@@ -56,17 +54,29 @@ namespace TransmittalCreator.Models
 
         public PrintModel(string _docNumber, ObjectId objectId)
         {
-            this.DocNumber = _docNumber;
+
             var posPoints = GetBlockLengths(objectId);
             this.BlockPosition = posPoints.Item1;
             this.BlockDimensions = posPoints.Item2;
+            this.StampViewName = posPoints.Item3;
+
+            //if (this.StampViewName == )
+            this.DocNumber = _docNumber;
+
         }
 
-        public (Point2d, Point2d) GetBlockLengths(ObjectId objectId)
+        public dynamic GetBlockPropsValue(string propName)
+        {
+            
+            return "no result"; // возвращаем строку
+        }
+
+        public (Point2d, Point2d, string) GetBlockLengths(ObjectId objectId)
         {
             double blockWidth = 0, blockHeidht = 0;
             Point2d blockPosition;
             Point2d dimPoint2d;
+            string blockStamp="";
             using (Transaction Tx = Active.Database.TransactionManager.StartTransaction())
             {
                 BlockReference bref = Tx.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
@@ -77,26 +87,28 @@ namespace TransmittalCreator.Models
 
                 foreach (DynamicBlockReferenceProperty prop in props)
                 {
-                    object[] values = prop.GetAllowedValues();
+                    //object[] values = prop.GetAllowedValues();
 
                     if (prop.PropertyName == "Ширина")
                     {
                         blockWidth = double.Parse(prop.Value.ToString(),
                             System.Globalization.CultureInfo.InvariantCulture);
-                        Active.Editor.WriteMessage(blockWidth.ToString());
                     }
                     if (prop.PropertyName == "Высота")
                     {
                         blockHeidht = double.Parse(prop.Value.ToString(),
                             System.Globalization.CultureInfo.InvariantCulture);
-                        Active.Editor.WriteMessage("\n{0}", blockHeidht.ToString());
+                    }
+                    if (prop.PropertyName == "Штамп")
+                    {
+                        blockStamp = prop.Value.ToString();
                     }
                 }
                 dimPoint2d = new Point2d(blockPosition.X + blockWidth, blockPosition.Y + blockHeidht);
                 Tx.Commit();
             }
 
-            return (blockPosition, dimPoint2d);
+            return (blockPosition, dimPoint2d, blockStamp);
         }
 
         public bool IsFormatHorizontal()

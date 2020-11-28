@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Общие сведения об этой сборке предоставляются следующим набором
 // набора атрибутов. Измените значения этих атрибутов для изменения сведений,
 // связанные со сборкой.
-[assembly: AssemblyTitle("Transmittal2015")]
+[assembly: AssemblyTitle("TransmittalCreator2015")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("HP Inc.")]
-[assembly: AssemblyProduct("Transmittal2015")]
+[assembly: AssemblyProduct("TransmittalCreator2015")]
 [assembly: AssemblyCopyright("Copyright © HP Inc. 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // Следующий GUID служит для идентификации библиотеки типов, если этот проект будет видимым для COM
-[assembly: Guid("87b4f50c-9855-4b13-bccf-f75e4b0fa0a0")]
+[assembly: Guid("c207ccaa-24e5-4a85-b7d9-c099a4b8c187")]
 
 // Сведения о версии сборки состоят из указанных ниже четырех значений:
 //

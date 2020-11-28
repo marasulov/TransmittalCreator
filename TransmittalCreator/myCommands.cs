@@ -210,6 +210,8 @@ namespace TransmittalCreator
             if (doc == null) return;
             doc.LockOrUnlockLayers(false, ignoreCurrent:false, lockZero:true);
 
+            bool isExec = true;
+
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
                 TypedValue[] filList = new TypedValue[1] { new TypedValue((int)DxfCode.Start, "INSERT") };
@@ -220,76 +222,79 @@ namespace TransmittalCreator
 
                 if (res.Status != PromptStatus.OK)
                 {
+                    isExec = false;
                     Active.Editor.WriteMessage("Надо выбрать блок");
-                    return;
                 }
-                SelectionSet selSet = res.Value;
-                ObjectId[] idArrayTemp = selSet.GetObjectIds();
 
-                //idArray.Select(id => (BlockReference) tr.GetObject(id, OpenMode.ForRead))
-                //    .Where(br =>
-                //        ((BlockTableRecord) tr.GetObject(br.DynamicBlockTableRecord, OpenMode.ForRead)).Name ==
-                //        "Формат")
-                //    .Select(br => br.ObjectId);
-
-                ObjectIdCollection idArray = new ObjectIdCollection();
-                foreach (var objectId in idArrayTemp)
+                if (isExec != false)
                 {
-                    BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-                    BlockTableRecord block = tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-                    string blockName = block.Name;
+                    SelectionSet selSet = res.Value;
+                    ObjectId[] idArrayTemp = selSet.GetObjectIds();
 
-                    if (blockName == "Формат") idArray.Add(objectId);
-                    else if (blockName == "ФорматM25") idArray.Add(objectId);
+                    //idArray.Select(id => (BlockReference) tr.GetObject(id, OpenMode.ForRead))
+                    //    .Where(br =>
+                    //        ((BlockTableRecord) tr.GetObject(br.DynamicBlockTableRecord, OpenMode.ForRead)).Name ==
+                    //        "Формат")
+                    //    .Select(br => br.ObjectId);
 
-                    //Active.Document.Editor.WriteMessage(blockName);
+                    ObjectIdCollection idArray = new ObjectIdCollection();
+                    foreach (var objectId in idArrayTemp)
+                    {
+                        BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                        BlockTableRecord block = tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+                        string blockName = block.Name;
+
+                        if (blockName == "Формат") idArray.Add(objectId);
+                        else if (blockName == "ФорматM25") idArray.Add(objectId);
+
+                        //Active.Document.Editor.WriteMessage(blockName);
+                    }
+
+                    //MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                    //MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, idArray);
+                    //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
+
+                    foreach (ObjectId objectId in idArray)
+                    {
+                        ObjectCopier objectCopier = new ObjectCopier(objectId);
+                        ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
+                        BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                        string fileName = Utils.GetFileNameFromBlockAttribute(blkRef);
+
+                        //HostApplicationServices hs = HostApplicationServices.Current;
+                        //string path = Application.GetSystemVariable("DWGPREFIX");
+                        //hs.FindFile(doc.Name, doc.Database, FindFileHint.Default);
+                        string path = Path.GetFullPath(db.OriginalFileName);
+                        string createdwgFolder = Path.GetFileNameWithoutExtension(db.OriginalFileName);
+
+                        string folderdwg = Path.GetDirectoryName(db.OriginalFileName);
+                        string dwgFilename = Path.Combine(folderdwg, fileName + ".dwg");
+                        objectCopier.CopyObjectsNewDatabases(objectIds, dwgFilename);
+                        // objectCopier.CopyObjectsBetweenDatabases(objectIds, dwgFilename);
+                        Active.Editor.WriteMessage("{0} сохранен", dwgFilename);
+                        string newFileName = ZoomFilesAndSave(dwgFilename);
+                        File.Delete(dwgFilename);
+                        System.IO.File.Move(newFileName, dwgFilename);
+                    }
+
+                    //Utils utils = new Utils();
+                    //utils.CreateOnlyVed(dict);
+                    //utils.CreateJsonFile(dict);
+
+                    //foreach (var printModel in printModels)
+                    //{
+
+                    //    Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
+                    //    PlotCurrentLayout(printModel.DocNumber, printModel);
+                    //}
+
+                    //utils.CreateOnlytrans(dict);
                 }
-
-                //MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-                //MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, idArray);
-                //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
-
-                foreach (ObjectId objectId in idArray)
-                {
-
-                    ObjectCopier objectCopier = new ObjectCopier(objectId);
-                    ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-                    string fileName = Utils.GetFileNameFromBlockAttribute(tr, objectId);
-
-                    //HostApplicationServices hs = HostApplicationServices.Current;
-                    //string path = Application.GetSystemVariable("DWGPREFIX");
-                    //hs.FindFile(doc.Name, doc.Database, FindFileHint.Default);
-                    string path = Path.GetFullPath(db.OriginalFileName);
-                    string createdwgFolder = Path.GetFileNameWithoutExtension(db.OriginalFileName);
-
-                    string folderdwg = Path.GetDirectoryName(db.OriginalFileName);
-                    string dwgFilename = Path.Combine(folderdwg, fileName + ".dwg");
-                    objectCopier.CopyObjectsNewDatabases(objectIds, dwgFilename);
-                    // objectCopier.CopyObjectsBetweenDatabases(objectIds, dwgFilename);
-                    Active.Editor.WriteMessage("{0} сохранен", dwgFilename);
-                    string newFileName = ZoomFilesAndSave(dwgFilename);
-                    File.Delete(dwgFilename);
-                    System.IO.File.Move(newFileName, dwgFilename);
-
-                    
-                }
-
-                //Utils utils = new Utils();
-                //utils.CreateOnlyVed(dict);
-                //utils.CreateJsonFile(dict);
-
-                //foreach (var printModel in printModels)
-                //{
-
-                //    Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
-                //    PlotCurrentLayout(printModel.DocNumber, printModel);
-                //}
-
-                //utils.CreateOnlytrans(dict);
-
+                doc.LockLayers(layersDictionary);
                 tr.Commit();
             }
-            doc.LockLayers(layersDictionary);
+            
+            
         }
 
         [CommandMethod("UL")]
@@ -516,7 +521,41 @@ namespace TransmittalCreator
         }
 
 
+        private static void DisplayDynBlockProperties(Editor ed, BlockReference br, string name)
+        {
+            // Only continue is we have a valid dynamic block
+            if (br != null && br.IsDynamicBlock)
+            {
+                ed.WriteMessage("\nDynamic properties for \"{0}\"\n", name);
 
+                // Get the dynamic block's property collection
+                DynamicBlockReferencePropertyCollection pc =
+                  br.DynamicBlockReferencePropertyCollection;
+                // Loop through, getting the info for each property
+                foreach (DynamicBlockReferenceProperty prop in pc)
+                {
+                    // Start with the property name, type and description
+                    ed.WriteMessage("\nProperty: \"{0}\" : {1}", prop.PropertyName, prop.UnitsType);
+
+                    if (prop.Description != "")
+                        ed.WriteMessage("\n  Description: {0}", prop.Description);
+                    // Is it read-only?
+                    if (prop.ReadOnly)
+                        ed.WriteMessage(" (Read Only)");
+                    // Get the allowed values, if it's constrained
+                    bool first = true;
+                    foreach (object value in prop.GetAllowedValues())
+                    {
+                        ed.WriteMessage((first ? "\n  Allowed values: [" : ", "));
+                        ed.WriteMessage("\"{0}\"", value);
+                        first = false;
+                    }
+                    if (!first) ed.WriteMessage("]");
+                    // And finally the current value
+                    ed.WriteMessage("\n  Current value: \"{0}\"\n", prop.Value);
+                }
+            }
+        }
 
         //[CommandMethod("CtTransm")]
         //public void ListAttributes()
@@ -588,7 +627,6 @@ namespace TransmittalCreator
                 if (isCopied) Active.Editor.WriteMessage("Файлы {0}, {1} скопированы", standartCopier.Pc3Location, standartCopier.PmpLocation);
                 else
                 {
-
                     Active.Editor.WriteMessage("Не удалось скопировать файлы настройки, скопируйте с сервера \\\\uz-fs\\install\\CAD\\Blocks файлы {0}  в {1} и {2} ",
                         standartCopier.Pc3Dest, standartCopier.Pc3Location, standartCopier.PmpLocation);
                 }

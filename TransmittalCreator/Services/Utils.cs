@@ -251,16 +251,14 @@ namespace TransmittalCreator.Services
         public static List<PrintModel> GetExtentsNamePdf(Editor ed, List<PrintModel> printModels, Transaction tr,
             ObjectIdCollection objectIdCollection)
         {
-            string docNumber = "", formatValue="";
+            string formatValue=""; string blockStamp = "";
+            string pageNumber = "";
             foreach (ObjectId blkId in objectIdCollection)
             {
                 BlockReference blkRef = (BlockReference) tr.GetObject(blkId, OpenMode.ForRead);
-
                 BlockTableRecord btr = (BlockTableRecord) tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
-              
-                var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-                
-                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
+
+                string docNumber = GetFileNameFromBlockAttribute(blkRef);
                 //formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
                 //ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber, posPoint2d.ToString(), formatValue);
                 printModels.Add(new PrintModel(docNumber,blkId));
@@ -280,15 +278,28 @@ namespace TransmittalCreator.Services
         //    }
         //}
 
-        public static string GetFileNameFromBlockAttribute(Transaction tr, ObjectId blkId)
+
+
+        public static string GetFileNameFromBlockAttribute(BlockReference blkRef)
         {
-            BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
-
-            BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
-
+            string docNumber = "";
+            DynamicBlockReferencePropertyCollection props = blkRef.DynamicBlockReferencePropertyCollection;
+            string blockStamp = ""; 
+            foreach (DynamicBlockReferenceProperty prop in props)
+            {
+                if (prop.PropertyName == "Штамп")
+                {
+                    blockStamp = prop.Value.ToString();
+                }
+            }
             var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-
-            string docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
+            if (blockStamp == "Форма 3 ГОСТ Р 21.1101-2009 M25" || blockStamp == "Форма 3 ГОСТ Р 21.1101-2009")
+                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
+            else if (blockStamp == "Форма 6 ГОСТ Р 21.1101-2009")
+            {
+                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА_2").Value;
+                docNumber += "-" + attrDict.FirstOrDefault(x => x.Key == "ЛИСТ2_СПЕЦ").Value;
+            }
 
             return docNumber;
         }
