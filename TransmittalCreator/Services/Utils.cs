@@ -1,21 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Text;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Autodesk.AutoCAD.ApplicationServices;
+﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using TransmittalCreator.Models;
-using Exception = Autodesk.AutoCAD.Runtime.Exception;
-
 using Db = Autodesk.AutoCAD.DatabaseServices;
 
 namespace TransmittalCreator.Services

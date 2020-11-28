@@ -485,15 +485,16 @@ namespace TransmittalCreator
         [CommandMethod("LockLayer")]
         public static void LockLayer()
         {
-            // Get the current document and database
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
+
+            //UsingTransaction(LockLayers);
             // Start a transaction
-            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-            {
+            UsingTransaction(
+                acTrans =>
+                {
+
                 // Open the Layer table for read
                 LayerTable acLyrTbl;
-                acLyrTbl = acTrans.GetObject(acCurDb.LayerTableId,
+                acLyrTbl = acTrans.GetObject(Active.Database.LayerTableId,
                     OpenMode.ForRead) as LayerTable;
                 string sLayerName = "ABC";
                 LayerTableRecord acLyrTblRec;
@@ -516,10 +517,54 @@ namespace TransmittalCreator
                 // Lock the layer
                 acLyrTblRec.IsLocked = true;
                 // Save the changes and dispose of the transaction
-                acTrans.Commit();
-            }
+                
+            
+                }
+            );
         }
 
+        public static void UsingTransaction(Action<Transaction> action)
+        {
+            using (var tr = Active.Database.TransactionManager.StartTransaction())
+            {
+                try
+                {
+                    action(tr);
+                    tr.Commit();
+                }
+                catch (System.Exception)
+                {
+                    tr.Abort();
+                    throw;
+                }
+            }
+        }
+        private static void LockLayers(Transaction acTrans)
+        {
+            LayerTable acLyrTbl;
+            acLyrTbl = acTrans.GetObject(Active.Database.LayerTableId,
+                OpenMode.ForRead) as LayerTable;
+            string sLayerName = "ABC";
+            LayerTableRecord acLyrTblRec;
+            if (acLyrTbl.Has(sLayerName) == false)
+            {
+                acLyrTblRec = new LayerTableRecord();
+                // Assign the layer a name
+                acLyrTblRec.Name = sLayerName;
+                // Upgrade the Layer table for write
+                acLyrTbl.UpgradeOpen();
+                // Append the new layer to the Layer table and the transaction
+                acLyrTbl.Add(acLyrTblRec);
+                acTrans.AddNewlyCreatedDBObject(acLyrTblRec, true);
+            }
+            else
+            {
+                acLyrTblRec = acTrans.GetObject(acLyrTbl[sLayerName],
+                    OpenMode.ForWrite) as LayerTableRecord;
+            }
+            // Lock the layer
+            acLyrTblRec.IsLocked = true;
+        }
 
         private static void DisplayDynBlockProperties(Editor ed, BlockReference br, string name)
         {
