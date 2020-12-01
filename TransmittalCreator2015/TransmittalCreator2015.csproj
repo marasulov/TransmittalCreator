@@ -41,7 +41,33 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\TransmittalCreator\App.xaml.cs">
+      <Link>App.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Archive.cs">
+      <Link>Archive.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\MainWindow.xaml.cs">
+      <Link>MainWindow.xaml.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\myCommands.cs">
+      <Link>myCommands.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\myCommands.Designer.cs">
+      <Link>myCommands.Designer.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\myPlugin.cs">
+      <Link>myPlugin.cs</Link>
+    </Compile>
+    <Compile Include="..\TransmittalCreator\Window1.xaml.cs">
+      <Link>Window1.xaml.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\TransmittalCreator\myCommands.resx">
+      <Link>myCommands.resx</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
