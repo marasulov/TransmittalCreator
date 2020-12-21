@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Autodesk.AutoCAD.DatabaseServices;
 using Newtonsoft.Json;
 using TransmittalCreator.Annotations;
@@ -9,7 +10,8 @@ namespace TransmittalCreator.Services
 
     public class StandartCopier
     {
-        private string confFile = @"\\uz-fs\Install\CAD\Blocks\conf.json";
+        //private string confFile = @"\\uz-fs\Install\CAD\Blocks\conf.json";
+        private string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,"conf.json");
         private string pathEnvPc3Dir = HostApplicationServices.Current.GetEnvironmentVariable("PrinterConfigDir");
         private string pathEnvPmpDir = HostApplicationServices.Current.GetEnvironmentVariable("PrinterDescDir");
 
@@ -21,6 +23,7 @@ namespace TransmittalCreator.Services
 
         public StandartCopier()
         {
+
             string jsonFile = File.ReadAllText(confFile);
             Params pParams = JsonConvert.DeserializeObject<Params>(jsonFile);
 
