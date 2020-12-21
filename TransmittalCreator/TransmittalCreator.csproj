@@ -63,17 +63,17 @@
     <Reference Include="AcCoreMgd">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\AutoCAD 2019\accoremgd.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\accoremgd.dll</HintPath>
     </Reference>
     <Reference Include="AcDbMgd">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\AutoCAD 2019\acdbmgd.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\acdbmgd.dll</HintPath>
     </Reference>
     <Reference Include="AcMgd">
       <SpecificVersion>False</SpecificVersion>
       <Private>False</Private>
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\AutoCAD 2019\acmgd.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\acmgd.dll</HintPath>
     </Reference>
     <Reference Include="DV2177.Common">
       <HintPath>E:\docs\sharp\DV2177_Code\source\DV2177.Delegates\bin\Debug\DV2177.Common.dll</HintPath>
@@ -141,6 +141,7 @@
     <Compile Include="Models\AttributModel.cs" />
     <Compile Include="Models\BlockModel.cs" />
     <Compile Include="Models\FileModel.cs" />
+    <Compile Include="Models\HvacTable.cs" />
     <Compile Include="Services\FileEditor.cs" />
     <Compile Include="Services\LayerManipulation.cs" />
     <Compile Include="Services\ObjectCopier.cs" />
