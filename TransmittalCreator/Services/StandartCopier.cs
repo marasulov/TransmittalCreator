@@ -20,10 +20,8 @@ namespace TransmittalCreator.Services
         public string Pc3Location { get; set; }
         public string PmpLocation { get; set; }
 
-
         public StandartCopier()
         {
-
             string jsonFile = File.ReadAllText(confFile);
             Params pParams = JsonConvert.DeserializeObject<Params>(jsonFile);
 

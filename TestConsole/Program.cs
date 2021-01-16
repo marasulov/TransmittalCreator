@@ -72,9 +72,17 @@ namespace TestConsole
                         string heating = worksheet.Cells[i, 26].Value.ToString().Trim();
                         string cooling = worksheet.Cells[i, 34].Value.ToString().Trim();
                         string supply = worksheet.Cells[i, 39].Value.ToString().Trim();
+                        
+                        string supplyInd = "П";
+                        if(worksheet.Cells[i, 38].Value !=null) supplyInd = worksheet.Cells[i, 38].Value.ToString().Trim();
+                        string exhaustInd = "П";
+                        if(worksheet.Cells[i, 40].Value !=null) exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
+                        
+
+                        
                         string exhaust = worksheet.Cells[i, 41].Value.ToString().Trim();
 
-                            listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, exhaust));
+                            listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, supplyInd, exhaust, exhaustInd));
                     }
                 }
             }

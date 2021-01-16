@@ -183,12 +183,60 @@ namespace TransmittalCreator
             List<HvacTable> hvacTables = CreateHvacTableListFromFile(filename);
 
             Type type = typeof(HvacTable);
-            int tableRows = hvacTables.Count;
+
             int tableCols = type.GetProperties().Length;
             CreateLayer();
+
+            MyMessageFilter filter = new MyMessageFilter();
+
+            System.Windows.Forms.Application.AddMessageFilter(filter);
+
             foreach (var hvacTable in hvacTables)
             {
-                AddTable(hvacTable, tableCols);
+                // Check for user input events
+                System.Windows.Forms.Application.DoEvents();
+                if (filter.bCanceled == true)
+                {
+                    Active.Editor.WriteMessage("\nLoop cancelled.");
+                    break;
+                }
+                    AddTable(hvacTable, tableCols);   
+            }
+            
+            System.Windows.Forms.Application.RemoveMessageFilter(filter);
+        }
+
+        public class MyMessageFilter : IMessageFilter
+
+        {
+            public const int WM_KEYDOWN = 0x0100;
+
+            public bool bCanceled = false;
+
+            public bool PreFilterMessage(ref Message m)
+
+            {
+                if (m.Msg == WM_KEYDOWN)
+
+                {
+                    // Check for the Escape keypress
+
+                    Keys kc = (Keys) (int) m.WParam & Keys.KeyCode;
+
+                    if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
+
+                    {
+                        bCanceled = true;
+                    }
+
+                    // Return true to filter all keypresses
+
+                    return true;
+                }
+
+                // Return false to let other messages through
+
+                return false;
             }
         }
 
@@ -205,19 +253,36 @@ namespace TransmittalCreator
                 int rowStart = 7;
                 int rowCount = worksheet.Dimension.End.Row;
 
+
                 for (int i = rowStart; i < rowCount - 1; i++)
                 {
-                    if (worksheet.Cells[i, 2].Value != null & !worksheet.Cells[i, 1].Value.ToString().Contains("Total")
-                                                            & worksheet.Cells[i, 26].Value.ToString() != "0")
-                    {
-                        string roomNumber = worksheet.Cells[i, 1].Value.ToString().Trim();
-                        string roomName = worksheet.Cells[i, 2].Value.ToString().Trim();
-                        string heating = worksheet.Cells[i, 26].Value.ToString().Trim();
-                        string cooling = worksheet.Cells[i, 34].Value.ToString().Trim();
-                        string supply = worksheet.Cells[i, 39].Value.ToString().Trim();
-                        string exhaust = worksheet.Cells[i, 41].Value.ToString().Trim();
+                    var roomcell = worksheet.Cells[i, 1].Value;
 
-                        listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, exhaust));
+                    if (roomcell != null)
+                    {
+                        bool totalStr = roomcell.ToString().ToUpper().Contains("TOTAL");
+
+                        if (!totalStr)
+                        {
+                            string roomNumber = worksheet.Cells[i, 1].Value?.ToString().Trim();
+                            string roomName = worksheet.Cells[i, 2].Value?.ToString().Trim();
+                            string roomTemp = worksheet.Cells[i, 5].Value?.ToString().Trim();
+                            string heating = worksheet.Cells[i, 26].Value?.ToString().Trim();
+                            string cooling = worksheet.Cells[i, 34].Value?.ToString().Trim();
+                            string supply = worksheet.Cells[i, 39].Value?.ToString().Trim();
+                            
+
+                            string supplyIn = "П";
+                            var supplyInd = worksheet.Cells[i, 38].Value?.ToString().Trim() ?? supplyIn;
+                            string exhaustInd = "В";
+                            if (worksheet.Cells[i, 40].Value != null)
+                                exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
+
+                            string exhaust = worksheet.Cells[i, 41].Value?.ToString().Trim();
+
+                            listData.Add(new HvacTable(roomNumber, roomName, roomTemp, heating, cooling, supply, supplyInd,
+                                exhaust, exhaustInd));
+                        }
                     }
                 }
             }
@@ -271,68 +336,83 @@ namespace TransmittalCreator
                 PromptPointResult pr =
                     Active.Editor.GetPoint(
                         $"\nEnter table insertion point for:room #{hvacTable.RoomNumber}-{hvacTable.RoomName}");
+                if (pr.Status == PromptStatus.OK)
+                {
+                    // create a table
+                    Table tb = new Table();
+                    //tb.TableStyle = db.Tablestyle;
+                    tb.SetDatabaseDefaults();
+                    // row height
+                    double rowheight = 80;
+                    // column width
+                    double columnwidth = 150;
+                    // insert rows and columns
+                    tb.InsertRows(0, rowheight, 4);
+                    tb.InsertColumns(0, columnwidth, 2);
 
-                // create a table
-                Table tb = new Table();
-                //tb.TableStyle = db.Tablestyle;
-                tb.SetDatabaseDefaults();
-                // row height
-                double rowheight = 80;
-                // column width
-                double columnwidth = 150;
-                // insert rows and columns
-                tb.InsertRows(0, rowheight, 4);
-                tb.InsertColumns(0, columnwidth, 2);
-                
-                tb.SetRowHeight(rowheight);
-                tb.SetColumnWidth(columnwidth);
+                    tb.SetRowHeight(rowheight);
+                    tb.SetColumnWidth(columnwidth);
 
-                tb.Position = pr.Value;
-                // fill in the cell one by one
-                //tb.Columns[0].Width = 150;
-                tb.Columns[1].Width = 340;
-                //tb.Columns[2].Width = 150;
+                    tb.Position = pr.Value;
+                    // fill in the cell one by one
+                    //tb.Columns[0].Width = 150;
+                    tb.Columns[1].Width = 340;
+                    //tb.Columns[2].Width = 150;
 
-                tb.Rows[0].Height = 130;
+                    tb.Rows[0].Height = 130;
 
-                SetCellPropsWithValue(tb, 0, 0, 50, 255,hvacTable.RoomNumber);
-                SetCellPropsWithValue(tb, 0, 1, 50, 255,hvacTable.RoomName);
-                SetCellPropsWithValue(tb, 0, 2, 30, 255,"20°C");
+                    SetCellPropsWithValue(tb, 0, 0, 50, 255, hvacTable.RoomNumber);
+                    SetCellPropsWithValue(tb, 0, 1, 50, 255, hvacTable.RoomName);
+                    SetCellPropsWithValue(tb, 0, 2, 50, 255, hvacTable.RoomTemp);
 
 
-                SetCellPropsWithValue(tb, 1, 0, 50, 30,"Qt");
-                SetCellPropsWithValue(tb, 1, 1, 50, 30,hvacTable.Heating + "-" + (int)Math.Round(double.Parse(hvacTable.Heating)/293.07));
-                SetCellPropsWithValue(tb, 1, 2, 25, 30,"\\LВТ\\l\nсек.");
-                
-                SetCellPropsWithValue(tb, 2, 0, 50, 130,"Qx");
-                SetCellPropsWithValue(tb, 2, 1, 50, 130,hvacTable.Cooling + "-" +(int)Math.Round(double.Parse(hvacTable.Cooling)/293.07));
-                SetCellPropsWithValue(tb, 2, 2, 25, 130,"\\LВТ\\l\n0.001Btu");
+                    SetCellPropsWithValue(tb, 1, 0, 50, 30, "Qt");
+                    SetCellPropsWithValue(tb, 1, 1, 50, 30,
+                        GetRoundUpValue(hvacTable.Heating) + "-" + GetRoundUpValue(hvacTable.Heating, 120));
+                    SetCellPropsWithValue(tb, 1, 2, 25, 30, "\\LВТ\\l\nсек.");
 
-                SetCellPropsWithValue(tb, 3, 0, 50, 20,"П");
-                SetCellPropsWithValue(tb, 3, 1, 50, 20,hvacTable.AirExchangeSupply);
-                SetCellPropsWithValue(tb, 3, 2, 25, 20,"м3/ч");
-                
-                SetCellPropsWithValue(tb, 4, 0, 50, 150,"В");
-                SetCellPropsWithValue(tb, 4, 1, 50, 150,hvacTable.AirExchangeExhaust);
-                SetCellPropsWithValue(tb, 4, 2, 25, 150,"м3/ч");
+                    SetCellPropsWithValue(tb, 2, 0, 50, 130, "Qx");
+                    SetCellPropsWithValue(tb, 2, 1, 50, 130,
+                        GetRoundUpValue(hvacTable.Cooling) + "-" + GetRoundUpValue(hvacTable.Cooling, 293.07));
+                    SetCellPropsWithValue(tb, 2, 2, 25, 130, "\\LВТ\\l\nBtu...");
 
-                CellRange range = CellRange.Create(tb, columnsNum - 2, 0, columnsNum - 1, 0);
-                tb.UnmergeCells(range);
-                tb.SetDatabaseDefaults();
-                tb.GenerateLayout();
-                btr.AppendEntity(tb);
-                tr.AddNewlyCreatedDBObject(tb, true);
-                tr.Commit();
+
+                    SetCellPropsWithValue(tb, 3, 0, 50, 20, hvacTable.AirExchangeSupplyInd);
+                    string airSupply = hvacTable.AirExchangeSupply;
+                    if (!airSupply.Equals("–")) GetRoundUpValue(hvacTable.AirExchangeSupply).ToString();
+                    SetCellPropsWithValue(tb, 3, 1, 50, 20, airSupply);
+                    SetCellPropsWithValue(tb, 3, 2, 25, 20, "м3/ч");
+
+                    string airExchangeExhaust = hvacTable.AirExchangeExhaust;
+                    if (!airExchangeExhaust.Equals("–")) GetRoundUpValue(hvacTable.AirExchangeExhaust).ToString();
+                    SetCellPropsWithValue(tb, 4, 0, 50, 150, hvacTable.AirExchangeExhaustInd);
+                    SetCellPropsWithValue(tb, 4, 1, 50, 150, airExchangeExhaust);
+                    SetCellPropsWithValue(tb, 4, 2, 25, 150, "м3/ч");
+
+                    //CellRange range = CellRange.Create(tb, columnsNum - 2, 0, columnsNum - 1, 0);
+                    //tb.UnmergeCells(range);
+                    tb.SetDatabaseDefaults();
+                    tb.GenerateLayout();
+                    btr.AppendEntity(tb);
+                    tr.AddNewlyCreatedDBObject(tb, true);
+                    tr.Commit();
+                }
             }
         }
 
-        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
+        private static int GetRoundUpValue(string str, double divValue = 1)
+        {
+            return (int) Math.Ceiling(double.Parse(str) / divValue);
+        }
+
+        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber,
+            string stringValue)
         {
             var curPos = tb.Cells[curRow, curCol];
             curPos.TextHeight = textHeight;
             curPos.TextString = stringValue;
             curPos.Alignment = CellAlignment.MiddleCenter;
-            curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci,colorNumber);
+            curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci, colorNumber);
         }
 
         [CommandMethod("LISTATT")]
@@ -699,10 +779,10 @@ namespace TransmittalCreator
                 Database prevDb = HostApplicationServices.WorkingDatabase;
                 HostApplicationServices.WorkingDatabase = db;
                 db.UpdateExt(true);
-                using (ViewportTable vTab = db.ViewportTableId.Open(OpenMode.ForRead) as ViewportTable)
+                using (ViewportTable vTab = db.ViewportTableId.GetObject(OpenMode.ForRead) as ViewportTable)
                 {
                     ObjectId acVptId = vTab["*Active"];
-                    using (ViewportTableRecord vpTabRec = acVptId.Open(OpenMode.ForWrite) as ViewportTableRecord)
+                    using (ViewportTableRecord vpTabRec = acVptId.GetObject(OpenMode.ForWrite) as ViewportTableRecord)
                     {
                         double scrRatio = (vpTabRec.Width / vpTabRec.Height);
                         Matrix3d matWCS2DCS = Matrix3d.PlaneToWorld(vpTabRec.ViewDirection);
@@ -950,7 +1030,7 @@ namespace TransmittalCreator
                     new Extents3d(Point3d.Origin, Point3d.Origin);
                 Matrix3d mat = Matrix3d.Identity;
                 using (Entity en =
-                    enRes.ObjectId.Open(OpenMode.ForRead) as Entity)
+                    enRes.ObjectId.GetObject(OpenMode.ForRead) as Entity)
                 {
                     GetBlockExtents(en, ref blockExt, ref mat);
                 }
@@ -966,7 +1046,7 @@ namespace TransmittalCreator
                 #region TestinExts
 
                 using (BlockTableRecord curSpace =
-                    doc.Database.CurrentSpaceId.Open(OpenMode.ForWrite) as BlockTableRecord)
+                    doc.Database.CurrentSpaceId.GetObject(OpenMode.ForWrite) as BlockTableRecord)
                 {
                     Point3dCollection pts = new Point3dCollection();
                     pts.Add(blockExt.MinPoint);
@@ -1001,11 +1081,11 @@ namespace TransmittalCreator
                 BlockReference bref = en as BlockReference;
                 Matrix3d matIns = mat * bref.BlockTransform;
                 using (BlockTableRecord btr =
-                    bref.BlockTableRecord.Open(OpenMode.ForRead) as BlockTableRecord)
+                    bref.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord)
                 {
                     foreach (ObjectId id in btr)
                     {
-                        using (DBObject obj = id.Open(OpenMode.ForRead) as DBObject)
+                        using (DBObject obj = id.GetObject(OpenMode.ForRead) as DBObject)
                         {
                             Entity enCur = obj as Entity;
                             if (enCur == null || enCur.Visible != true)
@@ -1025,7 +1105,7 @@ namespace TransmittalCreator
                     foreach (ObjectId idAtt in bref.AttributeCollection)
                     {
                         using (AttributeReference attRef =
-                            idAtt.Open(OpenMode.ForRead) as AttributeReference)
+                            idAtt.GetObject(OpenMode.ForRead) as AttributeReference)
                         {
                             if (!attRef.Invisible && attRef.Visible)
                                 GetBlockExtents(attRef, ref ext, ref mat);
@@ -1094,7 +1174,7 @@ namespace TransmittalCreator
         /// <returns></returns>
         bool IsLayerOn(ObjectId layerId)
         {
-            using (LayerTableRecord ltr = layerId.Open(OpenMode.ForRead) as LayerTableRecord)
+            using (LayerTableRecord ltr = layerId.GetObject(OpenMode.ForRead) as LayerTableRecord)
             {
                 if (ltr.IsFrozen) return false;
                 if (ltr.IsOff) return false;
