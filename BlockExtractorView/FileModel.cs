@@ -6,7 +6,7 @@ namespace BlockExtractorView
     public class FileModel : INotifyPropertyChanged
     {
         private string fileName;
-        private string fileType;
+        //private string fileType;
 
         public string FileName
         {

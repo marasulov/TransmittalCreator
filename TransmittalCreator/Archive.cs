@@ -156,7 +156,7 @@ namespace TransmittalCreator
 
         public static ObjectIdCollection GetBlockByName(string blkName)
         {
-            ObjectIdCollection ids_temp = null, ids = new ObjectIdCollection();
+            ObjectIdCollection ids = new ObjectIdCollection();
 
             Editor ed = Active.Editor;
             Document doc = Active.Document;

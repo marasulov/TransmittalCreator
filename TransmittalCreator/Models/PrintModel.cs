@@ -15,8 +15,6 @@ namespace TransmittalCreator.Models
     public class PrintModel
     {
 
-        private string _docNumber;
-
         /// <summary>
         /// Номер листа
         /// </summary>
