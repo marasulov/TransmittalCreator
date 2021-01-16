@@ -22,7 +22,6 @@ namespace TransmittalCreator.Services
 
         public StandartCopier()
         {
-
             string jsonFile = File.ReadAllText(confFile);
             Params pParams = JsonConvert.DeserializeObject<Params>(jsonFile);
 
