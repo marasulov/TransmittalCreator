@@ -7,7 +7,6 @@ namespace TransmittalCreator.Models
 {
     public class SpesSheetModel : INotifyPropertyChanged
     {
-        private List<string> repositoryData;
 
         private string sheetNumber;
         private string docNumber;
