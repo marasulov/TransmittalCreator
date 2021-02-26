@@ -2,6 +2,11 @@
 {
     public class HvacTable
     {
+        private string supply;
+        private string supplyInd;
+        private string exhaust;
+        private string exhaustInd;
+
         /// <summary>
         /// Номер комнаты
         /// </summary>
@@ -53,7 +58,17 @@
             AirExchangeExhaust = airExchangeExhaust;
             AirExchangeExhaustInd = exhaustInd;
         }
-        
-        
+
+        public HvacTable(string roomNumber, string roomName, string heating, string cooling, string supply, string supplyInd, string exhaust, string exhaustInd)
+        {
+            RoomNumber = roomNumber;
+            RoomName = roomName;
+            Heating = heating;
+            Cooling = cooling;
+            this.supply = supply;
+            this.supplyInd = supplyInd;
+            this.exhaust = exhaust;
+            this.exhaustInd = exhaustInd;
+        }
     }
 }

@@ -31,8 +31,7 @@ namespace TransmittalCreator
         [CommandMethod("SELKW")]
         public void GetSelectionWithKeywords1()
         {
-            Document doc =
-                Application.DocumentManager.MdiActiveDocument;
+            Document doc = Application.DocumentManager.MdiActiveDocument;
             Editor ed = doc.Editor;
 
             // Создаём объект для настройки выбора примитивов
@@ -60,7 +59,7 @@ namespace TransmittalCreator
 
                 if (psr.Status == PromptStatus.OK)
                 {
-                    // Тут ваша логика обработки
+                    ListAttributes1();
                 }
             }
             catch (System.Exception ex)
@@ -499,8 +498,8 @@ namespace TransmittalCreator
                     }
                 }
 
-                MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-                MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, idArray);
+                GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                GetExtentsNamePdf(Active.Editor, printModels, tr, idArray);
                 //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
 
                 //foreach (ObjectId objectId in idArray)

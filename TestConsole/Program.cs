@@ -12,38 +12,6 @@ namespace TestConsole
 {
     class Program
     {
-        interface IPrinter
-        {
-            void Print(string text);
-        }
-        class ConsolePrinter : IPrinter
-        {
-            public void Print(string text)
-            {
-                Console.WriteLine(text);
-            }
-        }
-        class Report
-        {
-            public string Text { get; set; }
-            public void GoToFirstPage()
-            {
-                Console.WriteLine("Переход к первой странице");
-            }
-            public void GoToLastPage()
-            {
-                Console.WriteLine("Переход к последней странице");
-            }
-            public void GoToPage(int pageNumber)
-            {
-                Console.WriteLine("Переход к странице {0}", pageNumber);
-            }
-            public void Print(IPrinter printer)
-            {
-                printer.Print(this.Text);
-            }
-        }
-
         static void Main(string[] args)
         {
             
@@ -77,9 +45,7 @@ namespace TestConsole
                         if(worksheet.Cells[i, 38].Value !=null) supplyInd = worksheet.Cells[i, 38].Value.ToString().Trim();
                         string exhaustInd = "П";
                         if(worksheet.Cells[i, 40].Value !=null) exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
-                        
 
-                        
                         string exhaust = worksheet.Cells[i, 41].Value.ToString().Trim();
 
                             listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, supplyInd, exhaust, exhaustInd));
@@ -151,8 +117,6 @@ namespace TestConsole
             Console.ReadLine();*/
         }
 
-
-
         public static double ConvertToDouble(string Value)
         {
             if (Value == null)
@@ -188,177 +152,9 @@ namespace TestConsole
 
                 }
 
-            //меж скобок 
             return rez;
         }
     }
-
-
-
-
-    class Account
-    {
-        int _sum; // Переменная для хранения суммы
-
-        public Account(int sum)
-        {
-            _sum = sum;
-        }
-
-        public int CurrentSum
-        {
-            get { return _sum; }
-        }
-
-        public void Put(int sum)
-        {
-            _sum += sum;
-            Notify?.Invoke($"На счет поступило: {sum}");
-        }
-
-
-
-        // Объявляем делегат
-        public delegate void AccountStateHandler(string message);
-        public event AccountStateHandler Notify;
-
-        // Создаем переменную делегата
-        AccountStateHandler _del;
-
-        // Регистрируем делегат
-        public void RegisterHandler(AccountStateHandler del)
-        {
-            _del += del; // добавляем делегат
-        }
-
-        // Отмена регистрации делегата
-        public void UnregisterHandler(AccountStateHandler del)
-        {
-            _del -= del; // удаляем делегат
-        }
-        public void Withdraw(int sum)
-        {
-            if (sum <= _sum)
-            {
-                _sum -= sum;
-                Notify?.Invoke($"Сумма {_sum} снята со счета");
-                //if (_del != null)
-                //    _del($"Сумма {sum} снята со счета");
-            }
-            else
-            {
-              
-                    Notify?.Invoke($"Сумма {_sum} снята со счета Недостаточно денег на счете");
-            }
-        }
-    }
-    class Phone
-    {
-        public string Model { get; set; }
-        public int Price { get; set; }
-    }
-    class MobileStore
-    {
-        List<Phone> phones = new List<Phone>();
-        public IPhoneReader Reader { get; set; }
-        public IPhoneBinder Binder { get; set; }
-        public IPhoneValidator Validator { get; set; }
-        public IPhoneSaver Saver { get; set; }
-        public MobileStore(IPhoneReader reader, IPhoneBinder binder, IPhoneValidator validator, IPhoneSaver saver)
-        {
-            this.Reader = reader;
-            this.Binder = binder;
-            this.Validator = validator;
-            this.Saver = saver;
-        }
-        public void Process()
-        {
-            string[] data = Reader.GetInputData();
-            Phone phone = Binder.CreatePhone(data);
-            if (Validator.IsValid(phone))
-            {
-                phones.Add(phone);
-                Saver.Save(phone, "store.txt");
-                Console.WriteLine("Данные успешно обработаны");
-            }
-            else
-            {
-                Console.WriteLine("Некорректные данные");
-            }
-        }
-    }
-    interface IPhoneReader
-    {
-        string[] GetInputData();
-    }
-    class ConsolePhoneReader : IPhoneReader
-    {
-        public string[] GetInputData()
-        {
-            Console.WriteLine("Введите модель:");
-            string model = Console.ReadLine();
-            Console.WriteLine("Введите цену:");
-            string price = Console.ReadLine();
-            return new string[] { model, price };
-        }
-    }
-
-    interface IPhoneBinder
-    {
-        Phone CreatePhone(string[] data);
-    }
-    class GeneralPhoneBinder : IPhoneBinder
-    {
-        public Phone CreatePhone(string[] data)
-        {
-            if (data.Length >= 2)
-            {
-                int price = 0;
-                if (Int32.TryParse(data[1], out price))
-                {
-                    return new Phone { Model = data[0], Price = price };
-                }
-                else
-                {
-                    throw new Exception("Ошибка привязчика модели Phone. Некорректные данные для свойства Price");
-                }
-            }
-            else
-            {
-                throw new Exception("Ошибка привязчика модели Phone. Недостаточно данных для создания модели");
-            }
-        }
-    }
-    interface IPhoneValidator
-    {
-        bool IsValid(Phone phone);
-    }
-    class GeneralPhoneValidator : IPhoneValidator
-    {
-        public bool IsValid(Phone phone)
-        {
-            if (String.IsNullOrEmpty(phone.Model) || phone.Price <= 0)
-                return false;
-            return true;
-        }
-    }
-    interface IPhoneSaver
-    {
-        void Save(Phone phone, string fileName);
-    }
-    class TextPhoneSaver : IPhoneSaver
-    {
-        public void Save(Phone phone, string fileName)
-        {
-            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName, true))
-            {
-                writer.WriteLine(phone.Model);
-                writer.WriteLine(phone.Price);
-            }
-        }
-    }
-
-
 
     public class Params
     {
