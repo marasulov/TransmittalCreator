@@ -14,7 +14,6 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
-            
             List<HvacTable>  hvacTables = new List<HvacTable>();
 
             string filename = @"D:\docs\Desktop\Calculations_HVA.xlsx";
