@@ -1,221 +1,130 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using TransmittalCreator.Services;
+using OfficeOpenXml;
+using TransmittalCreator.Models;
+using System.Reflection;
+
+
 
 namespace TestConsole
 {
-    class Account
+    public class MyType
     {
-        int _sum; // Переменная для хранения суммы
-
-        public Account(int sum)
+        public MyType()
         {
-            _sum = sum;
-        }
-
-        public int CurrentSum
-        {
-            get { return _sum; }
-        }
-
-        public void Put(int sum)
-        {
-            _sum += sum;
-            Notify?.Invoke($"На счет поступило: {sum}");
-        }
-
-
-
-        // Объявляем делегат
-        public delegate void AccountStateHandler(string message);
-        public event AccountStateHandler Notify;
-
-        // Создаем переменную делегата
-        AccountStateHandler _del;
-
-        // Регистрируем делегат
-        public void RegisterHandler(AccountStateHandler del)
-        {
-            _del += del; // добавляем делегат
-        }
-
-        // Отмена регистрации делегата
-        public void UnregisterHandler(AccountStateHandler del)
-        {
-            _del -= del; // удаляем делегат
-        }
-        public void Withdraw(int sum)
-        {
-            if (sum <= _sum)
-            {
-                _sum -= sum;
-                Notify?.Invoke($"Сумма {_sum} снята со счета");
-                //if (_del != null)
-                //    _del($"Сумма {sum} снята со счета");
-            }
-            else
-            {
-              
-                    Notify?.Invoke($"Сумма {_sum} снята со счета Недостаточно денег на счете");
-            }
+            Console.WriteLine();
+            Console.WriteLine("MyType instantiated!");
         }
     }
-    class Phone
-    {
-        public string Model { get; set; }
-        public int Price { get; set; }
-    }
-    class MobileStore
-    {
-        List<Phone> phones = new List<Phone>();
-        public IPhoneReader Reader { get; set; }
-        public IPhoneBinder Binder { get; set; }
-        public IPhoneValidator Validator { get; set; }
-        public IPhoneSaver Saver { get; set; }
-        public MobileStore(IPhoneReader reader, IPhoneBinder binder, IPhoneValidator validator, IPhoneSaver saver)
-        {
-            this.Reader = reader;
-            this.Binder = binder;
-            this.Validator = validator;
-            this.Saver = saver;
-        }
-        public void Process()
-        {
-            string[] data = Reader.GetInputData();
-            Phone phone = Binder.CreatePhone(data);
-            if (Validator.IsValid(phone))
-            {
-                phones.Add(phone);
-                Saver.Save(phone, "store.txt");
-                Console.WriteLine("Данные успешно обработаны");
-            }
-            else
-            {
-                Console.WriteLine("Некорректные данные");
-            }
-        }
-    }
-    interface IPhoneReader
-    {
-        string[] GetInputData();
-    }
-    class ConsolePhoneReader : IPhoneReader
-    {
-        public string[] GetInputData()
-        {
-            Console.WriteLine("Введите модель:");
-            string model = Console.ReadLine();
-            Console.WriteLine("Введите цену:");
-            string price = Console.ReadLine();
-            return new string[] { model, price };
-        }
-    }
-
-    interface IPhoneBinder
-    {
-        Phone CreatePhone(string[] data);
-    }
-    class GeneralPhoneBinder : IPhoneBinder
-    {
-        public Phone CreatePhone(string[] data)
-        {
-            if (data.Length >= 2)
-            {
-                int price = 0;
-                if (Int32.TryParse(data[1], out price))
-                {
-                    return new Phone { Model = data[0], Price = price };
-                }
-                else
-                {
-                    throw new Exception("Ошибка привязчика модели Phone. Некорректные данные для свойства Price");
-                }
-            }
-            else
-            {
-                throw new Exception("Ошибка привязчика модели Phone. Недостаточно данных для создания модели");
-            }
-        }
-    }
-    interface IPhoneValidator
-    {
-        bool IsValid(Phone phone);
-    }
-    class GeneralPhoneValidator : IPhoneValidator
-    {
-        public bool IsValid(Phone phone)
-        {
-            if (String.IsNullOrEmpty(phone.Model) || phone.Price <= 0)
-                return false;
-            return true;
-        }
-    }
-    interface IPhoneSaver
-    {
-        void Save(Phone phone, string fileName);
-    }
-    class TextPhoneSaver : IPhoneSaver
-    {
-        public void Save(Phone phone, string fileName)
-        {
-            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(fileName, true))
-            {
-                writer.WriteLine(phone.Model);
-                writer.WriteLine(phone.Price);
-            }
-        }
-    }
-
 
     class Program
     {
-        interface IPrinter
+        private static void InstantiateMyTypeFail(AppDomain domain)
         {
-            void Print(string text);
+            // Calling InstantiateMyType will always fail since the assembly info
+            // given to CreateInstance is invalid.
+            try
+            {
+                // You must supply a valid fully qualified assembly name here.
+                domain.CreateInstance("Assembly text name, Version, Culture, PublicKeyToken", "MyType");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine();
+                Console.WriteLine(e.Message);
+            }
+
+            Console.ReadLine();
         }
-        class ConsolePrinter : IPrinter
+
+        private static void InstantiateMyTypeSucceed(AppDomain domain)
         {
-            public void Print(string text)
+            try
             {
-                Console.WriteLine(text);
+                string asmname = Assembly.GetCallingAssembly().FullName;
+                domain.CreateInstance(asmname, "MyType");
             }
-        }
-        class Report
-        {
-            public string Text { get; set; }
-            public void GoToFirstPage()
+            catch (Exception e)
             {
-                Console.WriteLine("Переход к первой странице");
-            }
-            public void GoToLastPage()
-            {
-                Console.WriteLine("Переход к последней странице");
-            }
-            public void GoToPage(int pageNumber)
-            {
-                Console.WriteLine("Переход к странице {0}", pageNumber);
-            }
-            public void Print(IPrinter printer)
-            {
-                printer.Print(this.Text);
+                Console.WriteLine();
+                Console.WriteLine(e.Message);
             }
         }
 
-
-
+        private static Assembly MyResolveEventHandler(object sender, ResolveEventArgs args)
+        {
+            Console.WriteLine("Resolving...");
+            return typeof(MyType).Assembly;
+        }
 
         static void Main(string[] args)
         {
-            MobileStore store = new MobileStore(
-                new ConsolePhoneReader(), new GeneralPhoneBinder(),
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+
+            // This call will fail to create an instance of MyType since the
+            // assembly resolver is not set
+            InstantiateMyTypeFail(currentDomain);
+
+            currentDomain.AssemblyResolve += new ResolveEventHandler(MyResolveEventHandler);
+
+            // This call will succeed in creating an instance of MyType since the
+            // assembly resolver is now set.
+            InstantiateMyTypeFail(currentDomain);
+
+            // This call will succeed in creating an instance of MyType since the
+            // assembly name is valid.
+            InstantiateMyTypeSucceed(currentDomain);
+
+            //List<HvacTable>  hvacTables = new List<HvacTable>();
+
+            //string filename = @"D:\docs\Desktop\Calculations_HVA.xlsx";
+
+            //FileInfo fileInfo = new FileInfo(filename);
+            //List<HvacTable> listData = new List<HvacTable>();
+
+            //using (ExcelPackage package = new ExcelPackage(fileInfo))
+            //{
+            //    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            //    //create an instance of the the first sheet in the loaded file
+            //    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+            //    int rowStart = 7;
+            //    int rowCount = worksheet.Dimension.End.Row;
+                
+            //    for (int i = rowStart; i < rowCount-1; i++)
+            //    {
+            //        if (worksheet.Cells[i, 2].Value != null & !worksheet.Cells[i, 1].Value.ToString().Contains("Total") 
+            //            &  worksheet.Cells[i, 26].Value.ToString() != "0")
+            //        {
+            //            string roomNumber = worksheet.Cells[i, 1].Value.ToString().Trim();
+            //            string roomName = worksheet.Cells[i, 2].Value.ToString().Trim();
+            //            string heating = worksheet.Cells[i, 26].Value.ToString().Trim();
+            //            string cooling = worksheet.Cells[i, 34].Value.ToString().Trim();
+            //            string supply = worksheet.Cells[i, 39].Value.ToString().Trim();
+                        
+            //            string supplyInd = "П";
+            //            if(worksheet.Cells[i, 38].Value !=null) supplyInd = worksheet.Cells[i, 38].Value.ToString().Trim();
+            //            string exhaustInd = "П";
+            //            if(worksheet.Cells[i, 40].Value !=null) exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
+
+            //            string exhaust = worksheet.Cells[i, 41].Value.ToString().Trim();
+
+            //                listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, supplyInd, exhaust, exhaustInd));
+            //        }
+            //    }
+            //}
+            //Console.WriteLine(listData.Count);
+            //HvacTable hvacTable = listData[0];
+            //Type type = typeof(HvacTable);
+            //int NumberOfRecords = type.GetProperties().Length;
+            //Console.WriteLine(NumberOfRecords);
+            
+            /*File.Delete(@"C:\Users\yusufzhon.marasulov\Desktop\ВОР\new\UZLE-59-030-OPN-SCH-080103-RU-A1.docx");
+
+
+            MobileStore store = new MobileStore(new ConsolePhoneReader(), new GeneralPhoneBinder(),
                 new GeneralPhoneValidator(), new TextPhoneSaver());
             store.Process();
 
@@ -268,9 +177,8 @@ namespace TestConsole
                 }
             }
             string list = GetWithIn(str);
-            Console.ReadLine();
+            Console.ReadLine();*/
         }
-
 
         public static double ConvertToDouble(string Value)
         {
@@ -307,7 +215,6 @@ namespace TestConsole
 
                 }
 
-            //меж скобок 
             return rez;
         }
     }

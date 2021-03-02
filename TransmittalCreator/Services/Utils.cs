@@ -86,7 +86,7 @@ namespace TransmittalCreator.Services
                 ed.WriteMessage("\nBlock: " + btr.Name);
                 btr.Dispose();
                 AttributeCollection attCol = blkRef.AttributeCollection;
-                string str = "";
+                
 
                 foreach (ObjectId attId in attCol)
                 {
@@ -156,7 +156,7 @@ namespace TransmittalCreator.Services
             //List<ObjectId> objectIds = objectIdCollection.ToList();
 
             // objectIdCollection.CopyTo(idArray, objectIdCollection.Count);
-            string sheetNumber = "", docNumber = "", comment = "", objectNameEng = "", docTitleEng = "", objectNameRus = "", docTitleRu = "", transItem = "";
+            string sheetNumber = "", docNumber = "", comment = "", objectNameEng = "", docTitleEng = "", objectNameRus = "", docTitleRu = "";
 
             foreach (ObjectId blkId in objectIdCollection)
             {
@@ -244,8 +244,6 @@ namespace TransmittalCreator.Services
         public static List<PrintModel> GetExtentsNamePdf(Editor ed, List<PrintModel> printModels, Transaction tr,
             ObjectIdCollection objectIdCollection)
         {
-            string formatValue=""; string blockStamp = "";
-            string pageNumber = "";
             foreach (ObjectId blkId in objectIdCollection)
             {
                 BlockReference blkRef = (BlockReference) tr.GetObject(blkId, OpenMode.ForRead);
@@ -513,7 +511,7 @@ namespace TransmittalCreator.Services
             {
                 BlockReference bref = Tx.GetObject(prEntResult.ObjectId, OpenMode.ForWrite) as BlockReference;
 
-                double blockWidth = 0, blockHeidht = 0;
+                double blockWidth = 0;
                 if (bref.IsDynamicBlock)
                 {
                     DynamicBlockReferencePropertyCollection props = bref.DynamicBlockReferencePropertyCollection;
@@ -529,7 +527,7 @@ namespace TransmittalCreator.Services
 
                             AttributeCollection attCol = bref.AttributeCollection;
                             var attrDict = AttributeExtensions.GetAttributesValues(bref);
-                            if (prop.Value == "Форма 3 ГОСТ Р 21.1101 - 2009")
+                            if (prop.Value.ToString() == "Форма 3 ГОСТ Р 21.1101 - 2009")
                                 blockWidth = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
                             ed.WriteMessage(blockWidth.ToString());
                         }

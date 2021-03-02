@@ -24,7 +24,7 @@ namespace TransmittalCreator
 
             _data = data;
             this.DataContext = data;
-            List<BlockModel> combolist = new List<BlockModel>();
+            List<BlockAttribute> combolist = new List<BlockAttribute>();
 
             Dictionary<string, string> attrList = new Dictionary<string, string>();
             Transaction tr = Active.Database.TransactionManager.StartTransaction();
@@ -35,7 +35,7 @@ namespace TransmittalCreator
 
             foreach (KeyValuePair<string, string> entry in attrList)
             {
-                combolist.Add(new BlockModel(entry.Key, entry.Value));
+                combolist.Add(new BlockAttribute(entry.Key, entry.Value));
             }
 
             ComboObjectNameEn.ItemsSource = combolist;

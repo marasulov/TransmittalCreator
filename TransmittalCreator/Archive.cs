@@ -156,7 +156,7 @@ namespace TransmittalCreator
 
         public static ObjectIdCollection GetBlockByName(string blkName)
         {
-            ObjectIdCollection ids_temp = null, ids = new ObjectIdCollection();
+            ObjectIdCollection ids = new ObjectIdCollection();
 
             Editor ed = Active.Editor;
             Document doc = Active.Document;
@@ -216,9 +216,7 @@ namespace TransmittalCreator
             var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
             var pso =
-                new PromptStringOptions(
-                    "\nName of dynamic block to search for"
-                );
+                new PromptStringOptions("\nName of dynamic block to search for");
             pso.AllowSpaces = true;
             var pr = ed.GetString(pso);
             if (pr.Status != PromptStatus.OK)

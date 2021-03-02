@@ -1,0 +1,80 @@
+﻿<Window x:Class="WpfAppForTest.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfAppForTest.App"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="250" Width="500"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight ="Regular"
+        TextElement.FontSize="14"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+    
+    <DockPanel x:Name="MainPanel">
+        <Menu DockPanel.Dock="Top"/>
+        <Grid VerticalAlignment="Stretch" Margin="8 15 0 0" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto"/>
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" VerticalAlignment="Center">Select block attribute</TextBlock>
+            <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>
+            <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
+                      ItemsSource="{Binding AttributeViewModel.Attributes}" 
+                      SelectedItem="{Binding BlockAttribute}" 
+                      IsEnabled="{Binding IsChecked, ElementName=attributeCheckBox}" FontSize="12" 
+                     >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontWeight="Thin" xml:space="preserve" 
+                                               Text="Attribute Name: "/>
+                                    <TextBlock FontWeight="Medium" Name="AttrNameTextBlock"  Text="{Binding Path=AttributeName}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock FontWeight="Thin" xml:space="preserve" Text="Attribute Value: "/>
+                                    <TextBlock FontWeight="DemiBold" Name="attrValueTextBox"  Text="{Binding Path = AttributeValue}"/>
+                                </StackPanel>
+                            </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Numbering 1,2,3..Start with: </TextBlock>
+            <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
+            <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
+                     Text="{Binding Path=NumberingValue}" PreviewTextInput="NumberValidationTextBox"
+                     IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" >
+            </TextBox>
+
+            <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Prefix</TextBlock>
+            <!--<CheckBox Grid.Column="1" Grid.Row="2" ></CheckBox>-->
+            <TextBox Grid.Column="2" Grid.Row="2" Name="prefixTextBox" Text="{Binding Path=Prefix}"></TextBox>
+
+            <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center">Suffix</TextBlock>
+            <!--<CheckBox Grid.Column="1" Grid.Row="3"></CheckBox>-->
+            <TextBox Grid.Column="2" Grid.Row="3" Name="suffixTextBox" Text="{Binding Path=Suffix}"></TextBox>
+
+            <TextBlock Grid.Column="0" Grid.Row="4" Text="Filename"/>
+            <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName}"/>
+            <TextBlock Name="TextBlock1" Visibility="Collapsed" ></TextBlock>
+            <Button Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="5" Margin="8 15 0 0" Name="createButton" Command="{Binding AddCommand}" TabIndex="3" Click="NewCommand_Executed">Submit</Button>
+        </Grid>
+    </DockPanel>
+   </Window>

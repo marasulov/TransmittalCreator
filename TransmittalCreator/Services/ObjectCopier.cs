@@ -33,9 +33,7 @@ namespace TransmittalCreator.Services
 
         private void GetBlockLengths(ObjectId objectId)
         {
-            double blockWidth = 0, blockHeidht = 0;
-            Point3d blockPosition;
-            Point3d dimPoint2d;
+
             Document doc = Application.DocumentManager.MdiActiveDocument;
 
             ObjectIdCollection acObjIdColl = new ObjectIdCollection();

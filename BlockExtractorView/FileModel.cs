@@ -6,7 +6,7 @@ namespace BlockExtractorView
     public class FileModel : INotifyPropertyChanged
     {
         private string fileName;
-        private string fileType;
+        //private string fileType;
 
         public string FileName
         {
@@ -15,8 +15,6 @@ namespace BlockExtractorView
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
-
-        
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
