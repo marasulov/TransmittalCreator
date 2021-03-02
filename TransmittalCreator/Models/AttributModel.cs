@@ -57,19 +57,19 @@ namespace TransmittalCreator.Models
             this.TrDocTitleRu = trDocTitleRu;
         }
 
-        public AttributModel(BlockModel objectNameEn, BlockModel objectNameRu,BlockModel position, BlockModel nomination, BlockModel comment, BlockModel trItem, BlockModel trDocNumber,
-            BlockModel trDocTitleEn, BlockModel trDocTitleRu)
+        public AttributModel(BlockAttribute objectNameEn, BlockAttribute objectNameRu,BlockAttribute position, BlockAttribute nomination, BlockAttribute comment, BlockAttribute trItem, BlockAttribute trDocNumber,
+            BlockAttribute trDocTitleEn, BlockAttribute trDocTitleRu)
         {
-            this.ObjectNameEn = objectNameEn.AttributName;
-            this.ObjectNameRu = objectNameRu.AttributName;
-            this.Position = position.AttributName;
-            this.Nomination = nomination.AttributName;
+            this.ObjectNameEn = objectNameEn.AttributeName;
+            this.ObjectNameRu = objectNameRu.AttributeName;
+            this.Position = position.AttributeName;
+            this.Nomination = nomination.AttributeName;
             if(comment!=null)
-            this.Comment = comment.AttributName;
-            this.TrItem = trItem.AttributName;
-            this.TrDocNumber = trDocNumber.AttributName;
-            this.TrDocTitleEn = trDocTitleEn.AttributName;
-            this.TrDocTitleRu = trDocTitleRu.AttributName;
+            this.Comment = comment.AttributeName;
+            this.TrItem = trItem.AttributeName;
+            this.TrDocNumber = trDocNumber.AttributeName;
+            this.TrDocTitleEn = trDocTitleEn.AttributeName;
+            this.TrDocTitleRu = trDocTitleRu.AttributeName;
         }
     }
 }

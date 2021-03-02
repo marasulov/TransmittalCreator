@@ -9,11 +9,11 @@ namespace TransmittalCreator.ViewModel
 {
     public class BlockViewModel
     {
-        private BlockModel _selectedBlockModel;
+        private BlockAttribute _selectedBlockAttribute;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ObservableCollection<BlockModel> Blocks { get; set; }
+        public ObservableCollection<BlockAttribute> Blocks { get; set; }
 
         private RelayCommand addCommand;
 
@@ -29,12 +29,12 @@ namespace TransmittalCreator.ViewModel
             }
         }
 
-        public BlockModel SelectedBlock
+        public BlockAttribute SelectedBlock
         {
-            get { return _selectedBlockModel; }
+            get { return _selectedBlockAttribute; }
             set
             {
-                _selectedBlockModel = value;
+                _selectedBlockAttribute = value;
                 OnPropertyChanged("SelectedBlock");
             }
         }

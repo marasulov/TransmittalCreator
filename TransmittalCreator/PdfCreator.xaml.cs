@@ -13,12 +13,12 @@ namespace TransmittalCreator
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class PdfCreator : Window
     {
         public bool isClicked = false;
         BlockViewModel _data;
         public string _blockName;
-        public MainWindow(BlockViewModel data)
+        public PdfCreator(BlockViewModel data)
         {
             InitializeComponent();
 
@@ -39,17 +39,6 @@ namespace TransmittalCreator
             }
 
             ComboObjectNameEn.ItemsSource = combolist;
-            ComboObjectNameRu.ItemsSource = combolist;
-
-            ComboBoxPosition.ItemsSource = combolist;
-            ComboBoxNomination.ItemsSource = combolist;
-            ComboBoxComment.ItemsSource = combolist;
-
-            ComboBoxTrItem.ItemsSource = combolist;
-            ComboBoxTrDocNumber.ItemsSource = combolist;
-            ComboBoxTrDocTitleEn.ItemsSource = combolist;
-            ComboBoxTrDocTitleRu.ItemsSource = combolist;
-
             NameBlock.Text = _blockName;
         }
 

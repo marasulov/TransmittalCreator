@@ -1,7 +1,7 @@
-﻿<Application x:Class="TransmittalCreator.App"
+﻿<Application x:Class="WpfAppForTest.App.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:TransmittalCreator"
+             xmlns:local="clr-namespace:WpfAppForTest.App" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
@@ -12,6 +12,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" /> 
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/primary/materialdesigncolor.blue.xaml"/> 
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml"/> 
+                
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

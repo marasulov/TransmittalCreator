@@ -12,11 +12,13 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 using Autodesk.AutoCAD.Colors;
 using OfficeOpenXml;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
+using TransmittalCreator.ViewModel;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
@@ -113,7 +115,7 @@ namespace TransmittalCreator
             string inputStr;
 
             pso.KeywordInput +=
-                delegate(object sender, SelectionTextInputEventArgs e)
+                delegate (object sender, SelectionTextInputEventArgs e)
                 {
                     //ed.WriteMessage("\nKeyword entered: {0}", e.Input);
                     inputStr = e.Input;
@@ -159,6 +161,7 @@ namespace TransmittalCreator
             doc.LockLayers(layersDictionary);
         }
 
+        #region HvacTable
 
         // Modal Command with pickfirst selection
         [CommandMethod("hvacTable", CommandFlags.Modal | CommandFlags.UsePickSet)]
@@ -199,28 +202,22 @@ namespace TransmittalCreator
                     Active.Editor.WriteMessage("\nLoop cancelled.");
                     break;
                 }
-                    AddTable(hvacTable, tableCols);   
+                AddTable(hvacTable, tableCols);
             }
-            
+
             System.Windows.Forms.Application.RemoveMessageFilter(filter);
         }
 
         public class MyMessageFilter : IMessageFilter
-
         {
             public const int WM_KEYDOWN = 0x0100;
-
             public bool bCanceled = false;
-
             public bool PreFilterMessage(ref Message m)
-
             {
                 if (m.Msg == WM_KEYDOWN)
-
                 {
                     // Check for the Escape keypress
-
-                    Keys kc = (Keys) (int) m.WParam & Keys.KeyCode;
+                    Keys kc = (Keys)(int)m.WParam & Keys.KeyCode;
 
                     if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
 
@@ -269,7 +266,7 @@ namespace TransmittalCreator
                             string heating = worksheet.Cells[i, 26].Value?.ToString().Trim();
                             string cooling = worksheet.Cells[i, 34].Value?.ToString().Trim();
                             string supply = worksheet.Cells[i, 39].Value?.ToString().Trim();
-                            
+
 
                             string supplyIn = "П";
                             var supplyInd = worksheet.Cells[i, 38].Value?.ToString().Trim() ?? supplyIn;
@@ -288,12 +285,12 @@ namespace TransmittalCreator
 
             return listData;
         }
-
+        #endregion
         private void CreateLayer()
         {
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                LayerTable ltb = (LayerTable) tr.GetObject(Active.Database.LayerTableId,
+                LayerTable ltb = (LayerTable)tr.GetObject(Active.Database.LayerTableId,
                     OpenMode.ForRead);
 
                 //create a new layout.
@@ -328,9 +325,9 @@ namespace TransmittalCreator
             Database db = HostApplicationServices.WorkingDatabase;
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
-                BlockTable bt = (BlockTable) tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
                 ObjectId msId = bt[BlockTableRecord.ModelSpace];
-                BlockTableRecord btr = (BlockTableRecord) tr.GetObject(msId, OpenMode.ForWrite);
+                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(msId, OpenMode.ForWrite);
 
                 PromptPointResult pr =
                     Active.Editor.GetPoint(
@@ -401,7 +398,7 @@ namespace TransmittalCreator
 
         private static int GetRoundUpValue(string str, double divValue = 1)
         {
-            return (int) Math.Ceiling(double.Parse(str) / divValue);
+            return (int)Math.Ceiling(double.Parse(str) / divValue);
         }
 
         private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber,
@@ -420,7 +417,7 @@ namespace TransmittalCreator
             var doc = Application.DocumentManager.MdiActiveDocument;
             var db = doc.Database;
             var ed = doc.Editor;
-            var filter = new SelectionFilter(new[] {new TypedValue(0, "INSERT")});
+            var filter = new SelectionFilter(new[] { new TypedValue(0, "INSERT") });
             var opts = new PromptSelectionOptions();
             opts.MessageForAdding = "Select block references: ";
 
@@ -434,7 +431,7 @@ namespace TransmittalCreator
             {
                 foreach (SelectedObject so in res.Value)
                 {
-                    var br = (BlockReference) tr.GetObject(so.ObjectId, OpenMode.ForRead);
+                    var br = (BlockReference)tr.GetObject(so.ObjectId, OpenMode.ForRead);
                     var vargeom = br.GeometricExtents;
                     ed.WriteMessage(vargeom.MinPoint[0].ToString(CultureInfo.InvariantCulture));
                     str += $"{br.Name} {br.Position:0.00}\r\n";
@@ -443,7 +440,7 @@ namespace TransmittalCreator
                         str += "Attributes:\r\n";
                         foreach (ObjectId id in br.AttributeCollection)
                         {
-                            var att = (AttributeReference) id.GetObject(OpenMode.ForRead);
+                            var att = (AttributeReference)id.GetObject(OpenMode.ForRead);
                             str += $"\tTag: {att.Tag} Text: {att.TextString}\r\n";
                         }
                     }
@@ -466,7 +463,7 @@ namespace TransmittalCreator
             Active.Document.SendStringToExecute("REGENALL ", true, false, true);
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                TypedValue[] filList = new TypedValue[] {new TypedValue((int) DxfCode.Start, "INSERT")};
+                TypedValue[] filList = new TypedValue[] { new TypedValue((int)DxfCode.Start, "INSERT") };
                 SelectionFilter filter = new SelectionFilter(filList);
                 PromptSelectionOptions opts = new PromptSelectionOptions();
                 opts.MessageForAdding = "Select block references: ";
@@ -484,7 +481,7 @@ namespace TransmittalCreator
                 ObjectIdCollection idArray = new ObjectIdCollection();
                 foreach (var objectId in idArrayTemp)
                 {
-                    BlockReference blRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
+                    BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
                     BlockTableRecord block =
                         tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
                     if (!(block is null))
@@ -541,7 +538,7 @@ namespace TransmittalCreator
             bool isExec = true;
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                TypedValue[] filList = new TypedValue[] {new TypedValue((int) DxfCode.Start, "INSERT")};
+                TypedValue[] filList = new TypedValue[] { new TypedValue((int)DxfCode.Start, "INSERT") };
                 SelectionFilter filter = new SelectionFilter(filList);
                 PromptSelectionOptions opts = new PromptSelectionOptions();
                 opts.MessageForAdding = "Select block references: ";
@@ -567,7 +564,7 @@ namespace TransmittalCreator
                     ObjectIdCollection idArray = new ObjectIdCollection();
                     foreach (var objectId in idArrayTemp)
                     {
-                        BlockReference blRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
+                        BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
                         BlockTableRecord block =
                             tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
                         string blockName = block.Name;
@@ -586,7 +583,7 @@ namespace TransmittalCreator
                     {
                         ObjectCopier objectCopier = new ObjectCopier(objectId);
                         ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-                        BlockReference blkRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
+                        BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
                         string fileName = Utils.GetFileNameFromBlockAttribute(blkRef);
 
                         //HostApplicationServices hs = HostApplicationServices.Current;
@@ -636,7 +633,7 @@ namespace TransmittalCreator
             // Get the current document and database, and start a transaction
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database acCurDb = acDoc.Database;
-            short bgPlot = (short) Application.GetSystemVariable("BACKGROUNDPLOT");
+            short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
             Application.SetSystemVariable("BACKGROUNDPLOT", 0);
             try
             {
@@ -765,7 +762,6 @@ namespace TransmittalCreator
             catch (Autodesk.AutoCAD.Runtime.Exception e)
             {
                 Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(e.Message);
-                throw;
             }
         }
 
@@ -890,66 +886,75 @@ namespace TransmittalCreator
             }
         }
 
-        //[CommandMethod("CtTransm")]
-        //public void ListAttributes()
-        //{
-        //    //Dictionary<string, string> attrList = new Dictionary<string, string>();
+        [CommandMethod("CreatePdfName")]
+        public void CreatePdfName()
+        {
+            Dictionary<string, string> attrList = new Dictionary<string, string>();
+            Window1 window = new Window1(new BlockViewModel(attrList));
+            Application.ShowModalWindow(window);
+        }
 
-        //    //MainWindow window = new MainWindow(new BlockViewModel(attrList));
+        [CommandMethod("CtTransm")]
+        public void ListAttributes()
+        {
+            Dictionary<string, string> attrList = new Dictionary<string, string>();
 
-        //    //Application.ShowModalWindow(window);
+            Window1 window = new Window1(new BlockViewModel(attrList));
 
-        //    //if (window.isClicked == true)
-        //    //{
-        //    //var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
-        //    ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+            Application.ShowModalWindow(window);
 
-        //    List<Sheet> dict = new List<Sheet>();
-        //    List<PrintModel> printModels = new List<PrintModel>();
+            if (window.isClicked == true)
+            {
 
-        //    //BlockModel objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockModel;
-        //    //BlockModel objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockModel;
+                var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
+                //ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
 
-        //    //BlockModel position = window.ComboBoxPosition.SelectedItem as BlockModel;
-        //    //BlockModel nomination = window.ComboBoxNomination.SelectedItem as BlockModel;
-        //    //BlockModel comment = window.ComboBoxComment.SelectedItem as BlockModel;
-        //    //BlockModel trItem = window.ComboBoxTrItem.SelectedItem as BlockModel;
-        //    //BlockModel trDocNumber = window.ComboBoxTrDocNumber.SelectedItem as BlockModel;
-        //    //BlockModel trDocTitleEn = window.ComboBoxTrDocTitleEn.SelectedItem as BlockModel;
-        //    //BlockModel trDocTitleRu = window.ComboBoxTrDocTitleRu.SelectedItem as BlockModel;
+                //List<Sheet> dict = new List<Sheet>();
+                //List<PrintModel> printModels = new List<PrintModel>();
 
-        //    //AttributModel attributModel = new AttributModel(objectNameEn, objectNameRu, position, nomination,
-        //    //    comment, trItem, trDocNumber, trDocTitleEn, trDocTitleRu);
+                //BlockAttribute objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockAttribute;
+                //BlockAttribute objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockAttribute;
 
-        //    using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-        //    {
-        //        //MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds);
-        //        //MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, objectIds);
+                //BlockAttribute position = window.ComboBoxPosition.SelectedItem as BlockAttribute;
+                //BlockAttribute nomination = window.ComboBoxNomination.SelectedItem as BlockAttribute;
+                //BlockAttribute comment = window.ComboBoxComment.SelectedItem as BlockAttribute;
+                //BlockAttribute trItem = window.ComboBoxTrItem.SelectedItem as BlockAttribute;
+                //BlockAttribute trDocNumber = window.ComboBoxTrDocNumber.SelectedItem as BlockAttribute;
+                //BlockAttribute trDocTitleEn = window.ComboBoxTrDocTitleEn.SelectedItem as BlockAttribute;
+                //BlockAttribute trDocTitleRu = window.ComboBoxTrDocTitleRu.SelectedItem as BlockAttribute;
 
-        //        //if (window.transmittalCheckBox.IsChecked == true)
-        //        //{
-        //            Utils utils = new Utils();
-        //            //utils.CreateOnlyVed(dict);
-        //            //utils.CreateOnlytrans(dict);
-        //            foreach (var printModel in printModels)
-        //            {
-        //                //PlotCurrentLayout(printModel.DocNumber, printModel., printModel.StampViewName);
-        //            }
-        //        //}
-        //        //else
-        //        //{
-        //        //    //Utils utils = new Utils();
-        //        //    //utils.CreateOnlyVed(dict);
-        //        //    foreach (var printModel in printModels)
-        //        //    {
-        //        //        //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
-        //        //    }
-        //        //}
+                //AttributModel attributModel = new AttributModel(objectNameEn, objectNameRu, position, nomination,
+                //    comment, trItem, trDocNumber, trDocTitleEn, trDocTitleRu);
 
-        //        tr.Commit();
-        //    }
-        //    //}
-        //}
+                //using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+                //{
+                //    MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds);
+                //    MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, objectIds);
+
+                //    if (window.transmittalCheckBox.IsChecked == true)
+                //    {
+                //        Utils utils = new Utils();
+                //        utils.CreateOnlyVed(dict);
+                //        utils.CreateOnlytrans(dict);
+                //        foreach (var printModel in printModels)
+                //        {
+                //            PlotCurrentLayout(printModel.DocNumber, printModel);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        //Utils utils = new Utils();
+                //        //utils.CreateOnlyVed(dict);
+                //        foreach (var printModel in printModels)
+                //        {
+                //            //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
+                //        }
+                //    }
+
+                //    tr.Commit();
+                //}
+            }
+        }
 
         public void Initialize()
         {

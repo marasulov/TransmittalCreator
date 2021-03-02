@@ -5,57 +5,121 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using OfficeOpenXml;
 using TransmittalCreator.Models;
+using System.Reflection;
 
 
 
 namespace TestConsole
 {
+    public class MyType
+    {
+        public MyType()
+        {
+            Console.WriteLine();
+            Console.WriteLine("MyType instantiated!");
+        }
+    }
+
     class Program
     {
+        private static void InstantiateMyTypeFail(AppDomain domain)
+        {
+            // Calling InstantiateMyType will always fail since the assembly info
+            // given to CreateInstance is invalid.
+            try
+            {
+                // You must supply a valid fully qualified assembly name here.
+                domain.CreateInstance("Assembly text name, Version, Culture, PublicKeyToken", "MyType");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine();
+                Console.WriteLine(e.Message);
+            }
+
+            Console.ReadLine();
+        }
+
+        private static void InstantiateMyTypeSucceed(AppDomain domain)
+        {
+            try
+            {
+                string asmname = Assembly.GetCallingAssembly().FullName;
+                domain.CreateInstance(asmname, "MyType");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine();
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        private static Assembly MyResolveEventHandler(object sender, ResolveEventArgs args)
+        {
+            Console.WriteLine("Resolving...");
+            return typeof(MyType).Assembly;
+        }
+
         static void Main(string[] args)
         {
-            List<HvacTable>  hvacTables = new List<HvacTable>();
+            AppDomain currentDomain = AppDomain.CurrentDomain;
 
-            string filename = @"D:\docs\Desktop\Calculations_HVA.xlsx";
+            // This call will fail to create an instance of MyType since the
+            // assembly resolver is not set
+            InstantiateMyTypeFail(currentDomain);
 
-            FileInfo fileInfo = new FileInfo(filename);
-            List<HvacTable> listData = new List<HvacTable>();
+            currentDomain.AssemblyResolve += new ResolveEventHandler(MyResolveEventHandler);
 
-            using (ExcelPackage package = new ExcelPackage(fileInfo))
-            {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                //create an instance of the the first sheet in the loaded file
-                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-                int rowStart = 7;
-                int rowCount = worksheet.Dimension.End.Row;
+            // This call will succeed in creating an instance of MyType since the
+            // assembly resolver is now set.
+            InstantiateMyTypeFail(currentDomain);
+
+            // This call will succeed in creating an instance of MyType since the
+            // assembly name is valid.
+            InstantiateMyTypeSucceed(currentDomain);
+
+            //List<HvacTable>  hvacTables = new List<HvacTable>();
+
+            //string filename = @"D:\docs\Desktop\Calculations_HVA.xlsx";
+
+            //FileInfo fileInfo = new FileInfo(filename);
+            //List<HvacTable> listData = new List<HvacTable>();
+
+            //using (ExcelPackage package = new ExcelPackage(fileInfo))
+            //{
+            //    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            //    //create an instance of the the first sheet in the loaded file
+            //    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+            //    int rowStart = 7;
+            //    int rowCount = worksheet.Dimension.End.Row;
                 
-                for (int i = rowStart; i < rowCount-1; i++)
-                {
-                    if (worksheet.Cells[i, 2].Value != null & !worksheet.Cells[i, 1].Value.ToString().Contains("Total") 
-                        &  worksheet.Cells[i, 26].Value.ToString() != "0")
-                    {
-                        string roomNumber = worksheet.Cells[i, 1].Value.ToString().Trim();
-                        string roomName = worksheet.Cells[i, 2].Value.ToString().Trim();
-                        string heating = worksheet.Cells[i, 26].Value.ToString().Trim();
-                        string cooling = worksheet.Cells[i, 34].Value.ToString().Trim();
-                        string supply = worksheet.Cells[i, 39].Value.ToString().Trim();
+            //    for (int i = rowStart; i < rowCount-1; i++)
+            //    {
+            //        if (worksheet.Cells[i, 2].Value != null & !worksheet.Cells[i, 1].Value.ToString().Contains("Total") 
+            //            &  worksheet.Cells[i, 26].Value.ToString() != "0")
+            //        {
+            //            string roomNumber = worksheet.Cells[i, 1].Value.ToString().Trim();
+            //            string roomName = worksheet.Cells[i, 2].Value.ToString().Trim();
+            //            string heating = worksheet.Cells[i, 26].Value.ToString().Trim();
+            //            string cooling = worksheet.Cells[i, 34].Value.ToString().Trim();
+            //            string supply = worksheet.Cells[i, 39].Value.ToString().Trim();
                         
-                        string supplyInd = "П";
-                        if(worksheet.Cells[i, 38].Value !=null) supplyInd = worksheet.Cells[i, 38].Value.ToString().Trim();
-                        string exhaustInd = "П";
-                        if(worksheet.Cells[i, 40].Value !=null) exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
+            //            string supplyInd = "П";
+            //            if(worksheet.Cells[i, 38].Value !=null) supplyInd = worksheet.Cells[i, 38].Value.ToString().Trim();
+            //            string exhaustInd = "П";
+            //            if(worksheet.Cells[i, 40].Value !=null) exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
 
-                        string exhaust = worksheet.Cells[i, 41].Value.ToString().Trim();
+            //            string exhaust = worksheet.Cells[i, 41].Value.ToString().Trim();
 
-                            listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, supplyInd, exhaust, exhaustInd));
-                    }
-                }
-            }
-            Console.WriteLine(listData.Count);
-            HvacTable hvacTable = listData[0];
-            Type type = typeof(HvacTable);
-            int NumberOfRecords = type.GetProperties().Length;
-            Console.WriteLine(NumberOfRecords);
+            //                listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, supplyInd, exhaust, exhaustInd));
+            //        }
+            //    }
+            //}
+            //Console.WriteLine(listData.Count);
+            //HvacTable hvacTable = listData[0];
+            //Type type = typeof(HvacTable);
+            //int NumberOfRecords = type.GetProperties().Length;
+            //Console.WriteLine(NumberOfRecords);
             
             /*File.Delete(@"C:\Users\yusufzhon.marasulov\Desktop\ВОР\new\UZLE-59-030-OPN-SCH-080103-RU-A1.docx");
 
