@@ -1,24 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using DV2177.Common;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Input;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.ViewModel;
+using Path = System.IO.Path;
 
 namespace TransmittalCreator
 {
@@ -31,13 +22,22 @@ namespace TransmittalCreator
         private BlockViewModel _data;
         private string _blockName;
 
+        public string BlockName
+        {
+            get => _blockName;
+            set => _blockName = value;
+        }
+
+
         public Window1(BlockViewModel data)
-        { 
+        {
+            string executablePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
             ProxyDomain pd = new ProxyDomain();
-            Assembly assembly = pd.GetAssembly(@"C:\Program Files\Autodesk\ApplicationPlugins\WPF\Contents\MaterialDesignThemes.Wpf.dll");
+            Assembly assembly = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignThemes.Wpf.dll"));
 
             ProxyDomain pd1 = new ProxyDomain();
-            Assembly assembly1 = pd.GetAssembly(@"C:\Program Files\Autodesk\ApplicationPlugins\WPF\Contents\MaterialDesignColors.dll");
+            Assembly assembly1 = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignColors.dll"));
 
             InitializeComponent();
 
@@ -77,6 +77,12 @@ namespace TransmittalCreator
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
+
+        private void createButton_Click(object sender, RoutedEventArgs e)
+        {
+            isClicked = true;
+            this.Close();
+        }
     }
 
     class ProxyDomain : MarshalByRefObject
@@ -93,6 +99,4 @@ namespace TransmittalCreator
             }
         }
     }
-
-   
 }

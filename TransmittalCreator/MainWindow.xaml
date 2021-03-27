@@ -323,7 +323,7 @@
 
             <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="25" >
                 <Button Width="70" Height="25" Name="ButtonCreate"
-                        Command="ApplicationCommands.New">
+                        Command="ApplicationCommands.New" IsEnabled="False">
                     <TextBlock>Create</TextBlock>
                 </Button>
             </StackPanel>

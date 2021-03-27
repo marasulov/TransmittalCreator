@@ -14,11 +14,18 @@ namespace TransmittalCreator.Models
 {
     public class PrintModel
     {
+        private double _width;
+        private double _height;
+        private double _minPointX;
+        private double _minPointY;
+
+        public double MinPointX => _minPointX;
+        public double MinPointY => _minPointY;
 
         /// <summary>
         /// Номер листа
         /// </summary>
-        public string DocNumber { get; }
+        public string DocNumber { get; set; }
 
         /// <summary>
         /// Pdf Document Name
@@ -34,39 +41,36 @@ namespace TransmittalCreator.Models
 
         private double ScaleX { get; set; }
 
-        private double width;
         public double Width
         {
-            get { return width; }
-            set { width = value; }
+            get => _width;
+            set => _width = value;
         }
 
-        private double height;
         public double Height
         {
-            get { return height; }
-            set { height = value; }
+            get => _height;
+            set => _height = value;
         }
 
-        
 
-        public PrintModel(string _docNumber, ObjectId objectId)
+        public PrintModel(string docNumber, ObjectId objectId)
         {
-
             var posPoints = GetBlockLengths(objectId);
             this.BlockPosition = posPoints.Item1;
             this.BlockDimensions = posPoints.Item2;
             this.StampViewName = posPoints.Item3;
 
             //if (this.StampViewName == )
-            this.DocNumber = _docNumber;
-
+            this.DocNumber = docNumber;
         }
 
-        public dynamic GetBlockPropsValue(string propName)
+        public PrintModel(ObjectId objectId)
         {
-            
-            return "no result"; // возвращаем строку
+            var posPoints = GetBlockLengths(objectId);
+            this.BlockPosition = posPoints.Item1;
+            this.BlockDimensions = posPoints.Item2;
+            this.StampViewName = posPoints.Item3;
         }
 
         public (Point2d, Point2d, string) GetBlockLengths(ObjectId objectId)
@@ -80,7 +84,9 @@ namespace TransmittalCreator.Models
                 BlockReference bref = Tx.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
                 this.ScaleX = bref.ScaleFactors.X;
                 Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(bref.Position.X, bref.Position.Y,0), false);
-                blockPosition = new Point2d(blockPos3d.X, blockPos3d.Y);
+                _minPointX = blockPos3d.X;
+                _minPointY = blockPos3d.Y;
+                blockPosition = new Point2d(_minPointX, _minPointY);
                 DynamicBlockReferencePropertyCollection props = bref.DynamicBlockReferencePropertyCollection;
 
                 foreach (DynamicBlockReferenceProperty prop in props)
@@ -111,14 +117,14 @@ namespace TransmittalCreator.Models
 
         public bool IsFormatHorizontal()
         {
-            double minPointX = this.BlockPosition.X;
-            double minPointY = this.BlockPosition.Y;
+            _minPointX = this.BlockPosition.X;
+            _minPointY = this.BlockPosition.Y;
 
             double maxPointX = this.BlockDimensions.X;
             double maxPointY = this.BlockDimensions.Y;
 
-            this.Width = maxPointX - minPointX;
-            this.Height = maxPointY - minPointY;
+            this.Width = maxPointX - _minPointX;
+            this.Height = maxPointY - _minPointY;
 
             if (Width > Height) return true;
 
@@ -153,9 +159,21 @@ namespace TransmittalCreator.Models
                     double strheightD = Convert.ToDouble(strheight, System.Globalization.CultureInfo.InvariantCulture);
 
                     //double strheight = Convert.ToDouble(str2[1]);
+                    double curWidth;
+                    double curHeight;
 
-                    double curWidth = this.width / this.ScaleX;
-                    double curHeight = this.height / this.ScaleX;
+                    if (IsFormatHorizontal())
+                    {
+                        curWidth = this._width / this.ScaleX;
+                        curHeight = this._height / this.ScaleX;
+                    }
+                    else
+                    {
+                        curWidth = this._height / this.ScaleX;
+                        curHeight = this._width / this.ScaleX;
+                    }
+                    
+
                     if (strWidthD == curWidth & strheightD == curHeight)
                     {
                         //Console.WriteLine("{0} ширина {1}-{2}  высота {3}-{4}", line, strWidthD, this, strheightD,

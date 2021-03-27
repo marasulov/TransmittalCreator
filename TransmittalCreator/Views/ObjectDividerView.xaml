@@ -1,20 +1,19 @@
-﻿<Window x:Class="TransmittalCreator.Window1"
+﻿<Window x:Class="TransmittalCreator.Views.ObjectDividerView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="PDFCreator" Height="250" Width="600"
+        
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight ="Regular"
         TextElement.FontSize="14"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}" Icon="0012.png" 
-        ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250"
-        >
+        FontFamily="{materialDesign:MaterialDesignFont}" Icon="..\0012.png" ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250"
+        Title="ObjectDivider" Height="450" Width="800">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -24,18 +23,15 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/primary/materialdesigncolor.blue.xaml"/> 
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml"/> 
             </ResourceDictionary.MergedDictionaries>
-            
         </ResourceDictionary>
     </Window.Resources>
- <DockPanel>
-        <Grid VerticalAlignment="Stretch" Margin="8 2 8 0">
+    <Grid VerticalAlignment="Stretch" Margin="8 2 8 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*"/>
-                <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -44,7 +40,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             
-            <TextBlock Grid.Column="0" VerticalAlignment="Center">Select block attribute</TextBlock>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center">Select object color</TextBlock>
             <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>
             <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
                       ItemsSource="{Binding AttributeViewModel.Attributes}" 
@@ -70,7 +66,7 @@
             <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Numbering start with: </TextBlock>
             <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
             <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
-                     Text="{Binding Path=NumberingValue}" PreviewTextInput="NumberValidationTextBox"
+                     Text="{Binding Path=NumberingValue}"
                      IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0">
             </TextBox>
 
@@ -85,14 +81,8 @@
             <TextBlock Grid.Column="0" Grid.Row="4" Text="Filename"/>
             <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName}"/>
             <TextBlock Name="TextBlock1" Visibility="Collapsed" ></TextBlock>
-            <TextBox Grid.Column="0" Grid.Row="5" Text="Printing numbering order" Margin="2 3 5 0"></TextBox>
-            <StackPanel Grid.Column="2" Grid.Row="5" Orientation="Horizontal" Margin="5" >
-                <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX"></RadioButton>
-                <RadioButton Content="Y" Margin="2 0 5 0" Name="RadioButtonY"></RadioButton>
-                <RadioButton Content="Select order" Margin="2 0 5 0" Name="RadioButtonSelOrder" IsChecked="True"></RadioButton>
-            </StackPanel>
-            <StackPanel Grid.Row="6" Grid.ColumnSpan="3"><Button Name="createButton" 
-                                TabIndex="3" Click="createButton_Click">Create PDF</Button></StackPanel>
+            <StackPanel Grid.Row="5" Grid.ColumnSpan="3"><Button Name="createButton" 
+                                TabIndex="3" >Create layer</Button></StackPanel>
         </Grid>
- </DockPanel>          
+
 </Window>
