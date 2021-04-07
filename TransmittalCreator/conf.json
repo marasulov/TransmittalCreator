@@ -1,4 +1,5 @@
 ﻿{
 	"Pc3":"DWG_To_PDF_Uzle.pc3",
-	"Pmp":"ГОСТ 2.301-68 ЕСКД.pmp"
+	"Pmp":"ГОСТ 2.301-68 ЕСКД.pmp",
+	"CheckListTemplate": "CheckList.docx"
 }

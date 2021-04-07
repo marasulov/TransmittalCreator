@@ -46,7 +46,9 @@ namespace TransmittalCreator
         /// </summary>
         public string DocTitleRu { get; set; }
 
-        public Sheet(string sheetNumber, string docNumber, string objectNameEng, string docTitleEng, string objectNameRu,  string docTitleRu)
+        public string ViewValue { get; set; }
+
+        public Sheet(string sheetNumber, string docNumber, string objectNameEng, string docTitleEng, string objectNameRu,  string docTitleRu, string viewValue)
         {
             Int32.TryParse(sheetNumber, out int tempNumber);
             this.SheetNumber = tempNumber;
@@ -55,19 +57,20 @@ namespace TransmittalCreator
             this.DocTitleEng= docTitleEng;
             this.ObjectNameRu = objectNameRu;
             this.DocTitleRu = docTitleRu;
+            this.ViewValue = viewValue;
         }
 
-        public Sheet(string sheetNumber, string docNumber, string commment, string objectNameEng, string docTitleEng, string objectNameRu, string docTitleRu)
-        {
-            Int32.TryParse(sheetNumber, out int tempNumber);
-            this.SheetNumber = tempNumber;
-            this.DocNumber = docNumber;
-            this.Comment = commment;
-            this.ObjectNameEng = objectNameEng;
-            this.DocTitleEng = docTitleEng;
-            this.ObjectNameRu = objectNameRu;
-            this.DocTitleRu = docTitleRu;
-        }
+        //public Sheet(string sheetNumber, string docNumber, string commment, string objectNameEng, string docTitleEng, string objectNameRu, string docTitleRu)
+        //{
+        //    Int32.TryParse(sheetNumber, out int tempNumber);
+        //    this.SheetNumber = tempNumber;
+        //    this.DocNumber = docNumber;
+        //    this.Comment = commment;
+        //    this.ObjectNameEng = objectNameEng;
+        //    this.DocTitleEng = docTitleEng;
+        //    this.ObjectNameRu = objectNameRu;
+        //    this.DocTitleRu = docTitleRu;
+        //}
 
 
         public Sheet(string docNumber, string objectNameEng)
@@ -97,7 +100,7 @@ namespace TransmittalCreator
             borders.LineStyle = Excel.XlLineStyle.xlContinuous;
             borders.Weight = Excel.XlBorderWeight.xlMedium;
 
-            ws.Cells[4,17] = DateTime.Now.ToString("   dd-MM-yyyy");
+            //ws.Cells[4,17] = DateTime.Now.ToString("   dd-MM-yyyy");
 
             sheets = sheets.OrderBy(x => x.SheetNumber).ToList();
 

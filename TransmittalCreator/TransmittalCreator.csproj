@@ -77,6 +77,9 @@
       <Private>False</Private>
       <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\acmgd.dll</HintPath>
     </Reference>
+    <Reference Include="DocumentFormat.OpenXml, Version=2.7.2.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocumentFormat.OpenXml.2.7.2\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
+    </Reference>
     <Reference Include="DV2177.Common">
       <HintPath>E:\docs\sharp\DV2177_Code\source\DV2177.Delegates\bin\Debug\DV2177.Common.dll</HintPath>
       <Private>True</Private>
@@ -117,6 +120,14 @@
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.FileSystem.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.FileSystem.Primitives.4.0.1\lib\net46\System.IO.FileSystem.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.IO.Packaging, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Packaging.4.0.0\lib\net46\System.IO.Packaging.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Threading.Tasks" />
@@ -148,6 +159,8 @@
     <Compile Include="Models\FileModel.cs" />
     <Compile Include="Models\HvacTable.cs" />
     <Compile Include="Services\Blocks\BlockSelector.cs" />
+    <Compile Include="Services\CheckListCreator\CheckListCreator.cs" />
+    <Compile Include="Services\CheckListCreator\CheckListModel.cs" />
     <Compile Include="Services\FileEditor.cs" />
     <Compile Include="Services\FileNameCreator.cs" />
     <Compile Include="Services\LayerManipulation.cs" />
@@ -167,6 +180,9 @@
     <Compile Include="Services\AttributeExtensions.cs" />
     <Compile Include="Services\Params.cs" />
     <Compile Include="Services\PdfCreator.cs" />
+    <Compile Include="Services\Serializers\ISerializer.cs" />
+    <Compile Include="Services\Serializers\TransmJsonSerializer.cs" />
+    <Compile Include="Services\Serializers\SerializeManager.cs" />
     <Compile Include="Services\StandartCopier.cs" />
     <Compile Include="Services\StringToVisibilityConverter.cs" />
     <Compile Include="Styles\VS2012\VS2012WindowStyle.cs" />
@@ -241,6 +257,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="conf.json" />
     <None Include="packages.config" />
   </ItemGroup>

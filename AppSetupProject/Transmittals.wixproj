@@ -8,6 +8,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>TransmittalCreator</OutputName>
     <OutputType>Package</OutputType>
+    <Name>Transmittals</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -24,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="PackageContents.xml" />
+    <Content Include="Transmittals.wax" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TransmittalCreator\TransmittalCreator.csproj">

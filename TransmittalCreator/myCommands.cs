@@ -246,7 +246,133 @@ namespace TransmittalCreator
         }
 
         //TODO refactor
-        [CommandMethod("CreateTranspdfaaaaaaa")]
+
+
+        [CommandMethod("ListLayouts")]
+
+        public static void ListLayoutsMethod()
+
+        {
+
+            Document doc
+
+                = Application.DocumentManager.MdiActiveDocument;
+
+            Database db = doc.Database;
+
+            Editor ed = doc.Editor;
+
+
+
+            LayoutManager layoutMgr = LayoutManager.Current;
+
+
+
+            ed.WriteMessage
+
+            (
+
+                String.Format
+
+                (
+
+                    "{0}Active Layout is : {1}",
+
+                    Environment.NewLine,
+
+                    layoutMgr.CurrentLayout
+
+                )
+
+            );
+
+
+
+            ed.WriteMessage
+
+            (
+
+                String.Format
+
+                (
+
+                    "{0}Number of Layouts: {1}{0}List of all Layouts:",
+
+                    Environment.NewLine,
+
+                    layoutMgr.LayoutCount
+
+                )
+
+            );
+
+
+
+            using (Transaction tr
+
+                = db.TransactionManager.StartTransaction())
+
+            {
+
+                DBDictionary layoutDic
+
+                    = tr.GetObject(
+
+                        db.LayoutDictionaryId,
+
+                        OpenMode.ForRead,
+
+                        false
+
+                    ) as DBDictionary;
+
+
+
+                foreach (DBDictionaryEntry entry in layoutDic)
+
+                {
+
+                    ObjectId layoutId = entry.Value;
+
+
+
+                    Layout layout
+
+                        = tr.GetObject(
+
+                            layoutId,
+
+                            OpenMode.ForRead
+
+                        ) as Layout;
+
+
+
+                    ed.WriteMessage(
+
+                        String.Format(
+
+                            "{0}--> {1}",
+
+                            Environment.NewLine,
+
+                            layout.LayoutName
+
+                        )
+
+                    );
+
+                }
+
+                tr.Commit();
+
+            }
+
+        }
+
+
+
+        [CommandMethod("CreateTranspdf")]
         public static void CreateTransmittalAndPdf()
         {
             List<Sheet> dict = new List<Sheet>();
@@ -278,11 +404,10 @@ namespace TransmittalCreator
                     {
                         string blockName = block.Name;
 
-                        if (blockName == "Формат") idArray.Add(objectId);
-                        else if (blockName == "ФорматM25") idArray.Add(objectId);
+                        if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+                        //else if (blockName == "ФорматM25") idArray.Add(objectId);
                     }
                 }
-
 
                 GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
                 string selAttrName = "НОМЕР_ЛИСТА";
@@ -308,7 +433,8 @@ namespace TransmittalCreator
                     PlotCurrentLayout(printModel.DocNumber, printModel);
                 }
 
-                utils.CreateOnlytrans(dict);
+                //utils.CreateOnlytrans(dict);
+
 
                 tr.Commit();
             }
@@ -365,7 +491,7 @@ namespace TransmittalCreator
 
                         Utils utils = new Utils();
                         utils.CreateJsonFile(dict);
-                        
+
                         foreach (var printModel in fileNameCreator.GetPrintModels())
                         {
                             PlotCurrentLayout(printModel.DocNumber, printModel);
@@ -434,7 +560,7 @@ namespace TransmittalCreator
                         ObjectCopier objectCopier = new ObjectCopier(objectId);
                         ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
                         BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-                        string selAttrName = "НОМЕР_ЛИСТА";
+                        string selAttrName = "НОМЕР_ЛИСТА_2";
                         string fileName = Utils.GetBlockAttributeValue(blkRef, selAttrName);
 
                         //HostApplicationServices hs = HostApplicationServices.Current;
@@ -624,7 +750,7 @@ namespace TransmittalCreator
                 {
                     MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds);
                     string selAttrName = "НОМЕР_ЛИСТА";
-                    MyCommands.GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds,selAttrName);
+                    MyCommands.GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
 
                     if (window.transmittalCheckBox.IsChecked == true)
                     {
@@ -695,7 +821,7 @@ namespace TransmittalCreator
             PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
             if (pKeyRes.StringResult == "CREatedwg")
             {
-                Application.ShowAlertDialog("Entered kaseyword: " +
+                Application.ShowAlertDialog("Entered keyword: " +
                                             pKeyRes.StringResult);
             }
 

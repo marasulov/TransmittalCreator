@@ -1,21 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product
-    Id="C962B09D-9E20-43BC-B99B-78899184858C"
-    Name="AppSetupProject"
-    Language="1049" Version="1.0.0.0"
-    Manufacturer="MYusuf"
-    UpgradeCode="f4efffd3-3579-432b-8e98-d9463363875e"
-    Codepage="1251">
-    <Package
-			SummaryCodepage ="1251"
-      InstallerVersion="200"
-      Compressed="yes"
-      InstallScope="perMachine"
-      InstallPrivileges="elevated" />
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"><?define TransmittalCreator_TargetDir=$(var.TransmittalCreator.TargetDir)?>
+  <Product Id="C962B09D-9E20-43BC-B99B-78899184858C" Name="Transmittals" Language="1049" Version="1.0.0.0" Manufacturer="MYusuf" UpgradeCode="f4efffd3-3579-432b-8e98-d9463363875e" Codepage="1251">
+    <Package SummaryCodepage="1251" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated" />
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-    <Media Id="1" Cabinet="cab1.cab" EmbedCab="yes"/>
+    <Media Id="1" Cabinet="cab1.cab" EmbedCab="yes" />
 
     <Feature Id="ProductFeature" Title="$(var.SolutionName)" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
@@ -40,10 +29,26 @@
       <!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
       <Component Id="ProductComponent">
       <!-- TODO: Insert files, registry keys, and other resources here. -->
-      <File Name="PackageContent.xml" Source="PackageContents.xml" DiskId="1" KeyPath="yes"/>
+      <File Name="PackageContent.xml" Source="PackageContents.xml" DiskId="1" KeyPath="yes" />
       </Component>
-      <Component Id="DllComponent">
-        <File Id="DllFile" Name="$(var.TransmittalCreator.TargetFileName)" Source="$(var.TransmittalCreator.TargetPath)" DiskId="1"/>
+      
+      <Component Id="TransmittalCreator.dll" Guid="fc0ca005-76de-459c-8617-e112ae64e120">
+        <File Id="TransmittalCreator.dll" Name="TransmittalCreator.dll" Source="$(var.TransmittalCreator_TargetDir)TransmittalCreator.dll" />
+      </Component>
+      <Component Id="MaterialDesignThemes.Wpf.dll" Guid="c3b3744c-a9b5-4fd8-ad7c-84bccbeef521">
+        <File Id="MaterialDesignThemes.Wpf.dll" Name="MaterialDesignThemes.Wpf.dll" Source="$(var.TransmittalCreator_TargetDir)MaterialDesignThemes.Wpf.dll" />
+      </Component>
+      <Component Id="EPPlus.dll" Guid="97803b21-e1e5-4ff2-8385-b4552bf06562">
+        <File Id="EPPlus.dll" Name="EPPlus.dll" Source="$(var.TransmittalCreator_TargetDir)EPPlus.dll" />
+      </Component>
+      <Component Id="DV2177.Common.dll" Guid="b74f994b-539f-4c7f-9b34-ba250d6c0523">
+        <File Id="DV2177.Common.dll" Name="DV2177.Common.dll" Source="$(var.TransmittalCreator_TargetDir)DV2177.Common.dll" />
+      </Component>
+      <Component Id="Newtonsoft.Json.dll" Guid="e9d0f7f4-f60c-46a7-a7e9-92b82f6b2d00">
+        <File Id="Newtonsoft.Json.dll" Name="Newtonsoft.Json.dll" Source="$(var.TransmittalCreator_TargetDir)Newtonsoft.Json.dll" />
+      </Component>
+      <Component Id="MaterialDesignColors.dll" Guid="0fb81055-7a3e-454a-abf8-f74227061f41">
+        <File Id="MaterialDesignColors.dll" Name="MaterialDesignColors.dll" Source="$(var.TransmittalCreator_TargetDir)MaterialDesignColors.dll" />
       </Component>
     </ComponentGroup>
   </Fragment>

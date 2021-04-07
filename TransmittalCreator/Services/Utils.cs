@@ -74,7 +74,13 @@ namespace TransmittalCreator.Services
                     acPlSetVdr.SetPlotType(acPlSet, Db.PlotType.Window);
                     if (!isHor)
                         acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees090);
-                    acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees000);
+                    //else if(canonName =="ISO_full_bleed_A4_(297.00_x_210.00_MM)")
+                    //    acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees090);
+                    else
+                    {
+                        acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees000);
+                    }
+
                     // Set the plot scale
                     acPlSetVdr.SetUseStandardScale(acPlSet, false);
                     acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
@@ -233,8 +239,9 @@ namespace TransmittalCreator.Services
 
             foreach (ObjectId blkId in idArray)
             {
-                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
 
+                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+                string stampViewValue = GetBlockAttributeVlueByAttrName(blkRef);
                 BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
                 ed.WriteMessage("\nBlock: " + btr.Name);
                 btr.Dispose();
@@ -268,7 +275,7 @@ namespace TransmittalCreator.Services
                     }
                 }
 
-                dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu));
+                dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu, stampViewValue));
             }
 
             return dict;
@@ -370,7 +377,7 @@ namespace TransmittalCreator.Services
                 //    //}
                 //}
 
-                dict.Add(new Sheet(sheetNumber, docNumber, comment, objectNameEng, docTitleEng, objectNameRus, docTitleRu));
+                //dict.Add(new Sheet(sheetNumber, docNumber, comment, objectNameEng, docTitleEng, objectNameRus, docTitleRu));
             }
 
             return dict;
@@ -424,7 +431,23 @@ namespace TransmittalCreator.Services
 
         public static string GetBlockAttributeValue(BlockReference blkRef, string selAttrName)
         {
+            string blockStamp = GetBlockAttributeVlueByAttrName(blkRef);
+            var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
             string docNumber = "";
+
+            if (blockStamp == "Форма 3 ГОСТ Р 21.1101-2009 M25" || blockStamp == "Форма 3 ГОСТ Р 21.1101-2009")
+                docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
+            else if (blockStamp == "Форма 6 ГОСТ Р 21.1101-2009")
+            {
+                selAttrName = "НОМЕР_ЛИСТА_2";
+                docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
+                docNumber += "-page" + attrDict.FirstOrDefault(x => x.Key == "ЛИСТ2_СПЕЦ").Value;
+            }
+            return docNumber;
+        }
+
+        private static string GetBlockAttributeVlueByAttrName(BlockReference blkRef)
+        {
             DynamicBlockReferencePropertyCollection props = blkRef.DynamicBlockReferencePropertyCollection;
             string blockStamp = "";
             foreach (DynamicBlockReferenceProperty prop in props)
@@ -434,22 +457,20 @@ namespace TransmittalCreator.Services
                     blockStamp = prop.Value.ToString();
                 }
             }
-            //TODO coorect attrname
-            var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-            if (blockStamp == "Форма 3 ГОСТ Р 21.1101-2009 M25" || blockStamp == "Форма 3 ГОСТ Р 21.1101-2009")
-                docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
-            else if (blockStamp == "Форма 6 ГОСТ Р 21.1101-2009")
-            {
-                docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
-                docNumber += "-" + attrDict.FirstOrDefault(x => x.Key == "ЛИСТ2_СПЕЦ").Value;
-            }
-            return docNumber;
+            
+            return blockStamp;
         }
 
         public void CreateJsonFile(List<Sheet> dict)
         {
             dict = dict.OrderBy(x => x.SheetNumber).ToList();
-            string json = JsonConvert.SerializeObject(dict, Formatting.Indented);
+            List<Sheet> newSheets = new List<Sheet>();
+            foreach (var sheet in dict)
+            {
+                if(sheet.ViewValue != "Форма 6 ГОСТ Р 21.1101-2009") newSheets.Add(sheet);
+            }
+
+            string json = JsonConvert.SerializeObject(newSheets, Formatting.Indented);
             string path = DrawingPath();
             string dirName = Path.GetDirectoryName(path);
             string pathExtension = Path.GetFileNameWithoutExtension(path) + ".json";
