@@ -23,7 +23,6 @@ namespace TransmittalCreator.ViewModel
                 OnPropertyChanged("SelectedAttr");
             }
         }
-
         
         private RelayCommand addCommand;
         public RelayCommand AddCommand

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ApplicationPackage
+  SchemaVersion="1.0"
+  AutodeskProduct="AutoCAD"
+  ProductType="Application"
+  AppVersion="1.0.0"
+  FriendlyVersion="1.0.0"
+  Author="YusufMarasulov"
+  Name="TransmittalCreator"
+  Description="Приложение к AutoCad"
+  ProductCode ="C962B09D-9E20-43BC-B99B-78899184858C"
+  UpgradeCode="f4efffd3-3579-432b-8e98-d9463363875e"
+  HelpFile="">
+  <Components Description="AutoCAD 2019">
+    <RuntimeRequirements OS="Win32|Win64" Platform="AutoCAD*|AutoCAD" SeriesMin="R23.0" SeriesMax="R23.1" />
+    <ComponentEntry AppName="TransmittalCreator" Version="1.0.0" ModuleName="TransmittalCreator.dll" AppDescription="" LoadOnAutoCADStartup="True" />
+  </Components>
+  <Companydetails Name="MYusuf"/>
+
+</ApplicationPackage>

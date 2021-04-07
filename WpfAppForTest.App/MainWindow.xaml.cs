@@ -18,7 +18,10 @@ namespace WpfAppForTest.App
         {
             InitializeComponent();
 
-            DataContext = new FilenameModel();
+            FilenameModel filenameModel = new FilenameModel();
+            DataContext = filenameModel;
+
+
 
             //fileNameTextblock.DataContext = FullName();
 
@@ -60,19 +63,13 @@ namespace WpfAppForTest.App
 
         private void NewCommand_Executed(object sender, RoutedEventArgs e)
         {
-
+            bool ccCheckedhecked = this.RadioButtonX.IsChecked.Value;
+            bool cCheckedhecked = this.RadioButtonY.IsChecked.Value;
             isClicked = true;
             this.Close();
-
+            
         }
 
-        private void ComboAttributs_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            ComboBox comboBox = (ComboBox)sender;
-            var selectedItem = comboBox.SelectedItem as BlockAttribute;
-
-            TextBlock1.Text = selectedItem.AttributeValue;
-        }
     }
 
     [ValueConversion(typeof(string), typeof(Visibility))]

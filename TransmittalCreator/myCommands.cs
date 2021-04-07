@@ -2,25 +2,23 @@
 //
 
 using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Windows.Forms;
-using Autodesk.AutoCAD.Colors;
-using OfficeOpenXml;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
+using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.ViewModel;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
-using Db = Autodesk.AutoCAD.DatabaseServices;
 using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
 
 // This line is not mandatory, but improves loading performances
@@ -31,134 +29,10 @@ namespace TransmittalCreator
     public class MyCommands : Utils, IExtensionApplication
     {
         [CommandMethod("SELKW")]
-        public void GetSelectionWithKeywords1()
+        public void GetIdsSelectionOrAllBlocks()
         {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Editor ed = doc.Editor;
-
-            // Создаём объект для настройки выбора примитивов
-            PromptSelectionOptions pso = new PromptSelectionOptions();
-
-            // Добавим ключевые слова
-            pso.Keywords.Add("ПЕрвый");
-            pso.Keywords.Add("ВТорой");
-
-            // Установим наши подсказки чтобы они вклбчали ключевые слова
-            string kws = pso.Keywords.GetDisplayString(true);
-            pso.MessageForAdding =
-                "\nДобавить объекты в набор или " + kws;
-            pso.MessageForRemoval =
-                "\nУдалить объекты из набора или " + kws;
-
-            // Устанавливаем обработчик события ввода ключевого слова
-            pso.KeywordInput +=
-                new SelectionTextInputEventHandler(pso_KeywordInput);
-
-            PromptSelectionResult psr = null;
-            try
-            {
-                psr = ed.GetSelection(pso);
-
-                if (psr.Status == PromptStatus.OK)
-                {
-                    ListAttributes1();
-                }
-            }
-            catch (System.Exception ex)
-            {
-                if (ex is Autodesk.AutoCAD.Runtime.Exception)
-                {
-                    Autodesk.AutoCAD.Runtime.Exception aEs =
-                        ex as Autodesk.AutoCAD.Runtime.Exception;
-
-                    // Пользователь ввел ключевое слово.
-
-                    if (aEs.ErrorStatus ==
-                        Autodesk.AutoCAD.Runtime.ErrorStatus.OK)
-                    {
-                        ed.WriteMessage("\nВведено ключевое слово: {0}",
-                            ex.Message);
-                    }
-                    else
-                    {
-                        // другое исключение - обработайте его!
-                    }
-                }
-            }
-        }
-
-        void pso_KeywordInput(object sender, SelectionTextInputEventArgs e)
-        {
-            // Пользователь выбрал ключевое слово - сгенерируем исключение
-            throw new Autodesk.AutoCAD.Runtime.Exception(
-                Autodesk.AutoCAD.Runtime.ErrorStatus.OK, e.Input);
-        }
-
-
-        public static void GetSelectionWithKeywords()
-        {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Editor ed = doc.Editor;
-            // Create our options object
-            PromptSelectionOptions pso = new PromptSelectionOptions();
-            // Add our keywords
-            pso.Keywords.Add("creatEPd");
-            pso.Keywords.Add("createDwg");
-            pso.Keywords.Add("creatEpdfwg");
-            // Set our prompts to include our keywords
-            string kws = pso.Keywords.GetDisplayString(true);
-            pso.MessageForAdding =
-                "\nAdd objects to selection or " + kws;
-            pso.MessageForRemoval =
-                "\nRemove objects from selection or " + kws;
-            // Implement a callback for when keywords are entered
-            string inputStr;
-
-            pso.KeywordInput +=
-                delegate (object sender, SelectionTextInputEventArgs e)
-                {
-                    //ed.WriteMessage("\nKeyword entered: {0}", e.Input);
-                    inputStr = e.Input;
-                    if (inputStr == "createPDf")
-                    {
-                        ed.WriteMessage("\n здесь метод для pdf");
-                        ListAttributes1();
-                        return;
-                    }
-                    else if (inputStr == "createDwg")
-                    {
-                        ed.WriteMessage("\nздесь метод для dwg");
-                        CreateTransmittalAndPdf();
-                        return;
-                    }
-                    else if (inputStr == "creatEPdfwg")
-                    {
-                        ed.WriteMessage("\nздесь метод для pdf and dwg");
-                        return;
-                    }
-
-                    ed.WriteMessage("\nKeyword entered: {0}", e.Input);
-                };
-
-            // Finally run the selection and show any results
-            PromptSelectionResult psr = ed.GetSelection(pso);
-        }
-
-        // Modal Command with pickfirst selection
-        [CommandMethod("MyGroup1", "MyPickFirst", "MyPickFirstLocal", CommandFlags.Modal | CommandFlags.UsePickSet)]
-        public void MyPickFirst() // This method can have any name
-        {
-            Dictionary<ObjectId, bool> layersDictionary = LayerManipulation.GetLayersIsBlockedCol();
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            if (doc == null) return;
-
-            doc.LockOrUnlockLayers(false);
-            foreach (var item in layersDictionary)
-            {
-                Active.Editor.WriteMessage("\n{0}-{1}", item.Key.ToString(), item.Value.ToString());
-            }
-
-            doc.LockLayers(layersDictionary);
+            BlockSelector blockSelector = new BlockSelector();
+            blockSelector.GetIdsSelectionOrAllBlocks();
         }
 
         #region HvacTable
@@ -204,7 +78,6 @@ namespace TransmittalCreator
                 }
                 AddTable(hvacTable, tableCols);
             }
-
             System.Windows.Forms.Application.RemoveMessageFilter(filter);
         }
 
@@ -220,18 +93,13 @@ namespace TransmittalCreator
                     Keys kc = (Keys)(int)m.WParam & Keys.KeyCode;
 
                     if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
-
                     {
                         bCanceled = true;
                     }
-
                     // Return true to filter all keypresses
-
                     return true;
                 }
-
                 // Return false to let other messages through
-
                 return false;
             }
         }
@@ -249,7 +117,6 @@ namespace TransmittalCreator
                 int rowStart = 7;
                 int rowCount = worksheet.Dimension.End.Row;
 
-
                 for (int i = rowStart; i < rowCount - 1; i++)
                 {
                     var roomcell = worksheet.Cells[i, 1].Value;
@@ -266,7 +133,6 @@ namespace TransmittalCreator
                             string heating = worksheet.Cells[i, 26].Value?.ToString().Trim();
                             string cooling = worksheet.Cells[i, 34].Value?.ToString().Trim();
                             string supply = worksheet.Cells[i, 39].Value?.ToString().Trim();
-
 
                             string supplyIn = "П";
                             var supplyInd = worksheet.Cells[i, 38].Value?.ToString().Trim() ?? supplyIn;
@@ -286,6 +152,8 @@ namespace TransmittalCreator
             return listData;
         }
         #endregion
+
+
         private void CreateLayer()
         {
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
@@ -319,96 +187,19 @@ namespace TransmittalCreator
             }
         }
 
-
-        public void AddTable(HvacTable hvacTable, int columnsNum)
-        {
-            Database db = HostApplicationServices.WorkingDatabase;
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
-                ObjectId msId = bt[BlockTableRecord.ModelSpace];
-                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(msId, OpenMode.ForWrite);
-
-                PromptPointResult pr =
-                    Active.Editor.GetPoint(
-                        $"\nEnter table insertion point for:room #{hvacTable.RoomNumber}-{hvacTable.RoomName}");
-                if (pr.Status == PromptStatus.OK)
-                {
-                    // create a table
-                    Table tb = new Table();
-                    //tb.TableStyle = db.Tablestyle;
-                    tb.SetDatabaseDefaults();
-                    // row height
-                    double rowheight = 80;
-                    // column width
-                    double columnwidth = 150;
-                    // insert rows and columns
-                    tb.InsertRows(0, rowheight, 4);
-                    tb.InsertColumns(0, columnwidth, 2);
-
-                    tb.SetRowHeight(rowheight);
-                    tb.SetColumnWidth(columnwidth);
-
-                    tb.Position = pr.Value;
-                    // fill in the cell one by one
-                    //tb.Columns[0].Width = 150;
-                    tb.Columns[1].Width = 340;
-                    //tb.Columns[2].Width = 150;
-
-                    tb.Rows[0].Height = 130;
-
-                    SetCellPropsWithValue(tb, 0, 0, 50, 255, hvacTable.RoomNumber);
-                    SetCellPropsWithValue(tb, 0, 1, 50, 255, hvacTable.RoomName);
-                    SetCellPropsWithValue(tb, 0, 2, 50, 255, hvacTable.RoomTemp);
-
-
-                    SetCellPropsWithValue(tb, 1, 0, 50, 30, "Qt");
-                    SetCellPropsWithValue(tb, 1, 1, 50, 30,
-                        GetRoundUpValue(hvacTable.Heating) + "-" + GetRoundUpValue(hvacTable.Heating, 120));
-                    SetCellPropsWithValue(tb, 1, 2, 25, 30, "\\LВТ\\l\nсек.");
-
-                    SetCellPropsWithValue(tb, 2, 0, 50, 130, "Qx");
-                    SetCellPropsWithValue(tb, 2, 1, 50, 130,
-                        GetRoundUpValue(hvacTable.Cooling) + "-" + GetRoundUpValue(hvacTable.Cooling, 293.07));
-                    SetCellPropsWithValue(tb, 2, 2, 25, 130, "\\LВТ\\l\nBtu...");
-
-
-                    SetCellPropsWithValue(tb, 3, 0, 50, 20, hvacTable.AirExchangeSupplyInd);
-                    string airSupply = hvacTable.AirExchangeSupply;
-                    if (!airSupply.Equals("–")) GetRoundUpValue(hvacTable.AirExchangeSupply).ToString();
-                    SetCellPropsWithValue(tb, 3, 1, 50, 20, airSupply);
-                    SetCellPropsWithValue(tb, 3, 2, 25, 20, "м3/ч");
-
-                    string airExchangeExhaust = hvacTable.AirExchangeExhaust;
-                    if (!airExchangeExhaust.Equals("–")) GetRoundUpValue(hvacTable.AirExchangeExhaust).ToString();
-                    SetCellPropsWithValue(tb, 4, 0, 50, 150, hvacTable.AirExchangeExhaustInd);
-                    SetCellPropsWithValue(tb, 4, 1, 50, 150, airExchangeExhaust);
-                    SetCellPropsWithValue(tb, 4, 2, 25, 150, "м3/ч");
-
-                    //CellRange range = CellRange.Create(tb, columnsNum - 2, 0, columnsNum - 1, 0);
-                    //tb.UnmergeCells(range);
-                    tb.SetDatabaseDefaults();
-                    tb.GenerateLayout();
-                    btr.AppendEntity(tb);
-                    tr.AddNewlyCreatedDBObject(tb, true);
-                    tr.Commit();
-                }
-            }
-        }
-
-        private static int GetRoundUpValue(string str, double divValue = 1)
-        {
-            return (int)Math.Ceiling(double.Parse(str) / divValue);
-        }
-
-        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber,
-            string stringValue)
+        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
         {
             var curPos = tb.Cells[curRow, curCol];
             curPos.TextHeight = textHeight;
             curPos.TextString = stringValue;
             curPos.Alignment = CellAlignment.MiddleCenter;
             curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci, colorNumber);
+        }
+
+        [CommandMethod("SDB")]
+        public static void SelectBlocksByName()
+        {
+            Archive.SelectDynamicBlocks();
         }
 
         [CommandMethod("LISTATT")]
@@ -444,7 +235,6 @@ namespace TransmittalCreator
                             str += $"\tTag: {att.Tag} Text: {att.TextString}\r\n";
                         }
                     }
-
                     str += "\r\n";
                 }
 
@@ -455,6 +245,133 @@ namespace TransmittalCreator
             ed.WriteMessage(str1);
         }
 
+        //TODO refactor
+
+
+        [CommandMethod("ListLayouts")]
+
+        public static void ListLayoutsMethod()
+
+        {
+
+            Document doc
+
+                = Application.DocumentManager.MdiActiveDocument;
+
+            Database db = doc.Database;
+
+            Editor ed = doc.Editor;
+
+
+
+            LayoutManager layoutMgr = LayoutManager.Current;
+
+
+
+            ed.WriteMessage
+
+            (
+
+                String.Format
+
+                (
+
+                    "{0}Active Layout is : {1}",
+
+                    Environment.NewLine,
+
+                    layoutMgr.CurrentLayout
+
+                )
+
+            );
+
+
+
+            ed.WriteMessage
+
+            (
+
+                String.Format
+
+                (
+
+                    "{0}Number of Layouts: {1}{0}List of all Layouts:",
+
+                    Environment.NewLine,
+
+                    layoutMgr.LayoutCount
+
+                )
+
+            );
+
+
+
+            using (Transaction tr
+
+                = db.TransactionManager.StartTransaction())
+
+            {
+
+                DBDictionary layoutDic
+
+                    = tr.GetObject(
+
+                        db.LayoutDictionaryId,
+
+                        OpenMode.ForRead,
+
+                        false
+
+                    ) as DBDictionary;
+
+
+
+                foreach (DBDictionaryEntry entry in layoutDic)
+
+                {
+
+                    ObjectId layoutId = entry.Value;
+
+
+
+                    Layout layout
+
+                        = tr.GetObject(
+
+                            layoutId,
+
+                            OpenMode.ForRead
+
+                        ) as Layout;
+
+
+
+                    ed.WriteMessage(
+
+                        String.Format(
+
+                            "{0}--> {1}",
+
+                            Environment.NewLine,
+
+                            layout.LayoutName
+
+                        )
+
+                    );
+
+                }
+
+                tr.Commit();
+
+            }
+
+        }
+
+
+
         [CommandMethod("CreateTranspdf")]
         public static void CreateTransmittalAndPdf()
         {
@@ -463,11 +380,10 @@ namespace TransmittalCreator
             Active.Document.SendStringToExecute("REGENALL ", true, false, true);
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                TypedValue[] filList = new TypedValue[] { new TypedValue((int)DxfCode.Start, "INSERT") };
-                SelectionFilter filter = new SelectionFilter(filList);
-                PromptSelectionOptions opts = new PromptSelectionOptions();
-                opts.MessageForAdding = "Select block references: ";
-                PromptSelectionResult res = Active.Editor.GetSelection(opts, filter);
+                //фильтр для выбора только блока
+                BlockSelector blockSelector = new BlockSelector();
+                blockSelector.GetFilterForSelectBlockId();
+                var res = blockSelector.SelectionResult;
 
                 if (res.Status != PromptStatus.OK)
                 {
@@ -488,15 +404,14 @@ namespace TransmittalCreator
                     {
                         string blockName = block.Name;
 
-                        if (blockName == "Формат") idArray.Add(objectId);
-                        else if (blockName == "ФорматM25") idArray.Add(objectId);
-
-                        Active.Document.Editor.WriteMessage(blockName);
+                        if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+                        //else if (blockName == "ФорматM25") idArray.Add(objectId);
                     }
                 }
 
                 GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-                GetExtentsNamePdf(Active.Editor, printModels, tr, idArray);
+                string selAttrName = "НОМЕР_ЛИСТА";
+                GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
                 //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
 
                 //foreach (ObjectId objectId in idArray)
@@ -504,7 +419,7 @@ namespace TransmittalCreator
 
                 //    ObjectCopier objectCopier = new ObjectCopier(objectId);
                 //    ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-                //    string fileName = Utils.GetFileNameFromBlockAttribute(tr, objectId);
+                //    string fileName = Utils.GetBlockAttributeValue(tr, objectId);
                 //    objectCopier.CopyObjectsBetweenDatabases(objectIds, fileName);
                 //}
 
@@ -520,9 +435,73 @@ namespace TransmittalCreator
 
                 //utils.CreateOnlytrans(dict);
 
+
                 tr.Commit();
             }
         }
+        //TODO finish
+
+        [CommandMethod("CreatePdf")]
+        public void CreatePdfName()
+        {
+            Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+            Dictionary<string, string> attrList = new Dictionary<string, string>();
+            Window1 window = new Window1(new BlockViewModel(attrList));
+            Application.ShowModalWindow(window);
+            if (window.isClicked)
+            {
+                //ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+                List<Sheet> dict = new List<Sheet>();
+
+
+                //string blockName = window.BlockName;
+                //BlockAttribute attributeName = window.comboAttributs.SelectedItem as BlockAttribute;
+                //bool attributeChecked = window.attributeCheckBox.IsChecked.Value;
+                //string suffix = window.suffixTextBox.Text;
+                //string prefix = window.prefixTextBox.Text;
+                //int numberingValue = int.Parse(window.numberingTextbox.Text);
+
+                using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+                {
+                    BlockSelector blockSelector = new BlockSelector();
+                    blockSelector.GetFilterForSelectBlockId(window.BlockName);
+                    bool isExec = true;
+                    var res = blockSelector.SelectionResult;
+
+                    if (res.Status != PromptStatus.OK)
+                    {
+                        isExec = false;
+                        Active.Editor.WriteMessage("Надо выбрать блок");
+                    }
+
+                    if (isExec)
+                    {
+                        SelectionSet selSet = res.Value;
+                        ObjectId[] idArrayTemp = selSet.GetObjectIds();
+                        //ObjectIdCollection idArray = new ObjectIdCollection(idArrayTemp);
+                        //TODO printing X Y
+                        //string selAttrName = attributeName.AttributeName;
+
+
+                        FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
+
+                        //GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
+
+                        fileNameCreator.GetPrintParametersToPdf(tr);
+
+                        Utils utils = new Utils();
+                        utils.CreateJsonFile(dict);
+
+                        foreach (var printModel in fileNameCreator.GetPrintModels())
+                        {
+                            PlotCurrentLayout(printModel.DocNumber, printModel);
+                        }
+                    }
+                    tr.Commit();
+                }
+            }
+        }
+
 
         [CommandMethod("CreateDwg")]
         public static void CreateDwg()
@@ -538,12 +517,9 @@ namespace TransmittalCreator
             bool isExec = true;
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                TypedValue[] filList = new TypedValue[] { new TypedValue((int)DxfCode.Start, "INSERT") };
-                SelectionFilter filter = new SelectionFilter(filList);
-                PromptSelectionOptions opts = new PromptSelectionOptions();
-                opts.MessageForAdding = "Select block references: ";
-                PromptSelectionResult res = Active.Editor.GetSelection(opts, filter);
-
+                BlockSelector blockSelector = new BlockSelector();
+                blockSelector.GetFilterForSelectBlockId();
+                var res = blockSelector.SelectionResult;
                 if (res.Status != PromptStatus.OK)
                 {
                     isExec = false;
@@ -576,7 +552,7 @@ namespace TransmittalCreator
                     }
 
                     //MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-                    //MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, idArray);
+                    //MyCommands.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray);
                     //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
 
                     foreach (ObjectId objectId in idArray)
@@ -584,7 +560,8 @@ namespace TransmittalCreator
                         ObjectCopier objectCopier = new ObjectCopier(objectId);
                         ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
                         BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-                        string fileName = Utils.GetFileNameFromBlockAttribute(blkRef);
+                        string selAttrName = "НОМЕР_ЛИСТА_2";
+                        string fileName = Utils.GetBlockAttributeValue(blkRef, selAttrName);
 
                         //HostApplicationServices hs = HostApplicationServices.Current;
                         //string path = Application.GetSystemVariable("DWGPREFIX");
@@ -600,19 +577,6 @@ namespace TransmittalCreator
                         File.Delete(dwgFilename);
                         System.IO.File.Move(newFileName, dwgFilename);
                     }
-
-                    //Utils utils = new Utils();
-                    //utils.CreateOnlyVed(dict);
-                    //utils.CreateJsonFile(dict);
-
-                    //foreach (var printModel in printModels)
-                    //{
-
-                    //    Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
-                    //    PlotCurrentLayout(printModel.DocNumber, printModel);
-                    //}
-
-                    //utils.CreateOnlytrans(dict);
                 }
 
                 doc.LockLayers(layersDictionary);
@@ -626,143 +590,6 @@ namespace TransmittalCreator
             var doc = Application.DocumentManager.MdiActiveDocument;
             if (doc == null) return;
             doc.LockOrUnlockLayers(false);
-        }
-
-        public static void PlotCurrentLayout(string pdfFileName, PrintModel printModel)
-        {
-            // Get the current document and database, and start a transaction
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
-            short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
-            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
-            try
-            {
-                using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-                {
-                    // Reference the Layout Manager
-                    LayoutManager acLayoutMgr;
-                    acLayoutMgr = LayoutManager.Current;
-                    // Get the current layout and output its name in the Command Line window
-                    Layout acLayout;
-                    acLayout =
-                        acTrans.GetObject(acLayoutMgr.GetLayoutId(acLayoutMgr.CurrentLayout),
-                            OpenMode.ForRead) as Layout;
-
-                    // Get the PlotInfo from the layout
-                    PlotInfo acPlInfo = new PlotInfo();
-                    acPlInfo.Layout = acLayout.ObjectId;
-
-                    // Get a copy of the PlotSettings from the layout
-                    PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
-                    acPlSet.CopyFrom(acLayout);
-                    // Update the PlotSettings object
-                    PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
-
-                    //acPlSetVdr.SetPlotPaperUnits(acPlSet, PlotPaperUnit.Millimeters);
-                    // Set the plot type
-                    //Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
-                    //Point3d minPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(minPoint3dWcs, false);
-                    //Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
-                    //Point3d maxPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(maxPoint3dWcs, false);
-                    //Extents2d points = new Extents2d(new Point2d(minPoint3d[0], minPoint3d[1]), new Point2d(maxPoint3d[0], maxPoint3d[1]));
-                    //extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
-                    //PdfCreator pdfCreator = new PdfCreator(extents3d);
-
-                    Extents2d points = new Extents2d(printModel.BlockPosition, printModel.BlockDimensions);
-
-                    bool isHor = printModel.IsFormatHorizontal();
-                    //pdfCreator.GetBlockDimensions();
-                    string canonName = printModel.GetCanonNameByWidthAndHeight();
-
-                    //acDoc.Utility.TranslateCoordinates(point1, acWorld, acDisplayDCS, False);
-                    acPlSetVdr.SetPlotWindowArea(acPlSet, points);
-                    acPlSetVdr.SetPlotType(acPlSet, Autodesk.AutoCAD.DatabaseServices.PlotType.Window);
-                    if (!isHor)
-                        acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees090);
-                    acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees000);
-                    // Set the plot scale
-                    acPlSetVdr.SetUseStandardScale(acPlSet, false);
-                    acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
-                    // Center the plot
-                    acPlSetVdr.SetPlotCentered(acPlSet, true);
-                    //acPlSetVdr.SetClosestMediaName(acPlSet,printModel.width,printModel.height,PlotPaperUnit.Millimeters,true);
-                    //string curCanonName = PdfCreator.GetLocalNameByAtrrValue(formatValue);
-                    acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", canonName);
-                    //acPlSetVdr.SetCanonicalMediaName(acPlSet, curCanonName);
-
-                    // Set the plot device to use
-
-                    // Set the plot info as an override since it will
-                    // not be saved back to the layout
-                    acPlInfo.OverrideSettings = acPlSet;
-                    // Validate the plot info
-                    PlotInfoValidator acPlInfoVdr = new PlotInfoValidator();
-                    acPlInfoVdr.MediaMatchingPolicy = MatchingPolicy.MatchEnabled;
-                    acPlInfoVdr.Validate(acPlInfo);
-
-                    // Check to see if a plot is already in progress
-                    if (PlotFactory.ProcessPlotState == ProcessPlotState.NotPlotting)
-                    {
-                        using (PlotEngine acPlEng = PlotFactory.CreatePublishEngine())
-                        {
-                            // Track the plot progress with a Progress dialog
-                            PlotProgressDialog acPlProgDlg = new PlotProgressDialog(false, 1, true);
-                            using (acPlProgDlg)
-                            {
-                                // Define the status messages to display when plotting starts
-                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.DialogTitle, "Plot Progress");
-                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelJobButtonMessage, "Cancel Job");
-                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelSheetButtonMessage,
-                                    "Cancel Sheet");
-                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetSetProgressCaption,
-                                    "Sheet Set Progress");
-                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetProgressCaption, "Sheet Progress");
-                                // Set the plot progress range
-                                acPlProgDlg.LowerPlotProgressRange = 0;
-                                acPlProgDlg.UpperPlotProgressRange = 100;
-                                acPlProgDlg.PlotProgressPos = 0;
-                                // Display the Progress dialog
-                                acPlProgDlg.OnBeginPlot();
-                                acPlProgDlg.IsVisible = true;
-                                // Start to plot the layout
-                                acPlEng.BeginPlot(acPlProgDlg, null);
-                                // Define the plot output
-                                string filename = Path.Combine(Path.GetDirectoryName(acDoc.Name), pdfFileName);
-                                Active.Editor.WriteMessage(filename);
-
-                                acPlEng.BeginDocument(acPlInfo, acDoc.Name, null, 1, true, filename);
-                                // Display information about the current plot
-                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.Status,
-                                    "Plotting: " + acDoc.Name + " - " + acLayout.LayoutName);
-                                // Set the sheet progress range
-                                acPlProgDlg.OnBeginSheet();
-                                acPlProgDlg.LowerSheetProgressRange = 0;
-                                acPlProgDlg.UpperSheetProgressRange = 100;
-                                acPlProgDlg.SheetProgressPos = 0;
-                                // Plot the first sheet/layout
-                                PlotPageInfo acPlPageInfo = new PlotPageInfo();
-                                acPlEng.BeginPage(acPlPageInfo, acPlInfo, true, null);
-                                acPlEng.BeginGenerateGraphics(null);
-                                acPlEng.EndGenerateGraphics(null);
-                                // Finish plotting the sheet/layout
-                                acPlEng.EndPage(null);
-                                acPlProgDlg.SheetProgressPos = 100;
-                                acPlProgDlg.OnEndSheet();
-                                // Finish plotting the document
-                                acPlEng.EndDocument(null);
-                                // Finish the plot
-                                acPlProgDlg.PlotProgressPos = 100;
-                                acPlProgDlg.OnEndPlot();
-                                acPlEng.EndPlot(null);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Autodesk.AutoCAD.Runtime.Exception e)
-            {
-                Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(e.Message);
-            }
         }
 
         public static string ZoomFilesAndSave(string fileName)
@@ -848,7 +675,6 @@ namespace TransmittalCreator
             }
         }
 
-
         private static void DisplayDynBlockProperties(Editor ed, BlockReference br, string name)
         {
             // Only continue is we have a valid dynamic block
@@ -886,73 +712,68 @@ namespace TransmittalCreator
             }
         }
 
-        [CommandMethod("CreatePdfName")]
-        public void CreatePdfName()
-        {
-            Dictionary<string, string> attrList = new Dictionary<string, string>();
-            Window1 window = new Window1(new BlockViewModel(attrList));
-            Application.ShowModalWindow(window);
-        }
+
 
         [CommandMethod("CtTransm")]
         public void ListAttributes()
         {
             Dictionary<string, string> attrList = new Dictionary<string, string>();
 
-            Window1 window = new Window1(new BlockViewModel(attrList));
+            MainWindow window = new MainWindow(new BlockViewModel(attrList));
 
             Application.ShowModalWindow(window);
 
             if (window.isClicked == true)
             {
 
-                var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
-                //ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+                //var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
+                ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
 
-                //List<Sheet> dict = new List<Sheet>();
-                //List<PrintModel> printModels = new List<PrintModel>();
+                List<Sheet> dict = new List<Sheet>();
+                List<PrintModel> printModels = new List<PrintModel>();
 
-                //BlockAttribute objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockAttribute;
-                //BlockAttribute objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockAttribute;
+                BlockAttribute objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockAttribute;
+                BlockAttribute objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockAttribute;
 
-                //BlockAttribute position = window.ComboBoxPosition.SelectedItem as BlockAttribute;
-                //BlockAttribute nomination = window.ComboBoxNomination.SelectedItem as BlockAttribute;
-                //BlockAttribute comment = window.ComboBoxComment.SelectedItem as BlockAttribute;
-                //BlockAttribute trItem = window.ComboBoxTrItem.SelectedItem as BlockAttribute;
-                //BlockAttribute trDocNumber = window.ComboBoxTrDocNumber.SelectedItem as BlockAttribute;
-                //BlockAttribute trDocTitleEn = window.ComboBoxTrDocTitleEn.SelectedItem as BlockAttribute;
-                //BlockAttribute trDocTitleRu = window.ComboBoxTrDocTitleRu.SelectedItem as BlockAttribute;
+                BlockAttribute position = window.ComboBoxPosition.SelectedItem as BlockAttribute;
+                BlockAttribute nomination = window.ComboBoxNomination.SelectedItem as BlockAttribute;
+                BlockAttribute comment = window.ComboBoxComment.SelectedItem as BlockAttribute;
+                BlockAttribute trItem = window.ComboBoxTrItem.SelectedItem as BlockAttribute;
+                BlockAttribute trDocNumber = window.ComboBoxTrDocNumber.SelectedItem as BlockAttribute;
+                BlockAttribute trDocTitleEn = window.ComboBoxTrDocTitleEn.SelectedItem as BlockAttribute;
+                BlockAttribute trDocTitleRu = window.ComboBoxTrDocTitleRu.SelectedItem as BlockAttribute;
 
-                //AttributModel attributModel = new AttributModel(objectNameEn, objectNameRu, position, nomination,
-                //    comment, trItem, trDocNumber, trDocTitleEn, trDocTitleRu);
+                AttributModel attributModel = new AttributModel(objectNameEn, objectNameRu, position, nomination,
+                    comment, trItem, trDocNumber, trDocTitleEn, trDocTitleRu);
 
-                //using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-                //{
-                //    MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds);
-                //    MyCommands.GetExtentsNamePdf(Active.Editor, printModels, tr, objectIds);
+                using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+                {
+                    MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds);
+                    string selAttrName = "НОМЕР_ЛИСТА";
+                    MyCommands.GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
 
-                //    if (window.transmittalCheckBox.IsChecked == true)
-                //    {
-                //        Utils utils = new Utils();
-                //        utils.CreateOnlyVed(dict);
-                //        utils.CreateOnlytrans(dict);
-                //        foreach (var printModel in printModels)
-                //        {
-                //            PlotCurrentLayout(printModel.DocNumber, printModel);
-                //        }
-                //    }
-                //    else
-                //    {
-                //        //Utils utils = new Utils();
-                //        //utils.CreateOnlyVed(dict);
-                //        foreach (var printModel in printModels)
-                //        {
-                //            //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
-                //        }
-                //    }
+                    if (window.transmittalCheckBox.IsChecked == true)
+                    {
+                        Utils utils = new Utils();
+                        utils.CreateOnlyVed(dict);
+                        utils.CreateOnlytrans(dict);
+                        foreach (var printModel in printModels)
+                        {
+                            PlotCurrentLayout(printModel.DocNumber, printModel);
+                        }
+                    }
+                    else
+                    {
+                        //Utils utils = new Utils();
+                        //utils.CreateOnlyVed(dict);
+                        foreach (var printModel in printModels)
+                        {
+                            //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
+                        }
+                    }
 
-                //    tr.Commit();
-                //}
+                    tr.Commit();
+                }
             }
         }
 
@@ -1000,7 +821,7 @@ namespace TransmittalCreator
             PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
             if (pKeyRes.StringResult == "CREatedwg")
             {
-                Application.ShowAlertDialog("Entered kaseyword: " +
+                Application.ShowAlertDialog("Entered keyword: " +
                                             pKeyRes.StringResult);
             }
 

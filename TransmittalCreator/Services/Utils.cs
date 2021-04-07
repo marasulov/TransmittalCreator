@@ -1,20 +1,172 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using TransmittalCreator.Models;
 using Db = Autodesk.AutoCAD.DatabaseServices;
+using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
 namespace TransmittalCreator.Services
 {
     public class Utils
     {
+        /// <summary>
+        /// plotting method
+        /// </summary>
+        /// <param name="pdfFileName"> name</param>
+        /// <param name="printModel">print param model</param>
+        public static void PlotCurrentLayout(string pdfFileName, PrintModel printModel)
+        {
+            // Get the current document and database, and start a transaction
+            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+            Database acCurDb = acDoc.Database;
+            //short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
+            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+            try
+            {
+                using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+                {
+                    // Reference the Layout Manager
+                    LayoutManager acLayoutMgr;
+                    acLayoutMgr = LayoutManager.Current;
+                    // Get the current layout and output its name in the Command Line window
+                    Layout acLayout;
+                    acLayout =
+                        acTrans.GetObject(acLayoutMgr.GetLayoutId(acLayoutMgr.CurrentLayout),
+                            OpenMode.ForRead) as Layout;
+
+                    // Get the PlotInfo from the layout
+                    PlotInfo acPlInfo = new PlotInfo();
+                    acPlInfo.Layout = acLayout.ObjectId;
+
+                    // Get a copy of the PlotSettings from the layout
+                    PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
+                    acPlSet.CopyFrom(acLayout);
+                    // Update the PlotSettings object
+                    PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
+
+                    //acPlSetVdr.SetPlotPaperUnits(acPlSet, PlotPaperUnit.Millimeters);
+                    // Set the plot type
+                    //Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
+                    //Point3d minPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(minPoint3dWcs, false);
+                    //Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
+                    //Point3d maxPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(maxPoint3dWcs, false);
+                    //Extents2d points = new Extents2d(new Point2d(minPoint3d[0], minPoint3d[1]), new Point2d(maxPoint3d[0], maxPoint3d[1]));
+                    //extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
+                    //PdfCreator pdfCreator = new PdfCreator(extents3d);
+
+                    Extents2d points = new Extents2d(printModel.BlockPosition, printModel.BlockDimensions);
+
+                    bool isHor = printModel.IsFormatHorizontal();
+                    //pdfCreator.GetBlockDimensions();
+                    string canonName = printModel.GetCanonNameByWidthAndHeight();
+
+                    //acDoc.Utility.TranslateCoordinates(point1, acWorld, acDisplayDCS, False);
+                    acPlSetVdr.SetPlotWindowArea(acPlSet, points);
+                    acPlSetVdr.SetPlotType(acPlSet, Db.PlotType.Window);
+                    if (!isHor)
+                        acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees090);
+                    //else if(canonName =="ISO_full_bleed_A4_(297.00_x_210.00_MM)")
+                    //    acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees090);
+                    else
+                    {
+                        acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees000);
+                    }
+
+                    // Set the plot scale
+                    acPlSetVdr.SetUseStandardScale(acPlSet, false);
+                    acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
+                    // Center the plot
+                    acPlSetVdr.SetPlotCentered(acPlSet, true);
+                    //acPlSetVdr.SetClosestMediaName(acPlSet,printModel.width,printModel.height,PlotPaperUnit.Millimeters,true);
+                    //string curCanonName = PdfCreator.GetLocalNameByAtrrValue(formatValue);
+                    acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", canonName);
+                    //acPlSetVdr.SetCanonicalMediaName(acPlSet, curCanonName);
+
+                    // Set the plot device to use
+
+                    // Set the plot info as an override since it will
+                    // not be saved back to the layout
+                    acPlInfo.OverrideSettings = acPlSet;
+                    // Validate the plot info
+                    PlotInfoValidator acPlInfoVdr = new PlotInfoValidator();
+                    acPlInfoVdr.MediaMatchingPolicy = MatchingPolicy.MatchEnabled;
+                    acPlInfoVdr.Validate(acPlInfo);
+
+                    // Check to see if a plot is already in progress
+                    if (PlotFactory.ProcessPlotState == ProcessPlotState.NotPlotting)
+                    {
+                        using (PlotEngine acPlEng = PlotFactory.CreatePublishEngine())
+                        {
+                            // Track the plot progress with a Progress dialog
+                            PlotProgressDialog acPlProgDlg = new PlotProgressDialog(false, 1, true);
+                            using (acPlProgDlg)
+                            {
+                                // Define the status messages to display when plotting starts
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.DialogTitle, "Plot Progress");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelJobButtonMessage, "Cancel Job");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelSheetButtonMessage,
+                                    "Cancel Sheet");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetSetProgressCaption,
+                                    "Sheet Set Progress");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetProgressCaption, "Sheet Progress");
+                                // Set the plot progress range
+                                acPlProgDlg.LowerPlotProgressRange = 0;
+                                acPlProgDlg.UpperPlotProgressRange = 100;
+                                acPlProgDlg.PlotProgressPos = 0;
+                                // Display the Progress dialog
+                                acPlProgDlg.OnBeginPlot();
+                                acPlProgDlg.IsVisible = true;
+                                // Start to plot the layout
+                                acPlEng.BeginPlot(acPlProgDlg, null);
+                                // Define the plot output
+                                string filename = Path.Combine(Path.GetDirectoryName(acDoc.Name), pdfFileName);
+                                Active.Editor.WriteMessage(filename);
+
+                                acPlEng.BeginDocument(acPlInfo, acDoc.Name, null, 1, true, filename);
+                                // Display information about the current plot
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.Status,
+                                    "Plotting: " + acDoc.Name + " - " + acLayout.LayoutName);
+                                // Set the sheet progress range
+                                acPlProgDlg.OnBeginSheet();
+                                acPlProgDlg.LowerSheetProgressRange = 0;
+                                acPlProgDlg.UpperSheetProgressRange = 100;
+                                acPlProgDlg.SheetProgressPos = 0;
+                                // Plot the first sheet/layout
+                                PlotPageInfo acPlPageInfo = new PlotPageInfo();
+                                acPlEng.BeginPage(acPlPageInfo, acPlInfo, true, null);
+                                acPlEng.BeginGenerateGraphics(null);
+                                acPlEng.EndGenerateGraphics(null);
+                                // Finish plotting the sheet/layout
+                                acPlEng.EndPage(null);
+                                acPlProgDlg.SheetProgressPos = 100;
+                                acPlProgDlg.OnEndSheet();
+                                // Finish plotting the document
+                                acPlEng.EndDocument(null);
+                                // Finish the plot
+                                acPlProgDlg.PlotProgressPos = 100;
+                                acPlProgDlg.OnEndPlot();
+                                acPlEng.EndPlot(null);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Application.ShowAlertDialog(e.Message);
+            }
+        }
+
+
         /// <summary>
         /// get dict from attributes of block
         /// </summary>
@@ -31,12 +183,19 @@ namespace TransmittalCreator.Services
                 TypedValue[] filList = new TypedValue[1] { new TypedValue((int)DxfCode.Start, "INSERT") };
                 SelectionFilter filter = new SelectionFilter(filList);
                 PromptSelectionOptions opts = new PromptSelectionOptions();
+                opts.SingleOnly = true;
+                opts.SinglePickInSpace = true;
                 opts.MessageForAdding = "Select block references: ";
                 PromptSelectionResult res = Active.Editor.GetSelection(opts, filter);
+                
                 // Do nothing if selection is unsuccessful
                 if (res.Status != PromptStatus.OK)
                 {
                     throw new InvalidOperationException("block not selected");
+                }
+                if(res.Value.Count > 1)
+                {
+                    throw new InvalidOperationException("For selecting block attributes, please select only one block");
                 }
                 SelectionSet selSet = res.Value;
                 ObjectId[] idArray = selSet.GetObjectIds();
@@ -58,7 +217,7 @@ namespace TransmittalCreator.Services
                 }
                 tr.Commit();
             }
-            catch (Autodesk.AutoCAD.Runtime.Exception ex)
+            catch (Exception ex)
             {
                 Active.Editor.WriteMessage(("Exception: " + ex.Message));
             }
@@ -75,18 +234,18 @@ namespace TransmittalCreator.Services
 
             // Build a filter list so that only
             // block references are selected
-            
+
             string sheetNumber = "", docNumber = "", objectNameEng = "", docTitleEng = "", objectNameRu = "", docTitleRu = "";
 
             foreach (ObjectId blkId in idArray)
             {
-                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
 
+                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+                string stampViewValue = GetBlockAttributeVlueByAttrName(blkRef);
                 BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
                 ed.WriteMessage("\nBlock: " + btr.Name);
                 btr.Dispose();
                 AttributeCollection attCol = blkRef.AttributeCollection;
-                
 
                 foreach (ObjectId attId in attCol)
                 {
@@ -116,7 +275,7 @@ namespace TransmittalCreator.Services
                     }
                 }
 
-                dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu));
+                dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu, stampViewValue));
             }
 
             return dict;
@@ -129,7 +288,7 @@ namespace TransmittalCreator.Services
         /// <param name="dict"> коллекция листов</param>
         /// <param name="tr"> транзакция </param>
         /// <returns>коллекция листов </returns>
-        public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Transaction tr, ObjectIdCollection objectIdCollection, Models.AttributModel attributModel)
+        public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Transaction tr, ObjectIdCollection objectIdCollection, AttributModel attributModel)
         {
             string objectNameEn = attributModel.ObjectNameEn;
             string objectNameRu = attributModel.ObjectNameRu;
@@ -169,10 +328,10 @@ namespace TransmittalCreator.Services
                 btr.Dispose();
 
                 AttributeCollection attCol = blkRef.AttributeCollection;
-                
+
 
                 var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-                
+
                 docTitleEng = attrDict.FirstOrDefault(x => x.Key == objectNameEn).Value;
                 docTitleRu = attrDict.FirstOrDefault(x => x.Key == objectNameRu).Value;
 
@@ -218,22 +377,22 @@ namespace TransmittalCreator.Services
                 //    //}
                 //}
 
-                dict.Add(new Sheet(sheetNumber, docNumber, comment, objectNameEng, docTitleEng, objectNameRus, docTitleRu));
+                //dict.Add(new Sheet(sheetNumber, docNumber, comment, objectNameEng, docTitleEng, objectNameRus, docTitleRu));
             }
 
             return dict;
         }
 
 
-        public static Db.Database CreateDatabaseFromTemplate(String templateName, String password)
+        public static Database CreateDatabaseFromTemplate(String templateName, String password)
         {
             if (templateName == null || templateName.Trim() == String.Empty) return null;
-            Db.Database templateDb = new Db.Database(false, true);
+            Database templateDb = new Database(false, true);
             if (password == null) password = String.Empty;
             templateDb.ReadDwgFile(Environment.ExpandEnvironmentVariables(templateName),
-                Db.FileOpenMode.OpenForReadAndWriteNoShare, true, password);
+                FileOpenMode.OpenForReadAndWriteNoShare, true, password);
             templateDb.CloseInput(true);
-            Db.Database result = templateDb.Wblock();
+            Database result = templateDb.Wblock();
             return result;
         }
 
@@ -241,23 +400,24 @@ namespace TransmittalCreator.Services
         /// <summary>
         /// find print area and pdf name by block id
         /// </summary>
-        public static List<PrintModel> GetExtentsNamePdf(Editor ed, List<PrintModel> printModels, Transaction tr,
-            ObjectIdCollection objectIdCollection)
+        public static List<PrintModel> GetPrintParametersToPdf(Editor ed, List<PrintModel> printModels, Transaction tr,
+            ObjectIdCollection objectIdCollection, string selAttrName)
         {
             foreach (ObjectId blkId in objectIdCollection)
             {
-                BlockReference blkRef = (BlockReference) tr.GetObject(blkId, OpenMode.ForRead);
-                BlockTableRecord btr = (BlockTableRecord) tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
+                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
 
-                string docNumber = GetFileNameFromBlockAttribute(blkRef);
+                string docNumber = GetBlockAttributeValue(blkRef, selAttrName);
                 //formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
                 //ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber, posPoint2d.ToString(), formatValue);
-                printModels.Add(new PrintModel(docNumber,blkId));
+                printModels.Add(new PrintModel(docNumber, blkId));
                 btr.Dispose();
             }
 
             return printModels;
         }
+
         //private string GetAttributeValue(string attrTag, AttributeCollection attCol)
         //{
         //    foreach (var attr in attCol)
@@ -269,13 +429,27 @@ namespace TransmittalCreator.Services
         //    }
         //}
 
-
-
-        public static string GetFileNameFromBlockAttribute(BlockReference blkRef)
+        public static string GetBlockAttributeValue(BlockReference blkRef, string selAttrName)
         {
+            string blockStamp = GetBlockAttributeVlueByAttrName(blkRef);
+            var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
             string docNumber = "";
+
+            if (blockStamp == "Форма 3 ГОСТ Р 21.1101-2009 M25" || blockStamp == "Форма 3 ГОСТ Р 21.1101-2009")
+                docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
+            else if (blockStamp == "Форма 6 ГОСТ Р 21.1101-2009")
+            {
+                selAttrName = "НОМЕР_ЛИСТА_2";
+                docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
+                docNumber += "-page" + attrDict.FirstOrDefault(x => x.Key == "ЛИСТ2_СПЕЦ").Value;
+            }
+            return docNumber;
+        }
+
+        private static string GetBlockAttributeVlueByAttrName(BlockReference blkRef)
+        {
             DynamicBlockReferencePropertyCollection props = blkRef.DynamicBlockReferencePropertyCollection;
-            string blockStamp = ""; 
+            string blockStamp = "";
             foreach (DynamicBlockReferenceProperty prop in props)
             {
                 if (prop.PropertyName == "Штамп")
@@ -283,27 +457,25 @@ namespace TransmittalCreator.Services
                     blockStamp = prop.Value.ToString();
                 }
             }
-            var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
-            if (blockStamp == "Форма 3 ГОСТ Р 21.1101-2009 M25" || blockStamp == "Форма 3 ГОСТ Р 21.1101-2009")
-                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА").Value;
-            else if (blockStamp == "Форма 6 ГОСТ Р 21.1101-2009")
-            {
-                docNumber = attrDict.FirstOrDefault(x => x.Key == "НОМЕР_ЛИСТА_2").Value;
-                docNumber += "-" + attrDict.FirstOrDefault(x => x.Key == "ЛИСТ2_СПЕЦ").Value;
-            }
-
-            return docNumber;
+            
+            return blockStamp;
         }
 
         public void CreateJsonFile(List<Sheet> dict)
         {
             dict = dict.OrderBy(x => x.SheetNumber).ToList();
-            string json = JsonConvert.SerializeObject(dict, Formatting.Indented);
+            List<Sheet> newSheets = new List<Sheet>();
+            foreach (var sheet in dict)
+            {
+                if(sheet.ViewValue != "Форма 6 ГОСТ Р 21.1101-2009") newSheets.Add(sheet);
+            }
+
+            string json = JsonConvert.SerializeObject(newSheets, Formatting.Indented);
             string path = DrawingPath();
             string dirName = Path.GetDirectoryName(path);
             string pathExtension = Path.GetFileNameWithoutExtension(path) + ".json";
             string jsonFile = Path.Combine(dirName, pathExtension);
-            System.IO.File.WriteAllText(jsonFile, json);
+            File.WriteAllText(jsonFile, json);
         }
 
         private static string DrawingPath()
@@ -383,7 +555,7 @@ namespace TransmittalCreator.Services
                 CreateTableFromList(dict);
                 tr.Commit();
             }
-            catch (Autodesk.AutoCAD.Runtime.Exception ex)
+            catch (Exception ex)
             {
                 ed.WriteMessage(("Exception: " + ex.Message + " " + ex.InnerException));
             }
@@ -403,7 +575,7 @@ namespace TransmittalCreator.Services
                 //tr.Commit();
                 Sheet.WriteToExcel(dict);
             }
-            catch (Autodesk.AutoCAD.Runtime.Exception ex)
+            catch (Exception ex)
             {
                 ed.WriteMessage(("Exception: " + ex.Message + " " + ex.InnerException));
             }
@@ -528,7 +700,7 @@ namespace TransmittalCreator.Services
                             AttributeCollection attCol = bref.AttributeCollection;
                             var attrDict = AttributeExtensions.GetAttributesValues(bref);
                             if (prop.Value.ToString() == "Форма 3 ГОСТ Р 21.1101 - 2009")
-                                blockWidth = double.Parse(prop.Value.ToString(), System.Globalization.CultureInfo.InvariantCulture);
+                                blockWidth = double.Parse(prop.Value.ToString(), CultureInfo.InvariantCulture);
                             ed.WriteMessage(blockWidth.ToString());
                         }
                         //if (prop.PropertyName == "Высота")
@@ -549,7 +721,7 @@ namespace TransmittalCreator.Services
         /// <param name="blockName"></param>
         /// <returns></returns>
         [CommandMethod("selb")]
-        public static ObjectIdCollection SelectDynamicBlockReferences(string blockName="Формат")
+        public static ObjectIdCollection SelectDynamicBlockReferences(string blockName = "Формат")
         {
             Editor ed = Active.Editor;
             Database db = Active.Database;
@@ -668,6 +840,99 @@ namespace TransmittalCreator.Services
                 tx.Commit();
             }
         }
+
+        /// <summary>
+        /// adding hvac table
+        /// </summary>
+        /// <param name="hvacTable"></param>
+        /// <param name="columnsNum"></param>
+        public void AddTable(HvacTable hvacTable, int columnsNum)
+        {
+            Database db = HostApplicationServices.WorkingDatabase;
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                ObjectId msId = bt[BlockTableRecord.ModelSpace];
+                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(msId, OpenMode.ForWrite);
+
+                PromptPointResult pr =
+                    Active.Editor.GetPoint(
+                        $"\nEnter table insertion point for:room #{hvacTable.RoomNumber}-{hvacTable.RoomName}");
+                if (pr.Status == PromptStatus.OK)
+                {
+                    // create a table
+                    Table tb = new Table();
+                    //tb.TableStyle = db.Tablestyle;
+                    tb.SetDatabaseDefaults();
+                    // row height
+                    double rowheight = 80;
+                    // column width
+                    double columnwidth = 150;
+                    // insert rows and columns
+                    tb.InsertRows(0, rowheight, 4);
+                    tb.InsertColumns(0, columnwidth, 2);
+
+                    tb.SetRowHeight(rowheight);
+                    tb.SetColumnWidth(columnwidth);
+
+                    tb.Position = pr.Value;
+                    // fill in the cell one by one
+                    //tb.Columns[0].Width = 150;
+                    tb.Columns[1].Width = 340;
+                    //tb.Columns[2].Width = 150;
+
+                    tb.Rows[0].Height = 130;
+
+                    SetCellPropsWithValue(tb, 0, 0, 50, 255, hvacTable.RoomNumber);
+                    SetCellPropsWithValue(tb, 0, 1, 50, 255, hvacTable.RoomName);
+                    SetCellPropsWithValue(tb, 0, 2, 50, 255, hvacTable.RoomTemp);
+
+
+                    SetCellPropsWithValue(tb, 1, 0, 50, 30, "Qt");
+                    SetCellPropsWithValue(tb, 1, 1, 50, 30,
+                        GetRoundUpValue(hvacTable.Heating) + "-" + GetRoundUpValue(hvacTable.Heating, 120));
+                    SetCellPropsWithValue(tb, 1, 2, 25, 30, "\\LВТ\\l\nсек.");
+
+                    SetCellPropsWithValue(tb, 2, 0, 50, 130, "Qx");
+                    SetCellPropsWithValue(tb, 2, 1, 50, 130,
+                        GetRoundUpValue(hvacTable.Cooling) + "-" + GetRoundUpValue(hvacTable.Cooling, 293.07));
+                    SetCellPropsWithValue(tb, 2, 2, 25, 130, "\\LВТ\\l\nBtu...");
+
+
+                    SetCellPropsWithValue(tb, 3, 0, 50, 20, hvacTable.AirExchangeSupplyInd);
+                    string airSupply = hvacTable.AirExchangeSupply;
+                    if (!airSupply.Equals("–")) GetRoundUpValue(hvacTable.AirExchangeSupply).ToString();
+                    SetCellPropsWithValue(tb, 3, 1, 50, 20, airSupply);
+                    SetCellPropsWithValue(tb, 3, 2, 25, 20, "м3/ч");
+
+                    string airExchangeExhaust = hvacTable.AirExchangeExhaust;
+                    if (!airExchangeExhaust.Equals("–")) GetRoundUpValue(hvacTable.AirExchangeExhaust).ToString();
+                    SetCellPropsWithValue(tb, 4, 0, 50, 150, hvacTable.AirExchangeExhaustInd);
+                    SetCellPropsWithValue(tb, 4, 1, 50, 150, airExchangeExhaust);
+                    SetCellPropsWithValue(tb, 4, 2, 25, 150, "м3/ч");
+
+                    //CellRange range = CellRange.Create(tb, columnsNum - 2, 0, columnsNum - 1, 0);
+                    //tb.UnmergeCells(range);
+                    tb.SetDatabaseDefaults();
+                    tb.GenerateLayout();
+                    btr.AppendEntity(tb);
+                    tr.AddNewlyCreatedDBObject(tb, true);
+                    tr.Commit();
+                }
+            }
+        }
+
+        public static int GetRoundUpValue(string str, double divValue = 1)
+        {
+            return (int)Math.Ceiling(double.Parse(str) / divValue);
+        }
+
+        private void SetCellPropsWithValue(Table tb, int v1, int v2, int v3, int v4, string roomNumber)
+        {
+            throw new NotImplementedException();
+        }
+
+        
     }
 
 

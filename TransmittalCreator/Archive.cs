@@ -215,8 +215,7 @@ namespace TransmittalCreator
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             var ed = doc.Editor;
-            var pso =
-                new PromptStringOptions("\nName of dynamic block to search for");
+            var pso = new PromptStringOptions("\nName of dynamic block to search for");
             pso.AllowSpaces = true;
             var pr = ed.GetString(pso);
             if (pr.Status != PromptStatus.OK)
@@ -227,37 +226,25 @@ namespace TransmittalCreator
             var tr = doc.TransactionManager.StartTransaction();
             using (tr)
             {
-                var bt =
-                    (BlockTable)tr.GetObject(
-                        doc.Database.BlockTableId,
-                        OpenMode.ForRead
-                    );
+                var bt = (BlockTable)tr.GetObject(doc.Database.BlockTableId, OpenMode.ForRead);
                 // Start by getting access to our block, if it exists
                 if (!bt.Has(blkName))
                 {
-                    ed.WriteMessage(
-                        "\nCannot find block called \"{0}\".", blkName
-                    );
+                    ed.WriteMessage("\nCannot find block called \"{0}\".", blkName);
                     return;
                 }
                 // Get the anonymous block names
-                var btr =
-                    (BlockTableRecord)tr.GetObject(
-                        bt[blkName], OpenMode.ForRead
-                    );
+                var btr = (BlockTableRecord)tr.GetObject(bt[blkName], OpenMode.ForRead);
                 if (!btr.IsDynamicBlock)
                 {
-                    ed.WriteMessage(
-                        "\nCannot find a dynamic block called \"{0}\".", blkName
-                    );
+                    ed.WriteMessage("\nCannot find a dynamic block called \"{0}\".", blkName);
                     return;
                 }
                 // Get the anonymous blocks and add them to our list
                 var anonBlks = btr.GetAnonymousBlockIds();
                 foreach (ObjectId bid in anonBlks)
                 {
-                    var btr2 =
-                        (BlockTableRecord)tr.GetObject(bid, OpenMode.ForRead);
+                    var btr2 = (BlockTableRecord)tr.GetObject(bid, OpenMode.ForRead);
                     blkNames.Add(btr2.Name);
                 }
                 tr.Commit();
@@ -265,14 +252,9 @@ namespace TransmittalCreator
             // Build a conditional filter list so that only
             // entities with the specified properties are
             // selected
-            SelectionFilter sf =
-                new SelectionFilter(CreateFilterListForBlocks(blkNames));
+            SelectionFilter sf = new SelectionFilter(CreateFilterListForBlocks(blkNames));
             PromptSelectionResult psr = ed.SelectAll(sf);
-            ed.WriteMessage(
-                "\nFound {0} entit{1}.",
-                psr.Value.Count,
-                (psr.Value.Count == 1 ? "y" : "ies")
-            );
+            ed.WriteMessage("\nFound {0} entit{1}.", psr.Value.Count, (psr.Value.Count == 1 ? "y" : "ies"));
         }
 
         private static TypedValue[] CreateFilterListForBlocks(List<string> blkNames)
