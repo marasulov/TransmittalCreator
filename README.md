@@ -1,2 +1,2 @@
 # TransmittalCreator
-printin from modelspace
+printing from modelspace
