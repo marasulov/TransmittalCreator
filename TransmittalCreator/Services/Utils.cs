@@ -113,8 +113,7 @@ namespace TransmittalCreator.Services
                                 // Define the status messages to display when plotting starts
                                 acPlProgDlg.set_PlotMsgString(PlotMessageIndex.DialogTitle, "Plot Progress");
                                 acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelJobButtonMessage, "Cancel Job");
-                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelSheetButtonMessage,
-                                    "Cancel Sheet");
+                                acPlProgDlg.set_PlotMsgString(PlotMessageIndex.CancelSheetButtonMessage, "Cancel Sheet");
                                 acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetSetProgressCaption,
                                     "Sheet Set Progress");
                                 acPlProgDlg.set_PlotMsgString(PlotMessageIndex.SheetProgressCaption, "Sheet Progress");
