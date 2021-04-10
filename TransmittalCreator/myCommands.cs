@@ -145,6 +145,38 @@ namespace TransmittalCreator
             BatchTransmittal(docsToPlot);
         }
 
+        [CommandMethod("OPSV")]
+        public static void OpenSaveDwgFiles()
+        {
+            List<Sheet> dict = new List<Sheet>();
+            try
+            {
+                var path = @"C:\Users\yusufzhon.marasulov\Desktop\test";
+                DirectoryInfo d = new DirectoryInfo(path);
+                FileInfo[] Files = d.GetFiles("*.dwg");
+                foreach (FileInfo file in Files)
+                {
+                    var fileName = Path.GetFileName(file.FullName);
+                    string dwgFlpath = file.FullName;
+                    using (Database db = new Database(false, true))
+                    {
+                        db.ReadDwgFile(dwgFlpath, FileOpenMode.OpenForReadAndAllShare, false, null);
+                        using (Transaction tr = db.TransactionManager.StartTransaction())
+                        {
+                            ObjectIdCollection idArray = Utils.SelectDynamicBlockReferences();
+                            GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                            tr.Commit();
+                        }
+                        db.SaveAs(dwgFlpath, DwgVersion.Current);
+                    }
+                }
+                Application.ShowAlertDialog("All files processed");
+            }
+            catch (System.Exception ex)
+            {
+                Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(ex.ToString());
+            }
+        }
 
         static public void BatchTransmittal(List<string> docsToPlot)
         {
@@ -163,6 +195,8 @@ namespace TransmittalCreator
                     using (Transaction tr = db.TransactionManager.StartTransaction())
                     {
                         ObjectIdCollection idArray = Utils.SelectDynamicBlockReferences();
+
+
                         //TODO надо проверить предыдущий и нижние методы на поиск по Id
                         GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
                         string selAttrName = "НОМЕР_ЛИСТА";

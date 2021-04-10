@@ -668,7 +668,7 @@ namespace TransmittalCreator.Services
             //TODO start here to search blocks in drawing
             Editor ed = Active.Editor;
             Database db = Active.Database;
-            List<ObjectId> listObjectIds = new List<ObjectId>();
+
             ObjectIdCollection dynBlockRefs = new ObjectIdCollection();
             using (Transaction trans = db.TransactionManager.StartTransaction())
             {
@@ -705,14 +705,15 @@ namespace TransmittalCreator.Services
                                 //var blockReference = (BlockReference)tr.GetObject(id, OpenMode.ForRead);
                                 var e = (BlockReference)trans.GetObject(id, OpenMode.ForRead);
                                 string curBlockName = e.BlockName;
-
+                                
                                 ObjectId ownerId = e.OwnerId;
 
                                 if (ownerId == mSpaceId)
                                 {
                                     ed.WriteMessage(e.ToString());
-                                    listObjectIds.Add(id);
+  
                                     dynBlockRefs.Add(id);
+
                                     ed.WriteMessage("\n \"{0}\" соответствуют {1} \n",
                                         btr.Name, id);
                                 }
