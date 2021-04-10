@@ -2,10 +2,10 @@
 //
 
 using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
 using OfficeOpenXml;
@@ -14,14 +14,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
-using Autodesk.AutoCAD.PlottingServices;
-using DocumentFormat.OpenXml.Office2010.Excel;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.ViewModel;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
-using Color = Autodesk.AutoCAD.Colors.Color;
 using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
 using Table = Autodesk.AutoCAD.DatabaseServices.Table;
 
@@ -43,176 +40,12 @@ namespace TransmittalCreator
 
         // Modal Command with pickfirst selection
         [CommandMethod("hvacTable", CommandFlags.Modal | CommandFlags.UsePickSet)]
-        public void CreateHvacTable() // This method can have any name
+        public void CreateHvacTable(Hvac hvac) // This method can have any name
         {
-            string documents = Path.GetDirectoryName(Active.Document.Name);
-            Environment.SetEnvironmentVariable("MYDOCUMENTS", documents);
-
-            var ofd = new OpenFileDialog("Select a file using an OpenFileDialog", documents,
-                "xlsx; *",
-                "File Date Test T22",
-                OpenFileDialog.OpenFileDialogFlags.DefaultIsFolder |
-                OpenFileDialog.OpenFileDialogFlags.ForceDefaultFolder // .AllowMultiple
-            );
-            DialogResult sdResult = ofd.ShowDialog();
-
-            if (sdResult != System.Windows.Forms.DialogResult.OK) return;
-
-            string filename = ofd.Filename;
-
-            List<HvacTable> hvacTables = CreateHvacTableListFromFile(filename);
-
-            Type type = typeof(HvacTable);
-
-            int tableCols = type.GetProperties().Length;
-            CreateLayer();
-
-            MyMessageFilter filter = new MyMessageFilter();
-
-            System.Windows.Forms.Application.AddMessageFilter(filter);
-
-            foreach (var hvacTable in hvacTables)
-            {
-                // Check for user input events
-                System.Windows.Forms.Application.DoEvents();
-                if (filter.bCanceled == true)
-                {
-                    Active.Editor.WriteMessage("\nLoop cancelled.");
-                    break;
-                }
-
-                AddTable(hvacTable, tableCols);
-            }
-
-            System.Windows.Forms.Application.RemoveMessageFilter(filter);
-        }
-
-        public class MyMessageFilter : IMessageFilter
-        {
-            public const int WM_KEYDOWN = 0x0100;
-            public bool bCanceled = false;
-
-            public bool PreFilterMessage(ref Message m)
-            {
-                if (m.Msg == WM_KEYDOWN)
-                {
-                    // Check for the Escape keypress
-                    Keys kc = (Keys) (int) m.WParam & Keys.KeyCode;
-
-                    if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
-                    {
-                        bCanceled = true;
-                    }
-
-                    // Return true to filter all keypresses
-                    return true;
-                }
-
-                // Return false to let other messages through
-                return false;
-            }
-        }
-
-        private List<HvacTable> CreateHvacTableListFromFile(string filename)
-        {
-            FileInfo fileInfo = new FileInfo(filename);
-            List<HvacTable> listData = new List<HvacTable>();
-
-            using (ExcelPackage package = new ExcelPackage(fileInfo))
-            {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                //create an instance of the the first sheet in the loaded file
-                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-                int rowStart = 7;
-                int rowCount = worksheet.Dimension.End.Row;
-
-                for (int i = rowStart; i < rowCount - 1; i++)
-                {
-                    var roomcell = worksheet.Cells[i, 1].Value;
-
-                    if (roomcell != null)
-                    {
-                        bool totalStr = roomcell.ToString().ToUpper().Contains("TOTAL");
-
-                        if (!totalStr)
-                        {
-                            string roomNumber = worksheet.Cells[i, 1].Value?.ToString().Trim();
-                            string roomName = worksheet.Cells[i, 2].Value?.ToString().Trim();
-                            string roomTemp = worksheet.Cells[i, 5].Value?.ToString().Trim();
-                            string heating = worksheet.Cells[i, 26].Value?.ToString().Trim();
-                            string cooling = worksheet.Cells[i, 34].Value?.ToString().Trim();
-                            string supply = worksheet.Cells[i, 39].Value?.ToString().Trim();
-
-                            string supplyIn = "П";
-                            var supplyInd = worksheet.Cells[i, 38].Value?.ToString().Trim() ?? supplyIn;
-                            string exhaustInd = "В";
-                            if (worksheet.Cells[i, 40].Value != null)
-                                exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
-
-                            string exhaust = worksheet.Cells[i, 41].Value?.ToString().Trim();
-
-                            listData.Add(new HvacTable(roomNumber, roomName, roomTemp, heating, cooling, supply,
-                                supplyInd,
-                                exhaust, exhaustInd));
-                        }
-                    }
-                }
-            }
-
-            return listData;
+          hvac.CreateHvacTable();
         }
 
         #endregion
-
-
-        private void CreateLayer()
-        {
-            using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-            {
-                LayerTable ltb = (LayerTable) tr.GetObject(Active.Database.LayerTableId,
-                    OpenMode.ForRead);
-
-                //create a new layout.
-
-                if (!ltb.Has("Hvac_Calc"))
-
-                {
-                    ltb.UpgradeOpen();
-
-                    LayerTableRecord newLayer = new LayerTableRecord();
-
-                    newLayer.Name = "Hvac_Calc";
-                    newLayer.LineWeight = LineWeight.LineWeight005;
-                    newLayer.Description = "This is new layer";
-                    newLayer.IsPlottable = false;
-
-                    //red color
-                    //newLayer.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(255, 0, 0);
-                    ltb.Add(newLayer);
-                    tr.AddNewlyCreatedDBObject(newLayer, true);
-                }
-
-                tr.Commit();
-                //make it as current
-                Active.Database.Clayer = ltb["Hvac_Calc"];
-            }
-        }
-
-        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber,
-            string stringValue)
-        {
-            var curPos = tb.Cells[curRow, curCol];
-            curPos.TextHeight = textHeight;
-            curPos.TextString = stringValue;
-            curPos.Alignment = CellAlignment.MiddleCenter;
-            curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci, colorNumber);
-        }
-
-        [CommandMethod("SDB")]
-        public static void SelectBlocksByName()
-        {
-            Archive.SelectDynamicBlocks();
-        }
 
         [CommandMethod("LISTATT")]
         public static void ListAttributes1()
@@ -258,8 +91,7 @@ namespace TransmittalCreator
             ed.WriteMessage(str1);
         }
 
-        //TODO refactor
-
+        //TODO refactor have to delete below methods if no need
 
         [CommandMethod("ListLayouts")]
         public static void ListLayoutsMethod()
@@ -296,6 +128,62 @@ namespace TransmittalCreator
                 tr.Commit();
             }
         }
+
+        [CommandMethod("CreateTrPdfFromFiles")]
+        public static void CreateTransmittalAndPdfFromFiles()
+        {
+            List<Sheet> dict = new List<Sheet>();
+            List<PrintModel> printModels = new List<PrintModel>();
+
+            Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+
+            short bgPlot =                (short) Application.GetSystemVariable("BACKGROUNDPLOT");
+            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+            List<string> docsToPlot = new List<string>();
+            docsToPlot.Add(@"C:\Users\yusufzhon.marasulov\Desktop\test\test.dwg");
+            docsToPlot.Add(@"C:\Users\yusufzhon.marasulov\Desktop\test\test1.dwg");
+            BatchTransmittal(docsToPlot);
+        }
+
+
+        static public void BatchTransmittal(List<string> docsToPlot)
+        {
+            List<Sheet> dict = new List<Sheet>();
+            List<PrintModel> printModels = new List<PrintModel>();
+            Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+            Document doc = Active.Document;
+            foreach (string filename in docsToPlot)
+            {
+                using (DocumentLock doclock = doc.LockDocument())
+                {
+                    Database db = new Database(false, true);
+                    db.ReadDwgFile(filename, System.IO.FileShare.Read, true, "");
+                    System.IO.FileInfo fi = new System.IO.FileInfo(filename);
+                    string docName = fi.Name.Substring(0, fi.Name.Length - 4);
+                    using (Transaction tr = db.TransactionManager.StartTransaction())
+                    {
+                        ObjectIdCollection idArray = Utils.SelectDynamicBlockReferences();
+                        //TODO надо проверить предыдущий и нижние методы на поиск по Id
+                        GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                        string selAttrName = "НОМЕР_ЛИСТА";
+                        GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
+
+                        Utils utils = new Utils();
+                        //utils.CreateOnlyVed(dict);
+                        utils.CreateJsonFile(dict);
+
+                        foreach (var printModel in printModels)
+                        {
+                            //Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
+                            PlotCurrentLayout(printModel.DocNumber, printModel);
+                        }
+                        tr.Commit();
+                    }
+                }
+            }
+          
+        }
+
 
         [CommandMethod("CreateTranspdf")]
         public static void CreateTransmittalAndPdf()
@@ -351,7 +239,6 @@ namespace TransmittalCreator
                 tr.Commit();
             }
         }
-        //TODO finish
 
         [CommandMethod("CreatePdf")]
         public void CreatePdfName()
@@ -497,13 +384,6 @@ namespace TransmittalCreator
             }
         }
 
-        [CommandMethod("UL")]
-        public void UnlockLayers()
-        {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            if (doc == null) return;
-            doc.LockOrUnlockLayers(false);
-        }
 
         public static string ZoomFilesAndSave(string fileName)
         {
@@ -547,45 +427,6 @@ namespace TransmittalCreator
             }
 
             return newFileName;
-        }
-
-        [CommandMethod("LockLayer")]
-        public static void LockLayer()
-        {
-            // Get the current document and database
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
-            // Start a transaction
-            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-            {
-                // Open the Layer table for read
-                LayerTable acLyrTbl;
-                acLyrTbl = acTrans.GetObject(acCurDb.LayerTableId,
-                    OpenMode.ForRead) as LayerTable;
-                string sLayerName = "ABC";
-                LayerTableRecord acLyrTblRec;
-                if (acLyrTbl.Has(sLayerName) == false)
-                {
-                    acLyrTblRec = new LayerTableRecord();
-                    // Assign the layer a name
-                    acLyrTblRec.Name = sLayerName;
-                    // Upgrade the Layer table for write
-                    acLyrTbl.UpgradeOpen();
-                    // Append the new layer to the Layer table and the transaction
-                    acLyrTbl.Add(acLyrTblRec);
-                    acTrans.AddNewlyCreatedDBObject(acLyrTblRec, true);
-                }
-                else
-                {
-                    acLyrTblRec = acTrans.GetObject(acLyrTbl[sLayerName],
-                        OpenMode.ForWrite) as LayerTableRecord;
-                }
-
-                // Lock the layer
-                acLyrTblRec.IsLocked = true;
-                // Save the changes and dispose of the transaction
-                acTrans.Commit();
-            }
         }
 
 
@@ -754,187 +595,96 @@ namespace TransmittalCreator
 
         [CommandMethod("PublishAllLayouts")]
         static public void PublishAllLayouts()
-
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
-
             Database db = doc.Database;
-
             Editor ed = doc.Editor;
-
-
             //put the plot in foreground
-
             short bgPlot = (short) Application.GetSystemVariable("BACKGROUNDPLOT");
-
-
             Application.SetSystemVariable("BACKGROUNDPLOT", 0);
-
-
             //get the layout ObjectId List
-
             System.Collections.Generic.List<ObjectId> layoutIds = GetLayoutIds(db);
-
-
             string dwgFileName = (string) Application.GetSystemVariable("DWGNAME");
-
             string dwgPath = (string) Application.GetSystemVariable("DWGPREFIX");
-
-
             using (Transaction Tx = db.TransactionManager.StartTransaction())
-
             {
                 DsdEntryCollection collection = new DsdEntryCollection();
-
-
                 foreach (ObjectId layoutId in layoutIds)
-
                 {
                     Layout layout = Tx.GetObject(layoutId, OpenMode.ForRead)
                         as Layout;
-
                     DsdEntry entry = new DsdEntry();
-
                     entry.DwgName = dwgPath + dwgFileName;
-
                     entry.Layout = layout.LayoutName;
-
                     entry.Title = "Layout_" + layout.LayoutName;
-
                     entry.NpsSourceDwg = entry.DwgName;
-
                     entry.Nps = "Setup1";
                     collection.Add(entry);
                     //TODO have to think about creating collection depend of block view
                 }
-
-
                 dwgFileName = dwgFileName.Substring(0, dwgFileName.Length - 4);
-
                 DsdData dsdData = new DsdData();
-
-
                 dsdData.SheetType = SheetType.MultiPdf; //SheetType.MultiPdf
-
                 dsdData.ProjectPath = dwgPath;
-
                 dsdData.DestinationName =
                     dsdData.ProjectPath + dwgFileName + ".pdf";
-
-
                 if (System.IO.File.Exists(dsdData.DestinationName))
-
                     System.IO.File.Delete(dsdData.DestinationName);
-
-
                 dsdData.SetDsdEntryCollection(collection);
-
-
                 string dsdFile = dsdData.ProjectPath + dwgFileName + ".dsd";
-
-
                 //Workaround to avoid promp for dwf file name
-
                 //set PromptForDwfName=FALSE in dsdData using
-
                 //StreamReader/StreamWriter
-
-
                 dsdData.WriteDsd(dsdFile);
-
-
                 System.IO.StreamReader sr =
                     new System.IO.StreamReader(dsdFile);
-
-
                 string str = sr.ReadToEnd();
-
                 sr.Close();
-
-
                 str = str.Replace(
                     "PromptForDwfName=TRUE", "PromptForDwfName=FALSE");
-
-
                 System.IO.StreamWriter sw =
                     new System.IO.StreamWriter(dsdFile);
-
-
                 sw.Write(str);
-
                 sw.Close();
-
-
                 dsdData.ReadDsd(dsdFile);
-
                 System.IO.File.Delete(dsdFile);
-
-
                 PlotConfig plotConfig =
                     Autodesk.AutoCAD.PlottingServices.PlotConfigManager.SetCurrentConfig("DWG_To_PDF_Uzle.pc3");
-
-
                 //PlotConfig pc = Autodesk.AutoCAD.PlottingServices.
-
                 //  PlotConfigManager.SetCurrentConfig("DWG To PDF.pc3");
-
-
                 Autodesk.AutoCAD.Publishing.Publisher publisher =
                     Autodesk.AutoCAD.ApplicationServices.Application.Publisher;
-
-
                 publisher.AboutToBeginPublishing +=
                     new Autodesk.AutoCAD.Publishing.
                         AboutToBeginPublishingEventHandler(
                             Publisher_AboutToBeginPublishing);
-
-
                 publisher.PublishExecute(dsdData, plotConfig);
-
-
                 Tx.Commit();
             }
-
-
             //reset the background plot value
-
             Application.SetSystemVariable("BACKGROUNDPLOT", bgPlot);
         }
-
-
         private static System.Collections.Generic.List<ObjectId>
             GetLayoutIds(Database db)
-
         {
             System.Collections.Generic.List<ObjectId> layoutIds =
                 new System.Collections.Generic.List<ObjectId>();
-
-
             using (Transaction Tx = db.TransactionManager.StartTransaction())
-
             {
                 DBDictionary layoutDic = Tx.GetObject(
                         db.LayoutDictionaryId,
                         OpenMode.ForRead, false)
                     as DBDictionary;
-
-
                 foreach (DBDictionaryEntry entry in layoutDic)
-
                 {
                     layoutIds.Add(entry.Value);
                 }
             }
-
-
             return layoutIds;
         }
-
-
         static void Publisher_AboutToBeginPublishing(
             object sender,
             Autodesk.AutoCAD.Publishing.AboutToBeginPublishingEventArgs e)
-
         {
             Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(
                 "\nAboutToBeginPublishing!!");
@@ -957,186 +707,99 @@ namespace TransmittalCreator
 
         [CommandMethod("BatchPublishCmd", CommandFlags.Session)]
         static public void BatchPublishCmd()
-
         {
             short bgPlot =                (short) Application.GetSystemVariable("BACKGROUNDPLOT");
-
-
             Application.SetSystemVariable("BACKGROUNDPLOT", 0);
-
-
             System.Collections.Generic.List<string> docsToPlot =
                 new System.Collections.Generic.List<string>();
-
-
             docsToPlot.Add(@"C:\Users\yusufzhon.marasulov\Desktop\test\test.dwg");
-
             docsToPlot.Add(@"C:\Users\yusufzhon.marasulov\Desktop\test\test1.dwg");
-
             BatchPublish(docsToPlot);
         }
 
 
         static public void BatchPublish(System.Collections.Generic.List<string> docsToPlot)
-
         {
             DsdEntryCollection collection = new DsdEntryCollection();
-
-
             Document doc = Application.DocumentManager.MdiActiveDocument;
-
-
             foreach (string filename in docsToPlot)
-
             {
                 using (DocumentLock doclock = doc.LockDocument())
-
                 {
                     Database db = new Database(false, true);
-
-
                     db.ReadDwgFile(
                         filename, System.IO.FileShare.Read, true, "");
-
-
                     System.IO.FileInfo fi = new System.IO.FileInfo(filename);
-
-
                     string docName =
                         fi.Name.Substring(0, fi.Name.Length - 4);
-
-
                     using (Transaction Tx =
                         db.TransactionManager.StartTransaction())
-
                     {
                         foreach (ObjectId layoutId in getLayoutIds(db))
-
                         {
                             Layout layout = Tx.GetObject(
                                     layoutId,
                                     OpenMode.ForRead)
                                 as Layout;
-
-
                             DsdEntry entry = new DsdEntry();
-
-
                             entry.DwgName = filename;
-
                             entry.Layout = layout.LayoutName;
-
                             entry.Title = docName + "_" + layout.LayoutName;
-
                             entry.NpsSourceDwg = entry.DwgName;
-
                             entry.Nps = "Setup1";
-
-
                             collection.Add(entry);
                         }
-
-
                         Tx.Commit();
                     }
                 }
             }
-
-
             DsdData dsdData = new DsdData();
-
-
             dsdData.SheetType = SheetType.MultiPdf;
-
             dsdData.ProjectPath = @"C:\Users\yusufzhon.marasulov\Desktop\test";
-
-
             //Not used for "SheetType.SingleDwf"
-
             //dsdData.DestinationName = dsdData.ProjectPath + "\\output.dwf";
-
-
             dsdData.SetDsdEntryCollection(collection);
-
-
             string dsdFile = dsdData.ProjectPath + "\\dsdData.dsd";
-
-
             //Workaround to avoid promp for dwf file name
-
             //set PromptForDwfName=FALSE in dsdData
-
             //using StreamReader/StreamWriter
-
-
             if (System.IO.File.Exists(dsdFile))
-
                 System.IO.File.Delete(dsdFile);
-
-
             dsdData.WriteDsd(dsdFile);
-
-
             System.IO.StreamReader sr = new System.IO.StreamReader(dsdFile);
-
             string str = sr.ReadToEnd();
-
             sr.Close();
-
-
             str = str.Replace(
                 "PromptForDwfName=TRUE", "PromptForDwfName=FALSE");
-
-
             System.IO.StreamWriter sw = new System.IO.StreamWriter(dsdFile);
-
             sw.Write(str);
-
             sw.Close();
-
-
             dsdData.ReadDsd(dsdFile);
-
             System.IO.File.Delete(dsdFile);
-
-
             PlotConfig plotConfig =
                 Autodesk.AutoCAD.PlottingServices.PlotConfigManager.SetCurrentConfig("DWG_To_PDF_Uzle.pc3");
-
-
             Autodesk.AutoCAD.Publishing.Publisher publisher =
                 Autodesk.AutoCAD.ApplicationServices.Application.Publisher;
-
-
             publisher.PublishExecute(dsdData, plotConfig);
         }
 
 
         private static System.Collections.Generic.List<ObjectId>
             getLayoutIds(Database db)
-
         {
             System.Collections.Generic.List<ObjectId> layoutIds =
                 new System.Collections.Generic.List<ObjectId>();
-
-
             using (Transaction Tx = db.TransactionManager.StartTransaction())
-
             {
                 DBDictionary layoutDic = Tx.GetObject(
                         db.LayoutDictionaryId,
                         OpenMode.ForRead, false)
                     as DBDictionary;
-
-
                 foreach (DBDictionaryEntry entry in layoutDic)
-
                 {
                     layoutIds.Add(entry.Value);
                 }
             }
-
-
             return layoutIds;
         }
 
@@ -1242,33 +905,33 @@ namespace TransmittalCreator
 
         #region из сети
 
-        public static void GetKeywordFromUser()
-        {
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
-            pKeyOpts.Message = "\nEnter an option ";
-            pKeyOpts.Keywords.Add("CREatedwg");
-            pKeyOpts.Keywords.Add("ONlydwg");
-            pKeyOpts.AllowNone = true;
+        //public static void GetKeywordFromUser()
+        //{
+        //    Document acDoc = Application.DocumentManager.MdiActiveDocument;
+        //    PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
+        //    pKeyOpts.Message = "\nEnter an option ";
+        //    pKeyOpts.Keywords.Add("CREatedwg");
+        //    pKeyOpts.Keywords.Add("ONlydwg");
+        //    pKeyOpts.AllowNone = true;
 
-            PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
-            if (pKeyRes.StringResult == "CREatedwg")
-            {
-                Application.ShowAlertDialog("Entered keyword: " +
-                                            pKeyRes.StringResult);
-            }
+        //    PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
+        //    if (pKeyRes.StringResult == "CREatedwg")
+        //    {
+        //        Application.ShowAlertDialog("Entered keyword: " +
+        //                                    pKeyRes.StringResult);
+        //    }
 
-            else if (pKeyRes.StringResult == "ONlydwg")
-            {
-                Application.ShowAlertDialog("Entered keysdfsdfword: " +
-                                            pKeyOpts.Message);
-            }
+        //    else if (pKeyRes.StringResult == "ONlydwg")
+        //    {
+        //        Application.ShowAlertDialog("Entered keysdfsdfword: " +
+        //                                    pKeyOpts.Message);
+        //    }
 
-            else
-            {
-                ListAttributes1();
-            }
-        }
+        //    else
+        //    {
+        //        ListAttributes1();
+        //    }
+        //}
 
         [CommandMethod("BlockExt")]
         public void BlockExt()

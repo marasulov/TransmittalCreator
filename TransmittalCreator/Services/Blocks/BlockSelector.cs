@@ -37,9 +37,6 @@ namespace TransmittalCreator.Services.Blocks
             {
              _selectionResult = Active.Editor.SelectDynBlock("Select block references: ", blockName);
             }
-            
-             
-
         }
 
         public void GetIdsSelectionOrAllBlocks()
