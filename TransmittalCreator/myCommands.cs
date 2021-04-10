@@ -14,12 +14,16 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
+using Autodesk.AutoCAD.PlottingServices;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.ViewModel;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
+using Color = Autodesk.AutoCAD.Colors.Color;
 using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
+using Table = Autodesk.AutoCAD.DatabaseServices.Table;
 
 // This line is not mandatory, but improves loading performances
 [assembly: CommandClass(typeof(TransmittalCreator.MyCommands))]
@@ -76,8 +80,10 @@ namespace TransmittalCreator
                     Active.Editor.WriteMessage("\nLoop cancelled.");
                     break;
                 }
+
                 AddTable(hvacTable, tableCols);
             }
+
             System.Windows.Forms.Application.RemoveMessageFilter(filter);
         }
 
@@ -85,20 +91,23 @@ namespace TransmittalCreator
         {
             public const int WM_KEYDOWN = 0x0100;
             public bool bCanceled = false;
+
             public bool PreFilterMessage(ref Message m)
             {
                 if (m.Msg == WM_KEYDOWN)
                 {
                     // Check for the Escape keypress
-                    Keys kc = (Keys)(int)m.WParam & Keys.KeyCode;
+                    Keys kc = (Keys) (int) m.WParam & Keys.KeyCode;
 
                     if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
                     {
                         bCanceled = true;
                     }
+
                     // Return true to filter all keypresses
                     return true;
                 }
+
                 // Return false to let other messages through
                 return false;
             }
@@ -142,7 +151,8 @@ namespace TransmittalCreator
 
                             string exhaust = worksheet.Cells[i, 41].Value?.ToString().Trim();
 
-                            listData.Add(new HvacTable(roomNumber, roomName, roomTemp, heating, cooling, supply, supplyInd,
+                            listData.Add(new HvacTable(roomNumber, roomName, roomTemp, heating, cooling, supply,
+                                supplyInd,
                                 exhaust, exhaustInd));
                         }
                     }
@@ -151,6 +161,7 @@ namespace TransmittalCreator
 
             return listData;
         }
+
         #endregion
 
 
@@ -158,7 +169,7 @@ namespace TransmittalCreator
         {
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                LayerTable ltb = (LayerTable)tr.GetObject(Active.Database.LayerTableId,
+                LayerTable ltb = (LayerTable) tr.GetObject(Active.Database.LayerTableId,
                     OpenMode.ForRead);
 
                 //create a new layout.
@@ -187,7 +198,8 @@ namespace TransmittalCreator
             }
         }
 
-        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
+        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber,
+            string stringValue)
         {
             var curPos = tb.Cells[curRow, curCol];
             curPos.TextHeight = textHeight;
@@ -208,7 +220,7 @@ namespace TransmittalCreator
             var doc = Application.DocumentManager.MdiActiveDocument;
             var db = doc.Database;
             var ed = doc.Editor;
-            var filter = new SelectionFilter(new[] { new TypedValue(0, "INSERT") });
+            var filter = new SelectionFilter(new[] {new TypedValue(0, "INSERT")});
             var opts = new PromptSelectionOptions();
             opts.MessageForAdding = "Select block references: ";
 
@@ -222,7 +234,7 @@ namespace TransmittalCreator
             {
                 foreach (SelectedObject so in res.Value)
                 {
-                    var br = (BlockReference)tr.GetObject(so.ObjectId, OpenMode.ForRead);
+                    var br = (BlockReference) tr.GetObject(so.ObjectId, OpenMode.ForRead);
                     var vargeom = br.GeometricExtents;
                     ed.WriteMessage(vargeom.MinPoint[0].ToString(CultureInfo.InvariantCulture));
                     str += $"{br.Name} {br.Position:0.00}\r\n";
@@ -231,10 +243,11 @@ namespace TransmittalCreator
                         str += "Attributes:\r\n";
                         foreach (ObjectId id in br.AttributeCollection)
                         {
-                            var att = (AttributeReference)id.GetObject(OpenMode.ForRead);
+                            var att = (AttributeReference) id.GetObject(OpenMode.ForRead);
                             str += $"\tTag: {att.Tag} Text: {att.TextString}\r\n";
                         }
                     }
+
                     str += "\r\n";
                 }
 
@@ -249,128 +262,40 @@ namespace TransmittalCreator
 
 
         [CommandMethod("ListLayouts")]
-
         public static void ListLayoutsMethod()
 
         {
-
-            Document doc
-
-                = Application.DocumentManager.MdiActiveDocument;
+            Document doc = Application.DocumentManager.MdiActiveDocument;
 
             Database db = doc.Database;
 
             Editor ed = doc.Editor;
 
-
-
             LayoutManager layoutMgr = LayoutManager.Current;
 
+            ed.WriteMessage(String.Format("{0}Active Layout is : {1}", Environment.NewLine, layoutMgr.CurrentLayout));
 
+            ed.WriteMessage(String.Format("{0}Number of Layouts: {1}{0}List of all Layouts:", Environment.NewLine,
+                layoutMgr.LayoutCount));
 
-            ed.WriteMessage
+            List<LayoutModel> layouts = new List<LayoutModel>();
 
-            (
-
-                String.Format
-
-                (
-
-                    "{0}Active Layout is : {1}",
-
-                    Environment.NewLine,
-
-                    layoutMgr.CurrentLayout
-
-                )
-
-            );
-
-
-
-            ed.WriteMessage
-
-            (
-
-                String.Format
-
-                (
-
-                    "{0}Number of Layouts: {1}{0}List of all Layouts:",
-
-                    Environment.NewLine,
-
-                    layoutMgr.LayoutCount
-
-                )
-
-            );
-
-
-
-            using (Transaction tr
-
-                = db.TransactionManager.StartTransaction())
-
+            using (Transaction tr = db.TransactionManager.StartTransaction())
             {
-
-                DBDictionary layoutDic
-
-                    = tr.GetObject(
-
-                        db.LayoutDictionaryId,
-
-                        OpenMode.ForRead,
-
-                        false
-
-                    ) as DBDictionary;
-
-
+                DBDictionary layoutDic = tr.GetObject(db.LayoutDictionaryId, OpenMode.ForRead, false) as DBDictionary;
 
                 foreach (DBDictionaryEntry entry in layoutDic)
-
                 {
-
                     ObjectId layoutId = entry.Value;
+                    Layout layout = tr.GetObject(layoutId, OpenMode.ForRead) as Layout;
 
-
-
-                    Layout layout
-
-                        = tr.GetObject(
-
-                            layoutId,
-
-                            OpenMode.ForRead
-
-                        ) as Layout;
-
-
-
-                    ed.WriteMessage(
-
-                        String.Format(
-
-                            "{0}--> {1}",
-
-                            Environment.NewLine,
-
-                            layout.LayoutName
-
-                        )
-
-                    );
-
+                    ed.WriteMessage(String.Format("{0}--> {1}", Environment.NewLine, layout.LayoutName));
+                    layouts.Add(new LayoutModel(layoutId, layout));
                 }
 
                 tr.Commit();
-
             }
-
         }
-
-
 
         [CommandMethod("CreateTranspdf")]
         public static void CreateTransmittalAndPdf()
@@ -397,31 +322,19 @@ namespace TransmittalCreator
                 ObjectIdCollection idArray = new ObjectIdCollection();
                 foreach (var objectId in idArrayTemp)
                 {
-                    BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                    BlockReference blRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
                     BlockTableRecord block =
                         tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
                     if (!(block is null))
                     {
                         string blockName = block.Name;
-
                         if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
-                        //else if (blockName == "ФорматM25") idArray.Add(objectId);
                     }
                 }
 
                 GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
                 string selAttrName = "НОМЕР_ЛИСТА";
                 GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-                //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
-
-                //foreach (ObjectId objectId in idArray)
-                //{
-
-                //    ObjectCopier objectCopier = new ObjectCopier(objectId);
-                //    ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-                //    string fileName = Utils.GetBlockAttributeValue(tr, objectId);
-                //    objectCopier.CopyObjectsBetweenDatabases(objectIds, fileName);
-                //}
 
                 Utils utils = new Utils();
                 //utils.CreateOnlyVed(dict);
@@ -434,7 +347,6 @@ namespace TransmittalCreator
                 }
 
                 //utils.CreateOnlytrans(dict);
-
 
                 tr.Commit();
             }
@@ -497,6 +409,7 @@ namespace TransmittalCreator
                             PlotCurrentLayout(printModel.DocNumber, printModel);
                         }
                     }
+
                     tr.Commit();
                 }
             }
@@ -540,7 +453,7 @@ namespace TransmittalCreator
                     ObjectIdCollection idArray = new ObjectIdCollection();
                     foreach (var objectId in idArrayTemp)
                     {
-                        BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                        BlockReference blRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
                         BlockTableRecord block =
                             tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
                         string blockName = block.Name;
@@ -559,7 +472,7 @@ namespace TransmittalCreator
                     {
                         ObjectCopier objectCopier = new ObjectCopier(objectId);
                         ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-                        BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                        BlockReference blkRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
                         string selAttrName = "НОМЕР_ЛИСТА_2";
                         string fileName = Utils.GetBlockAttributeValue(blkRef, selAttrName);
 
@@ -675,6 +588,125 @@ namespace TransmittalCreator
             }
         }
 
+
+        [CommandMethod("BlockIterator")]
+        public static void BlockIterator_Method()
+        {
+            Database database = Active.Database;
+            using (Transaction transaction = database.TransactionManager.StartTransaction())
+            {
+                BlockTable blkTable = (BlockTable) transaction.GetObject(database.BlockTableId, OpenMode.ForRead);
+
+                if (!blkTable.Has("ФорматM25"))
+                {
+                    Active.Editor.WriteMessage("такого блока нет");
+                    return;
+                }
+
+                TypedValue[] typedValues = new TypedValue[2];
+                typedValues.SetValue(new TypedValue((int) DxfCode.Start, "INSERT"), 0);
+                typedValues.SetValue(new TypedValue((int) DxfCode.BlockName, "ФорматM25"), 1);
+
+                SelectionFilter filter = new SelectionFilter(typedValues);
+
+                PromptSelectionResult psr = Active.Editor.SelectAll(filter);
+
+                if (psr.Status == PromptStatus.OK)
+                {
+                    SelectionSet ss = psr.Value;
+                    string attrVal = string.Empty;
+                    string header = string.Empty;
+
+                    //StreamWriter writer = new StreamWriter();
+
+                    SelectedObject selectedObject = ss[0];
+                    BlockReference bref =
+                        transaction.GetObject(selectedObject.ObjectId, OpenMode.ForWrite) as BlockReference;
+
+                    if (bref.AttributeCollection.Count > 0)
+                    {
+                        header = "InsertionPtX, InsertionPtY,";
+                        foreach (ObjectId attReferenceId in bref.AttributeCollection)
+                        {
+                            DBObject obj = transaction.GetObject(attReferenceId, OpenMode.ForRead);
+                            AttributeReference attributeReference = obj as AttributeReference;
+
+                            if (attributeReference != null)
+                            {
+                                header += attributeReference.Tag + ",";
+                            }
+                        }
+
+                        Active.Editor.WriteMessage(header.Substring(0, header.Length - 1));
+                    }
+
+                    foreach (SelectedObject sobj in ss)
+                    {
+                        BlockReference br = (BlockReference) transaction.GetObject(sobj.ObjectId, OpenMode.ForWrite);
+                        if (br.AttributeCollection.Count > 0)
+                        {
+                            attrVal += br.Position.X.ToString() + "," + br.Position.Y.ToString();
+
+                            foreach (ObjectId attReferenceId in br.AttributeCollection)
+                            {
+                                DBObject obj = transaction.GetObject(attReferenceId, OpenMode.ForRead);
+                                AttributeReference attRef = obj as AttributeReference;
+                                if (attRef != null)
+                                {
+                                    attrVal += attRef.Tag + ",";
+                                }
+                            }
+
+                            Active.Editor.WriteMessage(attrVal.Substring(0, header.Length - 1));
+                        }
+                    }
+
+                    Active.Editor.WriteMessage($"Форматм25 найден {ss.Count.ToString()}");
+                }
+                else
+                {
+                    Active.Editor.WriteMessage("такого блока нет");
+                }
+
+
+                transaction.Commit();
+            }
+        }
+
+        [CommandMethod("ListarBloques")]
+        public void ListarBloques()
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Editor ed = doc.Editor;
+
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                // open the block table which contains all the BlockTableRecords (block definitions and spaces)
+                var blockTable = (BlockTable) tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+
+                // open the model space BlockTableRecord
+                var modelSpace =
+                    (BlockTableRecord) tr.GetObject(blockTable[BlockTableRecord.PaperSpace], OpenMode.ForRead);
+
+                // iterate through the model space 
+                foreach (ObjectId id in modelSpace)
+                {
+                    // check if the current ObjectId is a block reference one
+                    if (id.ObjectClass.DxfName == "INSERT")
+                    {
+                        // open the block reference
+                        var blockReference = (BlockReference) tr.GetObject(id, OpenMode.ForRead);
+
+                        // print the block name to the command line
+                        ed.WriteMessage("\n" + blockReference.Name);
+                    }
+                }
+
+                tr.Commit();
+            }
+        }
+
         private static void DisplayDynBlockProperties(Editor ed, BlockReference br, string name)
         {
             // Only continue is we have a valid dynamic block
@@ -712,6 +744,408 @@ namespace TransmittalCreator
             }
         }
 
+        //////////////////////////////////////////////////////////////////////////
+
+        //Use: This command will publish all the layouts in the current
+
+        //      drawing to a multi sheet dwf.
+
+        //////////////////////////////////////////////////////////////////////////
+
+        [CommandMethod("PublishAllLayouts")]
+        static public void PublishAllLayouts()
+
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+
+            Database db = doc.Database;
+
+            Editor ed = doc.Editor;
+
+
+            //put the plot in foreground
+
+            short bgPlot = (short) Application.GetSystemVariable("BACKGROUNDPLOT");
+
+
+            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+
+
+            //get the layout ObjectId List
+
+            System.Collections.Generic.List<ObjectId> layoutIds = GetLayoutIds(db);
+
+
+            string dwgFileName = (string) Application.GetSystemVariable("DWGNAME");
+
+            string dwgPath = (string) Application.GetSystemVariable("DWGPREFIX");
+
+
+            using (Transaction Tx = db.TransactionManager.StartTransaction())
+
+            {
+                DsdEntryCollection collection = new DsdEntryCollection();
+
+
+                foreach (ObjectId layoutId in layoutIds)
+
+                {
+                    Layout layout = Tx.GetObject(layoutId, OpenMode.ForRead)
+                        as Layout;
+
+                    DsdEntry entry = new DsdEntry();
+
+                    entry.DwgName = dwgPath + dwgFileName;
+
+                    entry.Layout = layout.LayoutName;
+
+                    entry.Title = "Layout_" + layout.LayoutName;
+
+                    entry.NpsSourceDwg = entry.DwgName;
+
+                    entry.Nps = "Setup1";
+                    collection.Add(entry);
+                    //TODO have to think about creating collection depend of block view
+                }
+
+
+                dwgFileName = dwgFileName.Substring(0, dwgFileName.Length - 4);
+
+                DsdData dsdData = new DsdData();
+
+
+                dsdData.SheetType = SheetType.MultiPdf; //SheetType.MultiPdf
+
+                dsdData.ProjectPath = dwgPath;
+
+                dsdData.DestinationName =
+                    dsdData.ProjectPath + dwgFileName + ".pdf";
+
+
+                if (System.IO.File.Exists(dsdData.DestinationName))
+
+                    System.IO.File.Delete(dsdData.DestinationName);
+
+
+                dsdData.SetDsdEntryCollection(collection);
+
+
+                string dsdFile = dsdData.ProjectPath + dwgFileName + ".dsd";
+
+
+                //Workaround to avoid promp for dwf file name
+
+                //set PromptForDwfName=FALSE in dsdData using
+
+                //StreamReader/StreamWriter
+
+
+                dsdData.WriteDsd(dsdFile);
+
+
+                System.IO.StreamReader sr =
+                    new System.IO.StreamReader(dsdFile);
+
+
+                string str = sr.ReadToEnd();
+
+                sr.Close();
+
+
+                str = str.Replace(
+                    "PromptForDwfName=TRUE", "PromptForDwfName=FALSE");
+
+
+                System.IO.StreamWriter sw =
+                    new System.IO.StreamWriter(dsdFile);
+
+
+                sw.Write(str);
+
+                sw.Close();
+
+
+                dsdData.ReadDsd(dsdFile);
+
+                System.IO.File.Delete(dsdFile);
+
+
+                PlotConfig plotConfig =
+                    Autodesk.AutoCAD.PlottingServices.PlotConfigManager.SetCurrentConfig("DWG_To_PDF_Uzle.pc3");
+
+
+                //PlotConfig pc = Autodesk.AutoCAD.PlottingServices.
+
+                //  PlotConfigManager.SetCurrentConfig("DWG To PDF.pc3");
+
+
+                Autodesk.AutoCAD.Publishing.Publisher publisher =
+                    Autodesk.AutoCAD.ApplicationServices.Application.Publisher;
+
+
+                publisher.AboutToBeginPublishing +=
+                    new Autodesk.AutoCAD.Publishing.
+                        AboutToBeginPublishingEventHandler(
+                            Publisher_AboutToBeginPublishing);
+
+
+                publisher.PublishExecute(dsdData, plotConfig);
+
+
+                Tx.Commit();
+            }
+
+
+            //reset the background plot value
+
+            Application.SetSystemVariable("BACKGROUNDPLOT", bgPlot);
+        }
+
+
+        private static System.Collections.Generic.List<ObjectId>
+            GetLayoutIds(Database db)
+
+        {
+            System.Collections.Generic.List<ObjectId> layoutIds =
+                new System.Collections.Generic.List<ObjectId>();
+
+
+            using (Transaction Tx = db.TransactionManager.StartTransaction())
+
+            {
+                DBDictionary layoutDic = Tx.GetObject(
+                        db.LayoutDictionaryId,
+                        OpenMode.ForRead, false)
+                    as DBDictionary;
+
+
+                foreach (DBDictionaryEntry entry in layoutDic)
+
+                {
+                    layoutIds.Add(entry.Value);
+                }
+            }
+
+
+            return layoutIds;
+        }
+
+
+        static void Publisher_AboutToBeginPublishing(
+            object sender,
+            Autodesk.AutoCAD.Publishing.AboutToBeginPublishingEventArgs e)
+
+        {
+            Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(
+                "\nAboutToBeginPublishing!!");
+        }
+
+
+        //////////////////////////////////////////////////////////////////////////
+
+//Use: Will batch publish to single dwf every layout of
+
+//      each document provided as input
+
+//     Make sure each of your drawing contains a page setup
+
+//      named Setup1 before running.
+
+//          
+
+//////////////////////////////////////////////////////////////////////////
+
+        [CommandMethod("BatchPublishCmd", CommandFlags.Session)]
+        static public void BatchPublishCmd()
+
+        {
+            short bgPlot =                (short) Application.GetSystemVariable("BACKGROUNDPLOT");
+
+
+            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+
+
+            System.Collections.Generic.List<string> docsToPlot =
+                new System.Collections.Generic.List<string>();
+
+
+            docsToPlot.Add(@"C:\Users\yusufzhon.marasulov\Desktop\test\test.dwg");
+
+            docsToPlot.Add(@"C:\Users\yusufzhon.marasulov\Desktop\test\test1.dwg");
+
+            BatchPublish(docsToPlot);
+        }
+
+
+        static public void BatchPublish(System.Collections.Generic.List<string> docsToPlot)
+
+        {
+            DsdEntryCollection collection = new DsdEntryCollection();
+
+
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+
+
+            foreach (string filename in docsToPlot)
+
+            {
+                using (DocumentLock doclock = doc.LockDocument())
+
+                {
+                    Database db = new Database(false, true);
+
+
+                    db.ReadDwgFile(
+                        filename, System.IO.FileShare.Read, true, "");
+
+
+                    System.IO.FileInfo fi = new System.IO.FileInfo(filename);
+
+
+                    string docName =
+                        fi.Name.Substring(0, fi.Name.Length - 4);
+
+
+                    using (Transaction Tx =
+                        db.TransactionManager.StartTransaction())
+
+                    {
+                        foreach (ObjectId layoutId in getLayoutIds(db))
+
+                        {
+                            Layout layout = Tx.GetObject(
+                                    layoutId,
+                                    OpenMode.ForRead)
+                                as Layout;
+
+
+                            DsdEntry entry = new DsdEntry();
+
+
+                            entry.DwgName = filename;
+
+                            entry.Layout = layout.LayoutName;
+
+                            entry.Title = docName + "_" + layout.LayoutName;
+
+                            entry.NpsSourceDwg = entry.DwgName;
+
+                            entry.Nps = "Setup1";
+
+
+                            collection.Add(entry);
+                        }
+
+
+                        Tx.Commit();
+                    }
+                }
+            }
+
+
+            DsdData dsdData = new DsdData();
+
+
+            dsdData.SheetType = SheetType.MultiPdf;
+
+            dsdData.ProjectPath = @"C:\Users\yusufzhon.marasulov\Desktop\test";
+
+
+            //Not used for "SheetType.SingleDwf"
+
+            //dsdData.DestinationName = dsdData.ProjectPath + "\\output.dwf";
+
+
+            dsdData.SetDsdEntryCollection(collection);
+
+
+            string dsdFile = dsdData.ProjectPath + "\\dsdData.dsd";
+
+
+            //Workaround to avoid promp for dwf file name
+
+            //set PromptForDwfName=FALSE in dsdData
+
+            //using StreamReader/StreamWriter
+
+
+            if (System.IO.File.Exists(dsdFile))
+
+                System.IO.File.Delete(dsdFile);
+
+
+            dsdData.WriteDsd(dsdFile);
+
+
+            System.IO.StreamReader sr = new System.IO.StreamReader(dsdFile);
+
+            string str = sr.ReadToEnd();
+
+            sr.Close();
+
+
+            str = str.Replace(
+                "PromptForDwfName=TRUE", "PromptForDwfName=FALSE");
+
+
+            System.IO.StreamWriter sw = new System.IO.StreamWriter(dsdFile);
+
+            sw.Write(str);
+
+            sw.Close();
+
+
+            dsdData.ReadDsd(dsdFile);
+
+            System.IO.File.Delete(dsdFile);
+
+
+            PlotConfig plotConfig =
+                Autodesk.AutoCAD.PlottingServices.PlotConfigManager.SetCurrentConfig("DWG_To_PDF_Uzle.pc3");
+
+
+            Autodesk.AutoCAD.Publishing.Publisher publisher =
+                Autodesk.AutoCAD.ApplicationServices.Application.Publisher;
+
+
+            publisher.PublishExecute(dsdData, plotConfig);
+        }
+
+
+        private static System.Collections.Generic.List<ObjectId>
+            getLayoutIds(Database db)
+
+        {
+            System.Collections.Generic.List<ObjectId> layoutIds =
+                new System.Collections.Generic.List<ObjectId>();
+
+
+            using (Transaction Tx = db.TransactionManager.StartTransaction())
+
+            {
+                DBDictionary layoutDic = Tx.GetObject(
+                        db.LayoutDictionaryId,
+                        OpenMode.ForRead, false)
+                    as DBDictionary;
+
+
+                foreach (DBDictionaryEntry entry in layoutDic)
+
+                {
+                    layoutIds.Add(entry.Value);
+                }
+            }
+
+
+            return layoutIds;
+        }
+
+
+        [CommandMethod("selb")]
+        public void ListAttribute()
+        {
+            ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+        }
 
 
         [CommandMethod("CtTransm")]
@@ -725,7 +1159,6 @@ namespace TransmittalCreator
 
             if (window.isClicked == true)
             {
-
                 //var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
                 ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
 

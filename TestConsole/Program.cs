@@ -8,12 +8,13 @@ using TransmittalCreator.Models;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 
 namespace TestConsole
 {
     [Serializable]
-    public class MyType: ISerializable
+    public class MyType : ISerializable
     {
         public MyType()
         {
@@ -41,35 +42,71 @@ namespace TestConsole
         public MyType(SerializationInfo info, StreamingContext context)
         {
             // Reset the property value using the GetValue method.
-            myProperty_value = (string) info.GetValue("props", typeof(string));
+            myProperty_value = (string)info.GetValue("props", typeof(string));
         }
     }
 
     class Program
     {
-   
+
         static void Main(string[] args)
         {
+            string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
+            DirectoryInfo directoryInfo = new DirectoryInfo(dir);
+            string[] allfiles = Directory.GetFiles(dir, "*.pdf", SearchOption.AllDirectories);
+            string[] allDirs = Directory.GetDirectories(@"C:\Users\yusufzhon.marasulov\Desktop");
 
-            string fileName = "dataStuff.myData";
+            string tree = ScanFolder(directoryInfo);
 
-            // Use a BinaryFormatter or SoapFormatter.
-            IFormatter formatter = new BinaryFormatter();
-            //IFormatter formatter = new SoapFormatter();
-
-            SerializeItem(fileName, formatter); // Serialize an instance of the class.
-            DeserializeItem(fileName, formatter); // Deserialize the instance.
             Console.WriteLine("Done");
             Console.ReadLine();
         }
 
+        static string ScanFolder(DirectoryInfo directory, string indentation = "\t", int maxLevel = -1, int deep = 0)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            builder.AppendLine(string.Concat(Enumerable.Repeat(indentation, deep)) + directory.Name);
+
+            if (maxLevel == -1 || maxLevel < deep)
+            {
+                foreach (var subdirectory in directory.GetDirectories())
+                    builder.Append(ScanFolder(subdirectory, indentation, maxLevel, deep + 1));
+            }
+
+            foreach (var file in directory.GetFiles())
+                builder.AppendLine(string.Concat(Enumerable.Repeat(indentation, deep + 1)) + file.Name);
+
+            return builder.ToString();
+        }
+
+
+        public static void DirectorySearch(string dir)
+        {
+            try
+            {
+                foreach (string f in Directory.GetFiles(dir))
+                {
+                    Console.WriteLine(Path.GetFileName(f));
+                }
+                foreach (string d in Directory.GetDirectories(dir))
+                {
+                    Console.WriteLine(Path.GetFileName(d));
+                    DirectorySearch(d);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
         public static void SerializeItem(string fileName, IFormatter formatter)
         {
             // Create an instance of the type and serialize it.
             MyType t = new MyType();
             t.MyProperty = "Hello World";
 
-            FileStream s = new FileStream(fileName , FileMode.Create);
+            FileStream s = new FileStream(fileName, FileMode.Create);
             formatter.Serialize(s, t);
             s.Close();
         }

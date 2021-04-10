@@ -49,10 +49,13 @@ namespace TransmittalCreator.Services
 
                     // Get a copy of the PlotSettings from the layout
                     PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
+                    
                     acPlSet.CopyFrom(acLayout);
                     // Update the PlotSettings object
                     PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
-
+                    var sheetList = acPlSetVdr.GetPlotStyleSheetList();
+                    acPlSetVdr.SetCurrentStyleSheet(acPlSet, "monochrome.ctb");
+                    string ss = acPlSet.CurrentStyleSheet;
                     //acPlSetVdr.SetPlotPaperUnits(acPlSet, PlotPaperUnit.Millimeters);
                     // Set the plot type
                     //Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
@@ -245,7 +248,7 @@ namespace TransmittalCreator.Services
                 ed.WriteMessage("\nBlock: " + btr.Name);
                 btr.Dispose();
                 AttributeCollection attCol = blkRef.AttributeCollection;
-
+                
                 foreach (ObjectId attId in attCol)
                 {
                     AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
@@ -299,21 +302,6 @@ namespace TransmittalCreator.Services
             string trDocTitleEn = attributModel.TrDocTitleEn;
             string trDocTitleRu = attributModel.TrDocTitleRu;
 
-            // Build a filter list so that only
-            // block references are selected
-            //TypedValue[] filList = new TypedValue[1] { new TypedValue((int)DxfCode.Start, "INSERT") };
-            //SelectionFilter filter = new SelectionFilter(filList);
-            //PromptSelectionOptions opts = new PromptSelectionOptions();
-            //opts.MessageForAdding = "Select block references: ";
-            //PromptSelectionResult res = ed.GetSelection(opts, filter);
-
-            //if (res.Status != PromptStatus.OK)
-            //    throw new ArgumentException("Выберите блок");
-            //SelectionSet selSet = res.Value;
-            ////ObjectId[] idArray = selSet.GetObjectIds();
-            //List<ObjectId> objectIds = objectIdCollection.ToList();
-
-            // objectIdCollection.CopyTo(idArray, objectIdCollection.Count);
             string sheetNumber = "", docNumber = "", comment = "", objectNameEng = "", docTitleEng = "", objectNameRus = "", docTitleRu = "";
 
             foreach (ObjectId blkId in objectIdCollection)
@@ -343,41 +331,7 @@ namespace TransmittalCreator.Services
                 //transItem = attrDict.FirstOrDefault(x => x.Key == trItem).Value;
                 objectNameEng = attrDict.FirstOrDefault(x => x.Key == trDocTitleEn).Value;
                 objectNameRus = attrDict.FirstOrDefault(x => x.Key == trDocTitleRu).Value;
-
-                //foreach (var attribut in attrModelProps)
-                //{
-                //    foreach (ObjectId attId in attCol)
-                //    {
-                //        AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
-                //        attribut.GetValue(attributModel);
-
-                //    }
-
-                //    //switch (attRef.Tag)
-                //    //{
-                //    //    case attributModel.Position:
-                //    //        docNumber = attRef.TextString;
-                //    //        break;
-                //    //    case "НАЗВАНИЕEN":
-                //    //        objectNameEng = attRef.TextString;
-                //    //        break;
-                //    //    case "ЛИСТEN":
-                //    //        docTitleEng = attRef.TextString;
-                //    //        break;
-                //    //    case "НАЗВАНИЕRU":
-                //    //        objectNameRu = attRef.TextString;
-                //    //        break;
-                //    //    case "НАЗВАНИЕ_ЛИСТАRU":
-                //    //        docTitleRu = attRef.TextString;
-                //    //        break;
-                //    //    case "ЛИСТ":
-                //    //        sheetNumber = attRef.TextString;
-                //    //        break;
-                //    //}
-                //}
-
-                //dict.Add(new Sheet(sheetNumber, docNumber, comment, objectNameEng, docTitleEng, objectNameRus, docTitleRu));
-            }
+             }
 
             return dict;
         }
@@ -417,16 +371,6 @@ namespace TransmittalCreator.Services
             return printModels;
         }
 
-        //private string GetAttributeValue(string attrTag, AttributeCollection attCol)
-        //{
-        //    foreach (var attr in attCol)
-        //    {
-        //        if (attr == attrTag)
-        //        {
-        //            return 
-        //        }
-        //    }
-        //}
 
         public static string GetBlockAttributeValue(BlockReference blkRef, string selAttrName)
         {
@@ -720,8 +664,9 @@ namespace TransmittalCreator.Services
         /// <param name="blockName"></param>
         /// <returns></returns>
         [CommandMethod("selb")]
-        public static ObjectIdCollection SelectDynamicBlockReferences(string blockName = "Формат")
+        public static ObjectIdCollection SelectDynamicBlockReferences(string blockName = "ФорматM25")
         {
+            //TODO start here to search blocks in drawing
             Editor ed = Active.Editor;
             Database db = Active.Database;
             List<ObjectId> listObjectIds = new List<ObjectId>();

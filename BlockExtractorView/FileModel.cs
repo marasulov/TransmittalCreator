@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace BlockExtractorView
 {
-    public class FileModel : INotifyPropertyChanged
+    public class FileModel : TreeModel, INotifyPropertyChanged
     {
         private string fileName;
         //private string fileType;
