@@ -47,7 +47,6 @@ namespace TransmittalCreator.ViewModel
                 new SpesSheetModel (sheet.Key, sheet.Value);
             }
         }
-        //TODO list in model
 
 
         /// <summary>

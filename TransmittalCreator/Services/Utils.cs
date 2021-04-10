@@ -486,7 +486,6 @@ namespace TransmittalCreator.Services
             return attribs;
         }
 
-
         public void CreateOnlyVed(List<Sheet> dict)
         {
             Editor ed = Active.Editor;

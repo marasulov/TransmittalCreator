@@ -144,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Archive.cs" />
+    <Compile Include="Hvac.cs" />
     <Compile Include="Models\FilenameModel.cs" />
     <Compile Include="Models\LayoutModel.cs" />
     <Compile Include="PdfCreator.xaml.cs">
