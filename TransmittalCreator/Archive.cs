@@ -176,10 +176,7 @@ namespace TransmittalCreator
 
                 }
                 // Get the anonymous block names
-                var btr =
-                    (BlockTableRecord)tr.GetObject(
-                        bt[blkName], OpenMode.ForRead
-                    );
+                var btr = (BlockTableRecord)tr.GetObject(bt[blkName], OpenMode.ForRead);
                 if (!btr.IsDynamicBlock)
                 {
                     ed.WriteMessage(
@@ -224,37 +221,50 @@ namespace TransmittalCreator
             List<string> blkNames = new List<string>();
             blkNames.Add(blkName);
             var tr = doc.TransactionManager.StartTransaction();
-            using (tr)
+            try
             {
-                var bt = (BlockTable)tr.GetObject(doc.Database.BlockTableId, OpenMode.ForRead);
-                // Start by getting access to our block, if it exists
-                if (!bt.Has(blkName))
+                using (tr)
                 {
-                    ed.WriteMessage("\nCannot find block called \"{0}\".", blkName);
-                    return;
+
+                    var bt = (BlockTable)tr.GetObject(doc.Database.BlockTableId, OpenMode.ForRead);
+                    // Start by getting access to our block, if it exists
+                    if (!bt.Has(blkName))
+                    {
+                        ed.WriteMessage("\nCannot find block called \"{0}\".", blkName);
+                        return;
+                    }
+                    // Get the anonymous block names
+                    var btr = (BlockTableRecord)tr.GetObject(bt[blkName], OpenMode.ForRead);
+                    if (!btr.IsDynamicBlock)
+                    {
+                        ed.WriteMessage("\nCannot find a dynamic block called \"{0}\".", blkName);
+                        return;
+                    }
+                    // Get the anonymous blocks and add them to our list
+                    var anonBlks = btr.GetAnonymousBlockIds();
+                    foreach (ObjectId bid in anonBlks)
+                    {
+                        var btr2 = (BlockTableRecord)tr.GetObject(bid, OpenMode.ForRead);
+                        blkNames.Add(btr2.Name);
+                    }
+                    tr.Commit();
+
+
                 }
-                // Get the anonymous block names
-                var btr = (BlockTableRecord)tr.GetObject(bt[blkName], OpenMode.ForRead);
-                if (!btr.IsDynamicBlock)
-                {
-                    ed.WriteMessage("\nCannot find a dynamic block called \"{0}\".", blkName);
-                    return;
-                }
-                // Get the anonymous blocks and add them to our list
-                var anonBlks = btr.GetAnonymousBlockIds();
-                foreach (ObjectId bid in anonBlks)
-                {
-                    var btr2 = (BlockTableRecord)tr.GetObject(bid, OpenMode.ForRead);
-                    blkNames.Add(btr2.Name);
-                }
-                tr.Commit();
-            }
+
+           
             // Build a conditional filter list so that only
             // entities with the specified properties are
             // selected
             SelectionFilter sf = new SelectionFilter(CreateFilterListForBlocks(blkNames));
             PromptSelectionResult psr = ed.SelectAll(sf);
             ed.WriteMessage("\nFound {0} entit{1}.", psr.Value.Count, (psr.Value.Count == 1 ? "y" : "ies"));
+            }
+            catch (Autodesk.AutoCAD.Runtime.Exception e)
+            {
+                Console.WriteLine(e.Message);
+                throw;
+            }
         }
 
         private static TypedValue[] CreateFilterListForBlocks(List<string> blkNames)

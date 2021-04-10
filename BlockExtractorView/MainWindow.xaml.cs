@@ -23,7 +23,11 @@ namespace BlockExtractorView
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new FileNameViewModel();
+            string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
+            var itemProvider = new ItemProvider();
+            var items = itemProvider.GetItems(dir);
+
+            DataContext = items;
         }
     }
 }

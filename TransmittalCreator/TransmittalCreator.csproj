@@ -145,6 +145,7 @@
   <ItemGroup>
     <Compile Include="Archive.cs" />
     <Compile Include="Models\FilenameModel.cs" />
+    <Compile Include="Models\LayoutModel.cs" />
     <Compile Include="PdfCreator.xaml.cs">
       <DependentUpon>PdfCreator.xaml</DependentUpon>
     </Compile>

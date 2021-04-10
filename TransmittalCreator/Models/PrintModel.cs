@@ -164,13 +164,13 @@ namespace TransmittalCreator.Models
 
                     if (IsFormatHorizontal())
                     {
-                        curWidth = Math.Ceiling(this._width / this.ScaleX);
-                        curHeight =Math.Ceiling( this._height / this.ScaleX);
+                        curWidth = Math.Round(this._width / this.ScaleX);
+                        curHeight =Math.Round(this._height / this.ScaleX);
                     }
                     else
                     {
-                        curWidth = Math.Ceiling(this._height / this.ScaleX);
-                        curHeight = Math.Ceiling(this._width / this.ScaleX);
+                        curWidth = Math.Round(this._height / this.ScaleX);
+                        curHeight = Math.Round(this._width / this.ScaleX);
                     }
                     
 
