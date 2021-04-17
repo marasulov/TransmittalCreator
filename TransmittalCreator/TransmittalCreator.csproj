@@ -141,12 +141,14 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Logic\" />
+    <Folder Include="Models\Blocks\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Archive.cs" />
     <Compile Include="Hvac.cs" />
     <Compile Include="Models\FilenameModel.cs" />
-    <Compile Include="Models\LayoutModel.cs" />
+    <Compile Include="Models\Layouts\LayoutModel.cs" />
+    <Compile Include="Models\Layouts\LayoutModelCollection.cs" />
     <Compile Include="PdfCreator.xaml.cs">
       <DependentUpon>PdfCreator.xaml</DependentUpon>
     </Compile>
@@ -161,6 +163,7 @@
     <Compile Include="Models\FileModel.cs" />
     <Compile Include="Models\HvacTable.cs" />
     <Compile Include="Services\Blocks\BlockSelector.cs" />
+    <Compile Include="Services\Blocks\DynamicBlockFinder.cs" />
     <Compile Include="Services\CheckListCreator\CheckListCreator.cs" />
     <Compile Include="Services\CheckListCreator\CheckListModel.cs" />
     <Compile Include="Services\FileEditor.cs" />

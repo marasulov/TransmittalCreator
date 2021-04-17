@@ -14,14 +14,6 @@ namespace TransmittalCreator.Models
 {
     public class PrintModel
     {
-        private double _width;
-        private double _height;
-        private double _minPointX;
-        private double _minPointY;
-
-        public double MinPointX => _minPointX;
-        public double MinPointY => _minPointY;
-
         /// <summary>
         /// Номер листа
         /// </summary>
@@ -36,63 +28,41 @@ namespace TransmittalCreator.Models
         /// Position of block
         /// </summary>
         public Point2d BlockPosition { get; set; }
-
         public Point2d BlockDimensions { get; set; }
 
         private double ScaleX { get; set; }
-
-        public double Width
-        {
-            get => _width;
-            set => _width = value;
-        }
-
-        public double Height
-        {
-            get => _height;
-            set => _height = value;
-        }
-
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double MinPointX { get; private set; }
+        public double MinPointY { get; private set; }
 
         public PrintModel(string docNumber, ObjectId objectId)
         {
-            var posPoints = GetBlockLengths(objectId);
-            this.BlockPosition = posPoints.Item1;
-            this.BlockDimensions = posPoints.Item2;
-            this.StampViewName = posPoints.Item3;
-
-            //if (this.StampViewName == )
+            GetBlockLengths(objectId);
             this.DocNumber = docNumber;
         }
 
         public PrintModel(ObjectId objectId)
         {
-            var posPoints = GetBlockLengths(objectId);
-            this.BlockPosition = posPoints.Item1;
-            this.BlockDimensions = posPoints.Item2;
-            this.StampViewName = posPoints.Item3;
+
         }
 
-        public (Point2d, Point2d, string) GetBlockLengths(ObjectId objectId)
+        private void GetBlockLengths(ObjectId objectId)
         {
-            double blockWidth = 0, blockHeidht = 0;
-            Point2d blockPosition;
-            Point2d dimPoint2d;
-            string blockStamp="";
+            double blockWidth = 0, blockHeight = 0;
+            
             using (Transaction Tx = Active.Database.TransactionManager.StartTransaction())
             {
                 BlockReference bref = Tx.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
                 this.ScaleX = bref.ScaleFactors.X;
                 Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(bref.Position.X, bref.Position.Y,0), false);
-                _minPointX = blockPos3d.X;
-                _minPointY = blockPos3d.Y;
-                blockPosition = new Point2d(_minPointX, _minPointY);
+                MinPointX = blockPos3d.X;
+                MinPointY = blockPos3d.Y;
+                BlockPosition = new Point2d(MinPointX, MinPointY);
                 DynamicBlockReferencePropertyCollection props = bref.DynamicBlockReferencePropertyCollection;
 
                 foreach (DynamicBlockReferenceProperty prop in props)
                 {
-                    //object[] values = prop.GetAllowedValues();
-
                     if (prop.PropertyName == "Ширина")
                     {
                         blockWidth = double.Parse(prop.Value.ToString(),
@@ -100,31 +70,23 @@ namespace TransmittalCreator.Models
                     }
                     if (prop.PropertyName == "Высота")
                     {
-                        blockHeidht = double.Parse(prop.Value.ToString(),
+                        blockHeight = double.Parse(prop.Value.ToString(),
                             System.Globalization.CultureInfo.InvariantCulture);
                     }
                     if (prop.PropertyName == "Штамп")
                     {
-                        blockStamp = prop.Value.ToString();
+                        StampViewName = prop.Value.ToString();
                     }
                 }
-                dimPoint2d = new Point2d(blockPosition.X + blockWidth, blockPosition.Y + blockHeidht);
+                BlockDimensions = new Point2d(BlockPosition.X + blockWidth, BlockPosition.Y + blockHeight);
                 Tx.Commit();
             }
-
-            return (blockPosition, dimPoint2d, blockStamp);
         }
 
         public bool IsFormatHorizontal()
         {
-            _minPointX = this.BlockPosition.X;
-            _minPointY = this.BlockPosition.Y;
-
-            double maxPointX = this.BlockDimensions.X;
-            double maxPointY = this.BlockDimensions.Y;
-
-            this.Width = maxPointX - _minPointX;
-            this.Height = maxPointY - _minPointY;
+            Width = BlockDimensions.X - BlockPosition.X;
+            Height = BlockDimensions.Y - BlockPosition.Y;
 
             if (Width > Height) return true;
 
@@ -139,51 +101,49 @@ namespace TransmittalCreator.Models
             //паттерн для размера листов
             string pat = @"\d{1,}?\.\d{2}";
 
-            //double width = this.Width;
-            //double height = this.Height;
-
             string canonName = "";
 
             foreach (var line in pConfig.CanonicalMediaNames)
             {
                 Regex pattern = new Regex(pat, RegexOptions.Compiled |
                                                RegexOptions.Singleline);
-                //string str2 = Regex.Split(str, pattern);
                 if (pattern.IsMatch(line))
                 {
-                    MatchCollection str2 = pattern.Matches(line, 0);
-
-                    string strWidth = str2[0].ToString();
-                    string strheight = str2[1].ToString();
-                    double strWidthD = Convert.ToDouble(strWidth, System.Globalization.CultureInfo.InvariantCulture);
-                    double strheightD = Convert.ToDouble(strheight, System.Globalization.CultureInfo.InvariantCulture);
-
-                    //double strheight = Convert.ToDouble(str2[1]);
+                    var items = DivideStringToWidthAndHeight(pattern, line);
                     double curWidth;
                     double curHeight;
 
                     if (IsFormatHorizontal())
                     {
-                        curWidth = Math.Round(this._width / this.ScaleX);
-                        curHeight =Math.Round(this._height / this.ScaleX);
+                        curWidth = Math.Round(Width / ScaleX);
+                        curHeight = Math.Round(Height / ScaleX);
                     }
                     else
                     {
-                        curWidth = Math.Round(this._height / this.ScaleX);
-                        curHeight = Math.Round(this._width / this.ScaleX);
+                        curWidth = Math.Round(Height / ScaleX);
+                        curHeight = Math.Round(Width / ScaleX);
                     }
                     
-
-                    if (strWidthD == curWidth & strheightD == curHeight)
+                    if (items.Item1 == curWidth & items.Item2 == curHeight)
                     {
-                        //Console.WriteLine("{0} ширина {1}-{2}  высота {3}-{4}", line, strWidthD, this, strheightD,
-                        //    this.height);
                         canonName = line;
                         break;
                     }
                 }
             }
             return canonName;
+        }
+
+        private (double, double) DivideStringToWidthAndHeight(Regex pattern, string line)
+        {
+            MatchCollection str2 = pattern.Matches(line, 0);
+
+            string strWidth = str2[0].ToString();
+            string strHeight = str2[1].ToString();
+            double strWidthD = Convert.ToDouble(strWidth, System.Globalization.CultureInfo.InvariantCulture);
+            double strheightD = Convert.ToDouble(strHeight, System.Globalization.CultureInfo.InvariantCulture);
+
+            return (strWidthD, strheightD);
         }
     }
 }

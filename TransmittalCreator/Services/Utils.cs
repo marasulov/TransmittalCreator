@@ -55,16 +55,6 @@ namespace TransmittalCreator.Services
                     PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
                     var sheetList = acPlSetVdr.GetPlotStyleSheetList();
                     acPlSetVdr.SetCurrentStyleSheet(acPlSet, "monochrome.ctb");
-                    string ss = acPlSet.CurrentStyleSheet;
-                    //acPlSetVdr.SetPlotPaperUnits(acPlSet, PlotPaperUnit.Millimeters);
-                    // Set the plot type
-                    //Point3d minPoint3dWcs = new Point3d(5112.2723, 1697.3971, 0);
-                    //Point3d minPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(minPoint3dWcs, false);
-                    //Point3d maxPoint3dWcs = new Point3d(6388.6557, 2291.3971, 0);
-                    //Point3d maxPoint3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(maxPoint3dWcs, false);
-                    //Extents2d points = new Extents2d(new Point2d(minPoint3d[0], minPoint3d[1]), new Point2d(maxPoint3d[0], maxPoint3d[1]));
-                    //extents3d = new Extents3d(minPoint3dWcs, maxPoint3dWcs);
-                    //PdfCreator pdfCreator = new PdfCreator(extents3d);
 
                     Extents2d points = new Extents2d(printModel.BlockPosition, printModel.BlockDimensions);
 
@@ -241,43 +231,47 @@ namespace TransmittalCreator.Services
 
             foreach (ObjectId blkId in idArray)
             {
-
-                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
-                string stampViewValue = GetBlockAttributeVlueByAttrName(blkRef);
-                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
-                ed.WriteMessage("\nBlock: " + btr.Name);
-                btr.Dispose();
-                AttributeCollection attCol = blkRef.AttributeCollection;
-                
-                foreach (ObjectId attId in attCol)
+                //TODO Check this point
+                if (blkId != ObjectId.Null)
                 {
-                    AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
-                    bool vis = attRef.Visible;
-                    //ed.WriteMessage("\n{0} значение {1} видимость {2}", attRef.Tag, attRef.TextString, vis.ToString());
-                    switch (attRef.Tag)
+                    BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+                    string stampViewValue = GetBlockAttributeValueByAttrName(blkRef);
+                    BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
+                    ed.WriteMessage("\nBlock: " + btr.Name);
+                    btr.Dispose();
+                    AttributeCollection attCol = blkRef.AttributeCollection;
+                
+                    foreach (ObjectId attId in attCol)
                     {
-                        case "НОМЕР_ЛИСТА":
-                            docNumber = attRef.TextString;
-                            break;
-                        case "НАЗВАНИЕEN":
-                            objectNameEng = attRef.TextString;
-                            break;
-                        case "ЛИСТEN":
-                            docTitleEng = attRef.TextString;
-                            break;
-                        case "НАЗВАНИЕRU":
-                            objectNameRu = attRef.TextString;
-                            break;
-                        case "НАЗВАНИЕ_ЛИСТАRU":
-                            docTitleRu = attRef.TextString;
-                            break;
-                        case "ЛИСТ":
-                            sheetNumber = attRef.TextString;
-                            break;
+                        AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
+                        bool vis = attRef.Visible;
+                        //ed.WriteMessage("\n{0} значение {1} видимость {2}", attRef.Tag, attRef.TextString, vis.ToString());
+                        switch (attRef.Tag)
+                        {
+                            case "НОМЕР_ЛИСТА":
+                                docNumber = attRef.TextString;
+                                break;
+                            case "НАЗВАНИЕEN":
+                                objectNameEng = attRef.TextString;
+                                break;
+                            case "ЛИСТEN":
+                                docTitleEng = attRef.TextString;
+                                break;
+                            case "НАЗВАНИЕRU":
+                                objectNameRu = attRef.TextString;
+                                break;
+                            case "НАЗВАНИЕ_ЛИСТАRU":
+                                docTitleRu = attRef.TextString;
+                                break;
+                            case "ЛИСТ":
+                                sheetNumber = attRef.TextString;
+                                break;
+                        }
                     }
-                }
 
-                dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu, stampViewValue));
+                    dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu, stampViewValue));
+                }
+              
             }
 
             return dict;
@@ -297,8 +291,6 @@ namespace TransmittalCreator.Services
             string listNumber = attributModel.Position;
             string nomination = attributModel.Nomination;
             string commentAttr = attributModel.Comment;
-            string trItem = attributModel.TrItem;
-            string trDocNumber = attributModel.TrDocNumber;
             string trDocTitleEn = attributModel.TrDocTitleEn;
             string trDocTitleRu = attributModel.TrDocTitleRu;
 
@@ -358,23 +350,28 @@ namespace TransmittalCreator.Services
         {
             foreach (ObjectId blkId in objectIdCollection)
             {
-                BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
-                BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
-
-                string docNumber = GetBlockAttributeValue(blkRef, selAttrName);
-                //formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
-                //ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber, posPoint2d.ToString(), formatValue);
-                printModels.Add(new PrintModel(docNumber, blkId));
-                btr.Dispose();
+                printModels.Add(GetPrintModelByBlockId(tr, selAttrName, blkId));
             }
 
             return printModels;
         }
 
+        public static PrintModel GetPrintModelByBlockId(Transaction tr, string selAttrName, ObjectId blkId)
+        {
+            BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+            BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
+
+            string docNumber = GetBlockAttributeValue(blkRef, selAttrName);
+            //formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
+            //ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber, posPoint2d.ToString(), formatValue);
+            
+            btr.Dispose();
+            return new PrintModel(docNumber, blkId);
+        }
 
         public static string GetBlockAttributeValue(BlockReference blkRef, string selAttrName)
         {
-            string blockStamp = GetBlockAttributeVlueByAttrName(blkRef);
+            string blockStamp = GetBlockAttributeValueByAttrName(blkRef);
             var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
             string docNumber = "";
 
@@ -389,7 +386,7 @@ namespace TransmittalCreator.Services
             return docNumber;
         }
 
-        private static string GetBlockAttributeVlueByAttrName(BlockReference blkRef)
+        private static string GetBlockAttributeValueByAttrName(BlockReference blkRef)
         {
             DynamicBlockReferencePropertyCollection props = blkRef.DynamicBlockReferencePropertyCollection;
             string blockStamp = "";
@@ -663,9 +660,9 @@ namespace TransmittalCreator.Services
         /// <param name="blockName"></param>
         /// <returns></returns>
         [CommandMethod("selb")]
-        public static ObjectIdCollection SelectDynamicBlockReferences(string blockName = "ФорматM25")
+        public static ObjectIdCollection SelectDynamicBlockReferences( ObjectId mSpaceId, string blockName = "ФорматM25")
         {
-            //TODO start here to search blocks in drawing
+ 
             Editor ed = Active.Editor;
             Database db = Active.Database;
 
@@ -684,7 +681,7 @@ namespace TransmittalCreator.Services
                         ObjectIdCollection anonymousIds = btr.GetAnonymousBlockIds();
                         // получаем все прямые вставки динамического блока
                         dynBlockRefs = btr.GetBlockReferenceIds(true, true);
-                        ObjectId mSpaceId = SymbolUtilityServices.GetBlockModelSpaceId(db);
+                        
                         foreach (ObjectId anonymousBtrId in anonymousIds)
                         {
                             // open the model space BlockTableRecord
@@ -697,14 +694,10 @@ namespace TransmittalCreator.Services
                             // получаем все вставки этого блока
                             ObjectIdCollection blockRefIds = anonymousBtr.GetBlockReferenceIds(true, true);
 
-                            SymbolTableRecord symTableRecord =
-                                (SymbolTableRecord)trans.GetObject(anonymousBtrId, OpenMode.ForRead);
-
                             foreach (ObjectId id in blockRefIds)
                             {
                                 //var blockReference = (BlockReference)tr.GetObject(id, OpenMode.ForRead);
                                 var e = (BlockReference)trans.GetObject(id, OpenMode.ForRead);
-                                string curBlockName = e.BlockName;
                                 
                                 ObjectId ownerId = e.OwnerId;
 
@@ -730,8 +723,9 @@ namespace TransmittalCreator.Services
             return dynBlockRefs;
         }
 
+
         /// <summary>
-        /// get blocks by name
+        /// get blocks by name in current space
         /// </summary>
         /// <param name="blockName"></param>
         /// <returns></returns>
