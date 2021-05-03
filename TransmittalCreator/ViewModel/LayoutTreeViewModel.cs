@@ -1,15 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using TransmittalCreator.Models;
+using TransmittalCreator.Services;
 
-namespace TestWPF
+namespace TransmittalCreator.ViewModel
 {
-    class ApplicationViewModel : INotifyPropertyChanged
+    class LayoutTreeViewModel: INotifyPropertyChanged
     {
         private bool? _isChecked = true;
-        private ApplicationViewModel _parent;
+        private LayoutTreeViewModel _parent;
+        public PrintPackageCreator PrintPackage { get; set; }
 
-        public List<ApplicationViewModel> Children { get; private set; }
+        public List<LayoutTreeViewModel> Children { get; private set; }
 
         public bool IsInitiallySelected { get; private set; }
 
@@ -21,14 +28,13 @@ namespace TestWPF
             set { this.SetIsChecked(value, true, true); }
         }
 
-
         private RelayCommand addCommand;
         public RelayCommand AddCommand
         {
             get
             {
                 return addCommand ??
-                  (addCommand = new RelayCommand(CreateCommand, OnCreateCommand));
+                       (addCommand = new RelayCommand(CreateCommand, OnCreateCommand));
             }
         }
 
@@ -42,51 +48,52 @@ namespace TestWPF
             var v = obj.ToString();
         }
 
-        public Dictionary<string, List<string>> dict { get; private set; } = new Dictionary<string, List<string>>
-        {
-            {"Weapons1", new List<string>() {"blades", "knifes", "asaasa"}},
-            {
-                "level1", new List<string>() {"level21", "level22", "level23"}
-            }
-        };
-
-        public ApplicationViewModel()
+        public LayoutTreeViewModel()
         {
         }
 
-        public List<ApplicationViewModel> CreateFoos()
+        public LayoutTreeViewModel(string name)
         {
-            ApplicationViewModel root = new ApplicationViewModel("filename"){IsInitiallySelected = true};
+            Children = new List<LayoutTreeViewModel>();
+            Name = name;
+        }
+        //TODO подумать как передать данные с автокада сюда
+        public List<PrintPackageModel> PrintPackages { get; set; }
 
-            foreach (KeyValuePair<string, List<string>> kvp  in dict)
+        public List<LayoutTreeViewModel> CreateTree(List<PrintPackageModel> printPackages)
+        {
+            this.PrintPackages = printPackages;
+
+            LayoutTreeViewModel root = new LayoutTreeViewModel("Filename")
             {
-                var header = kvp.Key;
+                IsInitiallySelected = true,
+            };
 
-                var level1= new ApplicationViewModel(header);
-                level1.Name = header;
-                level1.Children = new List<ApplicationViewModel>();
-                foreach (var val in kvp.Value)
+            foreach (var printPackageModel  in printPackages)
+            {
+
+                var header = printPackageModel.PdfFileName;
+
+                var level1 = new LayoutTreeViewModel(header)
                 {
-  
-                    level1.Children.Add(new ApplicationViewModel(val));
+                    Name = header,
+                    Children = new List<LayoutTreeViewModel>()
+                };
+                foreach (var val in printPackageModel.Layouts)
+                {
+                    level1.Children.Add(new LayoutTreeViewModel(val.LayoutName));
                 }
 
                 root.Children.Add( level1);
             }
 
             root.Initialize();
-            return new List<ApplicationViewModel> { root };
-        }
-
-        public ApplicationViewModel(string name)
-        {
-            this.Name = name;
-            this.Children = new List<ApplicationViewModel>();
+            return new List<LayoutTreeViewModel> { root };
         }
 
         void Initialize()
         {
-            foreach (ApplicationViewModel child in this.Children)
+            foreach (LayoutTreeViewModel child in this.Children)
             {
                 child._parent = this;
                 child.Initialize();
@@ -135,4 +142,6 @@ namespace TestWPF
                 PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
     }
+
+
 }

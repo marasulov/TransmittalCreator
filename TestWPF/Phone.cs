@@ -10,34 +10,34 @@ namespace TestWPF
 {
     public class Phone : INotifyPropertyChanged
     {
-        private string title;
-        private string company;
-        private int price;
+        private string _title;
+        private string _company;
+        private int _price;
 
         public string Title
         {
-            get { return title; }
+            get => _title;
             set
             {
-                title = value;
+                _title = value;
                 OnPropertyChanged("Title");
             }
         }
         public string Company
         {
-            get { return company; }
+            get => _company;
             set
             {
-                company = value;
+                _company = value;
                 OnPropertyChanged("Company");
             }
         }
         public int Price
         {
-            get { return price; }
+            get => _price;
             set
             {
-                price = value;
+                _price = value;
                 OnPropertyChanged("Price");
             }
         }
