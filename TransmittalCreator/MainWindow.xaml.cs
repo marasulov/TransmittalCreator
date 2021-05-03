@@ -30,6 +30,7 @@ namespace TransmittalCreator
             Transaction tr = Active.Database.TransactionManager.StartTransaction();
 
             var names = Utils.GetAttrList(tr, attrList);
+            tr?.Dispose();
             attrList = names.Item2;
             _blockName = names.Item1;
 
@@ -51,6 +52,7 @@ namespace TransmittalCreator
             ComboBoxTrDocTitleRu.ItemsSource = combolist;
 
             NameBlock.Text = _blockName;
+            
         }
 
         private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)

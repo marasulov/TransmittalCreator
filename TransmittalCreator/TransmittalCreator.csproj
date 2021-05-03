@@ -140,15 +140,16 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Logic\" />
     <Folder Include="Models\Blocks\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Archive.cs" />
+    <Compile Include="Converters\RatioConverter.cs" />
     <Compile Include="Hvac.cs" />
     <Compile Include="Models\FilenameModel.cs" />
     <Compile Include="Models\Layouts\LayoutModel.cs" />
     <Compile Include="Models\Layouts\LayoutModelCollection.cs" />
+    <Compile Include="Models\PrintPackageModel.cs" />
     <Compile Include="PdfCreator.xaml.cs">
       <DependentUpon>PdfCreator.xaml</DependentUpon>
     </Compile>
@@ -185,6 +186,7 @@
     <Compile Include="Services\AttributeExtensions.cs" />
     <Compile Include="Services\Params.cs" />
     <Compile Include="Services\PdfCreator.cs" />
+    <Compile Include="Services\PrintPackageCreator.cs" />
     <Compile Include="Services\Serializers\ISerializer.cs" />
     <Compile Include="Services\Serializers\TransmJsonSerializer.cs" />
     <Compile Include="Services\Serializers\SerializeManager.cs" />
@@ -198,7 +200,12 @@
     <Compile Include="ViewModel\AttributeViewModel.cs" />
     <Compile Include="ViewModel\BlockViewModel.cs" />
     <Compile Include="ViewModel\FileNameViewModel.cs" />
+    <Compile Include="ViewModel\LayoutTreeViewModel.cs" />
     <Compile Include="ViewModel\SheetViewModel.cs" />
+    <Compile Include="ViewModel\VirtualToggleButton.cs" />
+    <Compile Include="Views\LayoutTreeView.xaml.cs">
+      <DependentUpon>LayoutTreeView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ObjectDividerView.xaml.cs">
       <DependentUpon>ObjectDividerView.xaml</DependentUpon>
     </Compile>
@@ -251,6 +258,10 @@
     <Page Include="Styles\VS2012\VS2012WindowStyle.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\LayoutTreeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ObjectDividerView.xaml">
       <SubType>Designer</SubType>

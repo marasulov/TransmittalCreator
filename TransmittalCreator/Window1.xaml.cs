@@ -13,9 +13,7 @@ using Path = System.IO.Path;
 
 namespace TransmittalCreator
 {
-    /// <summary>
-    /// Логика взаимодействия для Window1.xaml
-    /// </summary>
+
     public partial class Window1 : Window
     {
         public bool isClicked = false;
@@ -31,14 +29,14 @@ namespace TransmittalCreator
 
         public Window1(BlockViewModel data)
         {
-            string executablePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            //string executablePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            ProxyDomain pd = new ProxyDomain();
-            Assembly assembly = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignThemes.Wpf.dll"));
+            //ProxyDomain pd = new ProxyDomain();
+            //Assembly assembly = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignThemes.Wpf.dll"));
 
-            ProxyDomain pd1 = new ProxyDomain();
-            Assembly assembly1 = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignColors.dll"));
-
+            //ProxyDomain pd1 = new ProxyDomain();
+            //Assembly assembly1 = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignColors.dll"));
+            //////////
             InitializeComponent();
 
             _data = data;

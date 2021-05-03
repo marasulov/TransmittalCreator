@@ -12,7 +12,7 @@ namespace TransmittalCreator.Services.Blocks
     public class DynamicBlockFinder
     {
         private BlockTable _blokTable;
-        public string BlockNameToSearch { get; set; }
+        public string[] BlockNameToSearch { get; set; }
         public LayoutModelCollection LayoutModelCollection { get; set; }
         public ObjectIdCollection BlockRefIds { get; set; }
 
@@ -29,7 +29,7 @@ namespace TransmittalCreator.Services.Blocks
             {
                 // получаем запись таблицы блоков и смотри анонимная ли она
                 BlockTableRecord btr = (BlockTableRecord)trans.GetObject(btrId, OpenMode.ForRead);
-                if (btr.IsDynamicBlock && btr.Name == BlockNameToSearch)
+                if (btr.IsDynamicBlock && BlockNameToSearch.Contains(btr.Name))
                 {
                     // получаем все анонимные блоки динамического блока
                     ObjectIdCollection anonymousIds = btr.GetAnonymousBlockIds();

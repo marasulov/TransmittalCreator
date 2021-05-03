@@ -1,13 +1,12 @@
-﻿using System;
-using Autodesk.AutoCAD.ApplicationServices;
+﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.PlottingServices;
 using DV2177.Common;
 using TransmittalCreator.Services;
+using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 using PlotType = Autodesk.AutoCAD.DatabaseServices.PlotType;
 
 namespace TransmittalCreator.Models.Layouts
@@ -24,39 +23,32 @@ namespace TransmittalCreator.Models.Layouts
             {
                 DBDictionary layoutDic = tr.GetObject(db.LayoutDictionaryId, OpenMode.ForRead, false) as DBDictionary;
 
-                foreach (DBDictionaryEntry entry in layoutDic)
-                {
-                    ObjectId layoutPlotId = entry.Value;
-                    Layout layout = tr.GetObject(layoutPlotId, OpenMode.ForRead) as Layout;
-                    var blockTR = tr.GetObject(layout.BlockTableRecordId, OpenMode.ForRead) as BlockTableRecord;
-                    var layoutOwnerId = blockTR.ObjectId;
-                    if (!string.IsNullOrWhiteSpace(notIncludeSpace))
+                if (!(layoutDic is null))
+                    foreach (DBDictionaryEntry entry in layoutDic)
                     {
-                        if (layout.LayoutName != notIncludeSpace)
+                        ObjectId layoutPlotId = entry.Value;
+                        Layout layout = tr.GetObject(layoutPlotId, OpenMode.ForRead) as Layout;
+                        if (layout is null) continue;
+                        var blockTr = tr.GetObject(layout.BlockTableRecordId, OpenMode.ForRead) as BlockTableRecord;
+                        if (blockTr is null) continue;
+                        var layoutOwnerId = blockTr.ObjectId;
+                        if (!string.IsNullOrWhiteSpace(notIncludeSpace))
                         {
-                            LayoutModels.Add(new LayoutModel(layoutOwnerId, layoutPlotId, layout));
+                            if (layout.LayoutName != notIncludeSpace)
+                            {
+                                LayoutModels.Add(new LayoutModel(layoutOwnerId, layoutPlotId, layout));
+                            }
                         }
+                        else LayoutModels.Add(new LayoutModel(layoutOwnerId, layoutPlotId, layout));
                     }
-                    else LayoutModels.Add(new LayoutModel(layoutOwnerId, layoutPlotId, layout));
-                }
 
                 tr.Commit();
             }
         }
 
-
         public void DeleteEmptyLayout()
         {
             LayoutModels = LayoutModels.Where(b => b.BlocksObjectId != ObjectId.Null).Distinct().ToList();
-            //List<LayoutModel> layoutModels = new List<LayoutModel>();
-            //LayoutModel layoutModel = GetOne(x => x.BlocksObjectId == ObjectId.Null);
-            //LayoutModels.Remove(layoutModel);
-        }
-
-        private LayoutModel GetOne(Func<LayoutModel, bool> predicate)
-        {
-            LayoutModel account = LayoutModels.FirstOrDefault(predicate);
-            return account;
         }
 
         public void SetPrintModels(Transaction trans)
@@ -74,7 +66,7 @@ namespace TransmittalCreator.Models.Layouts
             Document acDoc = Application.DocumentManager.MdiActiveDocument;
             Database acCurDb = acDoc.Database;
             StandartCopier standartCopier = new StandartCopier();
-            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
+            PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
 
             using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
             {
@@ -86,8 +78,12 @@ namespace TransmittalCreator.Models.Layouts
                 {
                     acLayout = acTrans.GetObject(layout.LayoutPlotId,
                         OpenMode.ForRead) as Layout;
-
+                    
                     if (acLayout == null) continue;
+                    
+                    LayoutManager lm = LayoutManager.Current;
+                    lm.CurrentLayout = acLayout.LayoutName;
+                    
                     var plotArea = acLayout.Extents;
                     // Output the name of the current layout and its device
                     acDoc.Editor.WriteMessage("\nCurrent layout: " +
@@ -104,7 +100,6 @@ namespace TransmittalCreator.Models.Layouts
                     PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
                     acPlSet.CopyFrom(acLayout);
 
-
                     // Update the PlotConfigurationName property of the PlotSettings object
                     PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
                     //acPlSetVdr.SetCurrentStyleSheet(acPlSet, "monochrome.ctb");
@@ -112,8 +107,7 @@ namespace TransmittalCreator.Models.Layouts
 
                     acPlSetVdr.SetPlotType(acPlSet, PlotType.Extents);
                     acPlSetVdr.SetPlotRotation(acPlSet, isHor ? PlotRotation.Degrees000 : PlotRotation.Degrees090);
-                    acPlSetVdr.SetPlotWindowArea(acPlSet, new Extents2d(new Point2d(plotArea.MinPoint.X,
-                        plotArea.MinPoint.X), new Point2d(plotArea.MaxPoint.X, plotArea.MaxPoint.X)));
+                    acPlSetVdr.SetPlotWindowArea(acPlSet, Get2dExtentsFrom3d(plotArea));
                     acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
 
                     // Center the plot
@@ -122,24 +116,26 @@ namespace TransmittalCreator.Models.Layouts
                     acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3",
                         layout.CanonicalName);
                     acPlSetVdr.SetZoomToPaperOnUpdate(acPlSet, true);
-                    //acPlInfo.OverrideSettings = acPlSet;
-                    // Validate the plot info
-                    //PlotInfoValidator acPlInfoVdr = new PlotInfoValidator();
-                    //acPlInfoVdr.MediaMatchingPolicy = MatchingPolicy.MatchEnabled;
-                    //acPlInfoVdr.Validate(acPlInfo);
                     // Update the layout
                     acLayout.UpgradeOpen();
                     acLayout.CopyFrom(acPlSet);
-//TODO refresh layout
 
                     // Output the name of the new device assigned to the layout
                     acDoc.Editor.WriteMessage("\nNew device name: " +
                                               acLayout.PlotConfigurationName);
+
+                    Active.Editor.Regen();
                 }
 
                 // Save the new objects to the database
                 acTrans.Commit();
             }
+        }
+
+        private Extents2d Get2dExtentsFrom3d(Extents3d plotArea)
+        {
+            return new Extents2d(new Point2d(plotArea.MinPoint.X,
+                plotArea.MinPoint.X), new Point2d(plotArea.MaxPoint.X, plotArea.MaxPoint.X));
         }
     }
 }

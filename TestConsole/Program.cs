@@ -51,15 +51,19 @@ namespace TestConsole
 
         static void Main(string[] args)
         {
-            string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
-            DirectoryInfo directoryInfo = new DirectoryInfo(dir);
-            string[] allfiles = Directory.GetFiles(dir, "*.pdf", SearchOption.AllDirectories);
-            string[] allDirs = Directory.GetDirectories(@"C:\Users\yusufzhon.marasulov\Desktop");
 
-            string tree = ScanFolder(directoryInfo);
 
-            Console.WriteLine("Done");
-            Console.ReadLine();
+
+
+            //string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
+            //DirectoryInfo directoryInfo = new DirectoryInfo(dir);
+            //string[] allfiles = Directory.GetFiles(dir, "*.pdf", SearchOption.AllDirectories);
+            //string[] allDirs = Directory.GetDirectories(@"C:\Users\yusufzhon.marasulov\Desktop");
+
+            //string tree = ScanFolder(directoryInfo);
+
+            //Console.WriteLine("Done");
+            //Console.ReadLine();
         }
 
         static string ScanFolder(DirectoryInfo directory, string indentation = "\t", int maxLevel = -1, int deep = 0)
