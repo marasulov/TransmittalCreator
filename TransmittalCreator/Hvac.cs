@@ -83,7 +83,7 @@ namespace TransmittalCreator
             }
         }
 
-        private List<HvacTable> CreateHvacTableListFromFile(string filename)
+        public List<HvacTable> CreateHvacTableListFromFile(string filename)
         {
             FileInfo fileInfo = new FileInfo(filename);
             List<HvacTable> listData = new List<HvacTable>();
@@ -132,7 +132,7 @@ namespace TransmittalCreator
             return listData;
         }
 
-        private void CreateLayer()
+        public void CreateLayer()
         {
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {

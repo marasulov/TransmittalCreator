@@ -35,9 +35,10 @@ namespace TransmittalCreator
         #region HvacTable
 
         // Modal Command with pickfirst selection
-        [CommandMethod("hvac")]
-        public void CreateHvacTable(Hvac hvac)
+        [CommandMethod("hvacTable")]
+        public void CreateHvac()
         {
+            Hvac hvac = new Hvac();
             hvac.CreateHvacTable();
         }
 

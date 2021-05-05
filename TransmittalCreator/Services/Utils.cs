@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Autodesk.AutoCAD.Colors;
 using TransmittalCreator.Models;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
@@ -865,11 +866,193 @@ namespace TransmittalCreator.Services
             return (int)Math.Ceiling(double.Parse(str) / divValue);
         }
 
-        private void SetCellPropsWithValue(Table tb, int v1, int v2, int v3, int v4, string roomNumber)
+        private void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
         {
-            throw new NotImplementedException();
+            var curPos = tb.Cells[curRow, curCol];
+            curPos.TextHeight = textHeight;
+            curPos.TextString = stringValue;
+            curPos.Alignment = CellAlignment.MiddleCenter;
+            curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci,colorNumber);
         }
 
+      
+        //        // Modal Command with pickfirst selection
+        //[CommandMethod("hvacTable", CommandFlags.Modal | CommandFlags.UsePickSet)]
+        //public void CreateHvacTable() // This method can have any name
+        //{
+        //    string documents = Path.GetDirectoryName(Active.Document.Name);
+        //    Environment.SetEnvironmentVariable("MYDOCUMENTS", documents);
+
+        //    var ofd = new OpenFileDialog("Select a file using an OpenFileDialog", documents,
+        //        "xlsx; *",
+        //        "File Date Test T22",
+        //        OpenFileDialog.OpenFileDialogFlags.DefaultIsFolder |
+        //        OpenFileDialog.OpenFileDialogFlags.ForceDefaultFolder // .AllowMultiple
+        //    );
+        //    DialogResult sdResult = ofd.ShowDialog();
+
+        //    if (sdResult != System.Windows.Forms.DialogResult.OK) return;
+
+        //    string filename = ofd.Filename;
+
+        //    List<HvacTable> hvacTables = CreateHvacTableListFromFile(filename);
+
+        //    Type type = typeof(HvacTable);
+        //    int tableRows = hvacTables.Count;
+        //    int tableCols = type.GetProperties().Length;
+        //    CreateLayer();
+        //    foreach (var hvacTable in hvacTables)
+        //    {
+        //        AddTable(hvacTable, tableCols);
+        //    }
+        //}
+
+        //private List<HvacTable> CreateHvacTableListFromFile(string filename)
+        //{
+        //    FileInfo fileInfo = new FileInfo(filename);
+        //    List<HvacTable> listData = new List<HvacTable>();
+
+        //    using (ExcelPackage package = new ExcelPackage(fileInfo))
+        //    {
+        //        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        //        //create an instance of the the first sheet in the loaded file
+        //        ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+        //        int rowStart = 7;
+        //        int rowCount = worksheet.Dimension.End.Row;
+
+        //        for (int i = rowStart; i < rowCount - 1; i++)
+        //        {
+        //            if (worksheet.Cells[i, 2].Value != null & !worksheet.Cells[i, 1].Value.ToString().Contains("Total")
+        //                                                    & worksheet.Cells[i, 26].Value.ToString() != "0")
+        //            {
+        //                string roomNumber = worksheet.Cells[i, 1].Value.ToString().Trim();
+        //                string roomName = worksheet.Cells[i, 2].Value.ToString().Trim();
+        //                string heating = worksheet.Cells[i, 26].Value.ToString().Trim();
+        //                string cooling = worksheet.Cells[i, 34].Value.ToString().Trim();
+        //                string supply = worksheet.Cells[i, 39].Value.ToString().Trim();
+        //                string exhaust = worksheet.Cells[i, 41].Value.ToString().Trim();
+
+        //                listData.Add(new HvacTable(roomNumber, roomName, heating, cooling, supply, exhaust));
+        //            }
+        //        }
+        //    }
+
+        //    return listData;
+        //}
+
+        //private void CreateLayer()
+        //{
+        //    using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+        //    {
+        //        LayerTable ltb = (LayerTable) tr.GetObject(Active.Database.LayerTableId,
+        //            OpenMode.ForRead);
+
+        //        //create a new layout.
+
+        //        if (!ltb.Has("Hvac_Calc"))
+
+        //        {
+        //            ltb.UpgradeOpen();
+
+        //            LayerTableRecord newLayer = new LayerTableRecord();
+
+        //            newLayer.Name = "Hvac_Calc";
+        //            newLayer.LineWeight = LineWeight.LineWeight005;
+        //            newLayer.Description = "This is new layer";
+        //            newLayer.IsPlottable = false;
+
+        //            //red color
+        //            //newLayer.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(255, 0, 0);
+        //            ltb.Add(newLayer);
+        //            tr.AddNewlyCreatedDBObject(newLayer, true);
+        //        }
+
+        //        tr.Commit();
+        //        //make it as current
+        //        Active.Database.Clayer = ltb["Hvac_Calc"];
+        //    }
+        //}
+
+
+        //public void AddTable(HvacTable hvacTable, int columnsNum)
+        //{
+        //    Database db = HostApplicationServices.WorkingDatabase;
+        //    using (Transaction tr = db.TransactionManager.StartTransaction())
+        //    {
+        //        BlockTable bt = (BlockTable) tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+        //        ObjectId msId = bt[BlockTableRecord.ModelSpace];
+        //        BlockTableRecord btr = (BlockTableRecord) tr.GetObject(msId, OpenMode.ForWrite);
+
+        //        PromptPointResult pr =
+        //            Active.Editor.GetPoint(
+        //                $"\nEnter table insertion point for:room #{hvacTable.RoomNumber}-{hvacTable.RoomName}");
+
+        //        // create a table
+        //        Table tb = new Table();
+        //        //tb.TableStyle = db.Tablestyle;
+        //        tb.SetDatabaseDefaults();
+        //        // row height
+        //        double rowheight = 80;
+        //        // column width
+        //        double columnwidth = 150;
+        //        // insert rows and columns
+        //        tb.InsertRows(0, rowheight, 4);
+        //        tb.InsertColumns(0, columnwidth, 2);
+                
+        //        tb.SetRowHeight(rowheight);
+        //        tb.SetColumnWidth(columnwidth);
+
+        //        tb.Position = pr.Value;
+        //        // fill in the cell one by one
+        //        //tb.Columns[0].Width = 150;
+        //        tb.Columns[1].Width = 340;
+        //        //tb.Columns[2].Width = 150;
+
+        //        tb.Rows[0].Height = 130;
+
+        //        //SetCellPropsWithValue(tb, 0, 0, 50, 255,hvacTable.RoomNumber);
+        //        //SetCellPropsWithValue(tb, 0, 1, 50, 255,hvacTable.RoomName);
+        //        //SetCellPropsWithValue(tb, 0, 2, 30, 255,"20°C");
+
+
+        //        //SetCellPropsWithValue(tb, 1, 0, 50, 30,"Qt");
+        //        //SetCellPropsWithValue(tb, 1, 1, 50, 30,hvacTable.Heating + "-" + (int)Math.Round(double.Parse(hvacTable.Heating)/293.07));
+        //        //SetCellPropsWithValue(tb, 1, 2, 25, 30,"\\LВТ\\l\nсек.");
+                
+        //        //SetCellPropsWithValue(tb, 2, 0, 50, 130,"Qx");
+        //        //SetCellPropsWithValue(tb, 2, 1, 50, 130,hvacTable.Cooling + "-" +(int)Math.Round(double.Parse(hvacTable.Cooling)/293.07));
+        //        //SetCellPropsWithValue(tb, 2, 2, 25, 130,"\\LВТ\\l\n0.001Btu");
+
+        //        //SetCellPropsWithValue(tb, 3, 0, 50, 20,"П");
+        //        //SetCellPropsWithValue(tb, 3, 1, 50, 20,hvacTable.AirExchangeSupply);
+        //        //SetCellPropsWithValue(tb, 3, 2, 25, 20,"м3/ч");
+                
+        //        //SetCellPropsWithValue(tb, 4, 0, 50, 150,"В");
+        //        //SetCellPropsWithValue(tb, 4, 1, 50, 150,hvacTable.AirExchangeExhaust);
+        //        //SetCellPropsWithValue(tb, 4, 2, 25, 150,"м3/ч");
+
+        //        CellRange range = CellRange.Create(tb, columnsNum - 2, 0, columnsNum - 1, 0);
+        //        tb.UnmergeCells(range);
+        //        tb.SetDatabaseDefaults();
+        //        tb.GenerateLayout();
+        //        btr.AppendEntity(tb);
+        //        tr.AddNewlyCreatedDBObject(tb, true);
+        //        tr.Commit();
+        //    }
+        //}
+
+        //private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
+        //{
+        //    var curPos = tb.Cells[curRow, curCol];
+        //    curPos.TextHeight = textHeight;
+        //    curPos.TextString = stringValue;
+        //    curPos.Alignment = CellAlignment.MiddleCenter;
+        //    curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci,colorNumber);
+        //}
+
+
+        
+        
         
     }
 
