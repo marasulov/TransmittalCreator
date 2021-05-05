@@ -72,9 +72,9 @@ namespace TransmittalCreator.Models.Layouts
             {
                 Layout acLayout;
 
-                var layouts = LayoutModels.OrderBy(x => x.Layout.TabOrder).ToList();
+                LayoutModels = LayoutModels.OrderBy(x => x.Layout.TabOrder).ToList();
 
-                foreach (var layout in layouts)
+                foreach (var layout in LayoutModels)
                 {
                     acLayout = acTrans.GetObject(layout.LayoutPlotId,
                         OpenMode.ForRead) as Layout;

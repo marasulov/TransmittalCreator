@@ -54,7 +54,7 @@ namespace TransmittalCreator.Services
                     // Update the PlotSettings object
                     PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
                     var sheetList = acPlSetVdr.GetPlotStyleSheetList();
-                    acPlSetVdr.SetCurrentStyleSheet(acPlSet, "monochrome.ctb");
+                    //acPlSetVdr.SetCurrentStyleSheet(acPlSet, "monochrome.ctb");
 
                     Extents2d points = new Extents2d(printModel.BlockPosition, printModel.BlockDimensions);
 
