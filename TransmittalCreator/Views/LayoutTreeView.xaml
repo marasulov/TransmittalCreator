@@ -18,9 +18,7 @@
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{materialDesign:MaterialDesignFont}"
         >
-<Window.DataContext>
-    <viewModel:LayoutTreeViewModel/>
-</Window.DataContext>
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -73,7 +71,8 @@
                 HorizontalAlignment="Center"
                 Margin="0,2"
                 Padding="8,0"
-                
+                Click="CreateButton_Click"
+
                 Command="{Binding AddCommand}" CommandParameter="{Binding ElementName=tree, Path=SelectedItem}" />
         <TreeView x:Name="tree"
                   ItemContainerStyle="{StaticResource TreeViewItemStyle}"

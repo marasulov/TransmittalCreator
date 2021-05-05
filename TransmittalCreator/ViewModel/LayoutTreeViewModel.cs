@@ -16,7 +16,7 @@ namespace TransmittalCreator.ViewModel
         private LayoutTreeViewModel _parent;
         public PrintPackageCreator PrintPackage { get; set; }
 
-        public List<LayoutTreeViewModel> Children { get; private set; }
+        public List<LayoutTreeViewModel> Children { get; set; }
 
         public bool IsInitiallySelected { get; private set; }
 
@@ -58,13 +58,18 @@ namespace TransmittalCreator.ViewModel
             Name = name;
         }
         //TODO подумать как передать данные с автокада сюда
-        public List<PrintPackageModel> PrintPackages { get; set; }
+        private IObservable<PrintPackageModel> _printPackages;
+        public IObservable<PrintPackageModel> PrintPackages { get { return _printPackages; }
+            set { _printPackages = value; OnPropertyChanged("printPackages"); } }
+        
 
-        public List<LayoutTreeViewModel> CreateTree(List<PrintPackageModel> printPackages)
+        public List<LayoutTreeViewModel> CreateTree(IList<PrintPackageModel> printPackages)
         {
-            this.PrintPackages = printPackages;
+            var fileName = printPackages.Select(x => x.DwgFileName).FirstOrDefault();
+            
+            _printPackages = printPackages as IObservable<PrintPackageModel>;
 
-            LayoutTreeViewModel root = new LayoutTreeViewModel("Filename")
+            LayoutTreeViewModel root = new LayoutTreeViewModel(fileName)
             {
                 IsInitiallySelected = true,
             };
@@ -89,6 +94,7 @@ namespace TransmittalCreator.ViewModel
 
             root.Initialize();
             return new List<LayoutTreeViewModel> { root };
+            
         }
 
         void Initialize()
@@ -133,6 +139,7 @@ namespace TransmittalCreator.ViewModel
                 }
             }
             this.SetIsChecked(state, false, true);
+
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -11,9 +11,9 @@ using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
 
 namespace TransmittalCreator
 {
-    public class Hvac:Utils
+    public class Hvac : Utils
     {
-          public void CreateHvacTable() // This method can have any name
+        public void CreateHvacTable() // This method can have any name
         {
             string documents = Path.GetDirectoryName(Active.Document.Name);
             Environment.SetEnvironmentVariable("MYDOCUMENTS", documents);
@@ -67,7 +67,7 @@ namespace TransmittalCreator
                 if (m.Msg == WM_KEYDOWN)
                 {
                     // Check for the Escape keypress
-                    Keys kc = (Keys) (int) m.WParam & Keys.KeyCode;
+                    Keys kc = (Keys)(int)m.WParam & Keys.KeyCode;
 
                     if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
                     {
@@ -136,7 +136,7 @@ namespace TransmittalCreator
         {
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                LayerTable ltb = (LayerTable) tr.GetObject(Active.Database.LayerTableId,
+                LayerTable ltb = (LayerTable)tr.GetObject(Active.Database.LayerTableId,
                     OpenMode.ForRead);
 
                 //create a new layout.

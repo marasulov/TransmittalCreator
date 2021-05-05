@@ -129,9 +129,9 @@ namespace TransmittalCreator.Services
                         //ZoomObjects(acObjIdColl);
                         acTrans.Commit();
                     }
-                    db.SaveAs(dwgFilename, DwgVersion.Current);
+                    db.SaveAs(dwgFilename, db.OriginalFileVersion);
                     FileInfo fi = new FileInfo(dwgFilename);
-                    Active.Editor.WriteMessage("\nSize of {0}: {1}", dwgFilename, fi.Length);
+                    Active.Editor.WriteMessage("\nSize of {0}: {1}-{2}", dwgFilename, fi.Length, db.OriginalFileVersion);
                 }
             }
             catch (Exception e)

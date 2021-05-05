@@ -23,7 +23,7 @@ namespace TransmittalCreator.Services
 
         private void CreatePrintPackages()
         {
-            var layoutModels = LayoutModels.LayoutModels.ToArray();
+            var layoutModels = LayoutModels.LayoutModels;
             string mainPageDocNum = "";
             foreach (var layout in layoutModels)
             {
