@@ -347,6 +347,40 @@ namespace TransmittalCreator
             }
         }
 
+        private static void CreateLayoutCollectionFromBlockNames(Transaction trans, LayoutModelCollection layoutModelCollection,  string[] blockNames)
+        {
+            DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(layoutModelCollection)
+            {
+                BlockNameToSearch = blockNames
+            };
+
+            dynamicBlocks.GetLayoutsWithDynBlocks(trans);
+
+            layoutModelCollection.DeleteEmptyLayout();
+
+            var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
+            if (blocksList.Length == 0) return;
+
+            layoutModelCollection.SetPrintModels(trans);
+            layoutModelCollection.SetLayoutPlotSetting();
+        }
+        public delegate void TransactionDelegate(Transaction tr);
+        public static void UsingTransaction(TransactionDelegate action)
+        {
+            using (var tr = Active.Database.TransactionManager.StartTransaction())
+            {
+                try
+                {
+                    action(tr);
+                    tr.Commit();
+                }
+                catch (System.Exception)
+                {
+                    tr.Abort();
+                    throw;
+                }
+            }
+        }
 
         [CommandMethod("CtTransm")]
         public void ListAttributes()

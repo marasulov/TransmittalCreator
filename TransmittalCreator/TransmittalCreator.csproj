@@ -169,6 +169,8 @@
     <Compile Include="Services\CheckListCreator\CheckListModel.cs" />
     <Compile Include="Services\FileEditor.cs" />
     <Compile Include="Services\FileNameCreator.cs" />
+    <Compile Include="Services\Files\FileManager.cs" />
+    <Compile Include="Services\Files\IFileManager.cs" />
     <Compile Include="Services\LayerManipulation.cs" />
     <Compile Include="Services\ObjectCopier.cs" />
     <Compile Include="Models\PrintModel.cs" />
