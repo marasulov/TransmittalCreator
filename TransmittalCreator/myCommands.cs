@@ -2,24 +2,26 @@
 //
 
 using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using DV2177.Common;
-using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Windows.Forms;
+using System.Linq;
+using System.Reflection;
 using TransmittalCreator.Models;
+using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.ViewModel;
+using TransmittalCreator.Views;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
-using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
+using Table = Autodesk.AutoCAD.DatabaseServices.Table;
 
 // This line is not mandatory, but improves loading performances
 [assembly: CommandClass(typeof(TransmittalCreator.MyCommands))]
@@ -28,350 +30,22 @@ namespace TransmittalCreator
 {
     public class MyCommands : Utils, IExtensionApplication
     {
-        [CommandMethod("SELKW")]
-        public void GetIdsSelectionOrAllBlocks()
-        {
-            BlockSelector blockSelector = new BlockSelector();
-            blockSelector.GetIdsSelectionOrAllBlocks();
-        }
+
 
         #region HvacTable
 
         // Modal Command with pickfirst selection
-        [CommandMethod("hvacTable", CommandFlags.Modal | CommandFlags.UsePickSet)]
-        public void CreateHvacTable() // This method can have any name
+        [CommandMethod("hvacTable")]
+        public void CreateHvac()
         {
-            string documents = Path.GetDirectoryName(Active.Document.Name);
-            Environment.SetEnvironmentVariable("MYDOCUMENTS", documents);
-
-            var ofd = new OpenFileDialog("Select a file using an OpenFileDialog", documents,
-                "xlsx; *",
-                "File Date Test T22",
-                OpenFileDialog.OpenFileDialogFlags.DefaultIsFolder |
-                OpenFileDialog.OpenFileDialogFlags.ForceDefaultFolder // .AllowMultiple
-            );
-            DialogResult sdResult = ofd.ShowDialog();
-
-            if (sdResult != System.Windows.Forms.DialogResult.OK) return;
-
-            string filename = ofd.Filename;
-
-            List<HvacTable> hvacTables = CreateHvacTableListFromFile(filename);
-
-            Type type = typeof(HvacTable);
-
-            int tableCols = type.GetProperties().Length;
-            CreateLayer();
-
-            MyMessageFilter filter = new MyMessageFilter();
-
-            System.Windows.Forms.Application.AddMessageFilter(filter);
-
-            foreach (var hvacTable in hvacTables)
-            {
-                // Check for user input events
-                System.Windows.Forms.Application.DoEvents();
-                if (filter.bCanceled == true)
-                {
-                    Active.Editor.WriteMessage("\nLoop cancelled.");
-                    break;
-                }
-                AddTable(hvacTable, tableCols);
-            }
-            System.Windows.Forms.Application.RemoveMessageFilter(filter);
+            Hvac hvac = new Hvac();
+            hvac.CreateHvacTable();
         }
 
-        public class MyMessageFilter : IMessageFilter
-        {
-            public const int WM_KEYDOWN = 0x0100;
-            public bool bCanceled = false;
-            public bool PreFilterMessage(ref Message m)
-            {
-                if (m.Msg == WM_KEYDOWN)
-                {
-                    // Check for the Escape keypress
-                    Keys kc = (Keys)(int)m.WParam & Keys.KeyCode;
-
-                    if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
-                    {
-                        bCanceled = true;
-                    }
-                    // Return true to filter all keypresses
-                    return true;
-                }
-                // Return false to let other messages through
-                return false;
-            }
-        }
-
-        private List<HvacTable> CreateHvacTableListFromFile(string filename)
-        {
-            FileInfo fileInfo = new FileInfo(filename);
-            List<HvacTable> listData = new List<HvacTable>();
-
-            using (ExcelPackage package = new ExcelPackage(fileInfo))
-            {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                //create an instance of the the first sheet in the loaded file
-                ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
-                int rowStart = 7;
-                int rowCount = worksheet.Dimension.End.Row;
-
-                for (int i = rowStart; i < rowCount - 1; i++)
-                {
-                    var roomcell = worksheet.Cells[i, 1].Value;
-
-                    if (roomcell != null)
-                    {
-                        bool totalStr = roomcell.ToString().ToUpper().Contains("TOTAL");
-
-                        if (!totalStr)
-                        {
-                            string roomNumber = worksheet.Cells[i, 1].Value?.ToString().Trim();
-                            string roomName = worksheet.Cells[i, 2].Value?.ToString().Trim();
-                            string roomTemp = worksheet.Cells[i, 5].Value?.ToString().Trim();
-                            string heating = worksheet.Cells[i, 26].Value?.ToString().Trim();
-                            string cooling = worksheet.Cells[i, 34].Value?.ToString().Trim();
-                            string supply = worksheet.Cells[i, 39].Value?.ToString().Trim();
-
-                            string supplyIn = "П";
-                            var supplyInd = worksheet.Cells[i, 38].Value?.ToString().Trim() ?? supplyIn;
-                            string exhaustInd = "В";
-                            if (worksheet.Cells[i, 40].Value != null)
-                                exhaustInd = worksheet.Cells[i, 40].Value.ToString().Trim();
-
-                            string exhaust = worksheet.Cells[i, 41].Value?.ToString().Trim();
-
-                            listData.Add(new HvacTable(roomNumber, roomName, roomTemp, heating, cooling, supply, supplyInd,
-                                exhaust, exhaustInd));
-                        }
-                    }
-                }
-            }
-
-            return listData;
-        }
         #endregion
 
 
-        private void CreateLayer()
-        {
-            using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-            {
-                LayerTable ltb = (LayerTable)tr.GetObject(Active.Database.LayerTableId,
-                    OpenMode.ForRead);
-
-                //create a new layout.
-
-                if (!ltb.Has("Hvac_Calc"))
-
-                {
-                    ltb.UpgradeOpen();
-
-                    LayerTableRecord newLayer = new LayerTableRecord();
-
-                    newLayer.Name = "Hvac_Calc";
-                    newLayer.LineWeight = LineWeight.LineWeight005;
-                    newLayer.Description = "This is new layer";
-                    newLayer.IsPlottable = false;
-
-                    //red color
-                    //newLayer.Color = Autodesk.AutoCAD.Colors.Color.FromRgb(255, 0, 0);
-                    ltb.Add(newLayer);
-                    tr.AddNewlyCreatedDBObject(newLayer, true);
-                }
-
-                tr.Commit();
-                //make it as current
-                Active.Database.Clayer = ltb["Hvac_Calc"];
-            }
-        }
-
-        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
-        {
-            var curPos = tb.Cells[curRow, curCol];
-            curPos.TextHeight = textHeight;
-            curPos.TextString = stringValue;
-            curPos.Alignment = CellAlignment.MiddleCenter;
-            curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci, colorNumber);
-        }
-
-        [CommandMethod("SDB")]
-        public static void SelectBlocksByName()
-        {
-            Archive.SelectDynamicBlocks();
-        }
-
-        [CommandMethod("LISTATT")]
-        public static void ListAttributes1()
-        {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            var db = doc.Database;
-            var ed = doc.Editor;
-            var filter = new SelectionFilter(new[] { new TypedValue(0, "INSERT") });
-            var opts = new PromptSelectionOptions();
-            opts.MessageForAdding = "Select block references: ";
-
-            var res = ed.GetSelection(opts, filter);
-            if (res.Status != PromptStatus.OK)
-                return;
-            string str = "";
-
-            string str1 = "";
-            using (var tr = db.TransactionManager.StartTransaction())
-            {
-                foreach (SelectedObject so in res.Value)
-                {
-                    var br = (BlockReference)tr.GetObject(so.ObjectId, OpenMode.ForRead);
-                    var vargeom = br.GeometricExtents;
-                    ed.WriteMessage(vargeom.MinPoint[0].ToString(CultureInfo.InvariantCulture));
-                    str += $"{br.Name} {br.Position:0.00}\r\n";
-                    if (br.AttributeCollection.Count > 0)
-                    {
-                        str += "Attributes:\r\n";
-                        foreach (ObjectId id in br.AttributeCollection)
-                        {
-                            var att = (AttributeReference)id.GetObject(OpenMode.ForRead);
-                            str += $"\tTag: {att.Tag} Text: {att.TextString}\r\n";
-                        }
-                    }
-                    str += "\r\n";
-                }
-
-                tr.Commit();
-            }
-
-            ed.WriteMessage(str);
-            ed.WriteMessage(str1);
-        }
-
-        //TODO refactor
-
-
-        [CommandMethod("ListLayouts")]
-
-        public static void ListLayoutsMethod()
-
-        {
-
-            Document doc
-
-                = Application.DocumentManager.MdiActiveDocument;
-
-            Database db = doc.Database;
-
-            Editor ed = doc.Editor;
-
-
-
-            LayoutManager layoutMgr = LayoutManager.Current;
-
-
-
-            ed.WriteMessage
-
-            (
-
-                String.Format
-
-                (
-
-                    "{0}Active Layout is : {1}",
-
-                    Environment.NewLine,
-
-                    layoutMgr.CurrentLayout
-
-                )
-
-            );
-
-
-
-            ed.WriteMessage
-
-            (
-
-                String.Format
-
-                (
-
-                    "{0}Number of Layouts: {1}{0}List of all Layouts:",
-
-                    Environment.NewLine,
-
-                    layoutMgr.LayoutCount
-
-                )
-
-            );
-
-
-
-            using (Transaction tr
-
-                = db.TransactionManager.StartTransaction())
-
-            {
-
-                DBDictionary layoutDic
-
-                    = tr.GetObject(
-
-                        db.LayoutDictionaryId,
-
-                        OpenMode.ForRead,
-
-                        false
-
-                    ) as DBDictionary;
-
-
-
-                foreach (DBDictionaryEntry entry in layoutDic)
-
-                {
-
-                    ObjectId layoutId = entry.Value;
-
-
-
-                    Layout layout
-
-                        = tr.GetObject(
-
-                            layoutId,
-
-                            OpenMode.ForRead
-
-                        ) as Layout;
-
-
-
-                    ed.WriteMessage(
-
-                        String.Format(
-
-                            "{0}--> {1}",
-
-                            Environment.NewLine,
-
-                            layout.LayoutName
-
-                        )
-
-                    );
-
-                }
-
-                tr.Commit();
-
-            }
-
-        }
-
-
-
+        #region CreateTransPdf
         [CommandMethod("CreateTranspdf")]
         public static void CreateTransmittalAndPdf()
         {
@@ -403,25 +77,13 @@ namespace TransmittalCreator
                     if (!(block is null))
                     {
                         string blockName = block.Name;
-
                         if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
-                        //else if (blockName == "ФорматM25") idArray.Add(objectId);
                     }
                 }
 
                 GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
                 string selAttrName = "НОМЕР_ЛИСТА";
                 GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-                //Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
-
-                //foreach (ObjectId objectId in idArray)
-                //{
-
-                //    ObjectCopier objectCopier = new ObjectCopier(objectId);
-                //    ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-                //    string fileName = Utils.GetBlockAttributeValue(tr, objectId);
-                //    objectCopier.CopyObjectsBetweenDatabases(objectIds, fileName);
-                //}
 
                 Utils utils = new Utils();
                 //utils.CreateOnlyVed(dict);
@@ -435,11 +97,11 @@ namespace TransmittalCreator
 
                 //utils.CreateOnlytrans(dict);
 
-
                 tr.Commit();
             }
         }
-        //TODO finish
+        #endregion
+        #region CreatePdfWithInterfaceSelecting
 
         [CommandMethod("CreatePdf")]
         public void CreatePdfName()
@@ -452,14 +114,6 @@ namespace TransmittalCreator
             {
                 //ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
                 List<Sheet> dict = new List<Sheet>();
-
-
-                //string blockName = window.BlockName;
-                //BlockAttribute attributeName = window.comboAttributs.SelectedItem as BlockAttribute;
-                //bool attributeChecked = window.attributeCheckBox.IsChecked.Value;
-                //string suffix = window.suffixTextBox.Text;
-                //string prefix = window.prefixTextBox.Text;
-                //int numberingValue = int.Parse(window.numberingTextbox.Text);
 
                 using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
                 {
@@ -497,12 +151,15 @@ namespace TransmittalCreator
                             PlotCurrentLayout(printModel.DocNumber, printModel);
                         }
                     }
+
                     tr.Commit();
                 }
             }
         }
 
+        #endregion
 
+        #region CreateDwg
         [CommandMethod("CreateDwg")]
         public static void CreateDwg()
         {
@@ -560,7 +217,7 @@ namespace TransmittalCreator
                         ObjectCopier objectCopier = new ObjectCopier(objectId);
                         ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
                         BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-                        string selAttrName = "НОМЕР_ЛИСТА_2";
+                        string selAttrName = "НОМЕР_ЛИСТА";
                         string fileName = Utils.GetBlockAttributeValue(blkRef, selAttrName);
 
                         //HostApplicationServices hs = HostApplicationServices.Current;
@@ -584,13 +241,7 @@ namespace TransmittalCreator
             }
         }
 
-        [CommandMethod("UL")]
-        public void UnlockLayers()
-        {
-            var doc = Application.DocumentManager.MdiActiveDocument;
-            if (doc == null) return;
-            doc.LockOrUnlockLayers(false);
-        }
+
 
         public static string ZoomFilesAndSave(string fileName)
         {
@@ -635,84 +286,101 @@ namespace TransmittalCreator
 
             return newFileName;
         }
+        #endregion
 
-        [CommandMethod("LockLayer")]
-        public static void LockLayer()
+
+
+
+        [CommandMethod("CrLayTr")]
+        public void CreateTransmitallFromLayout()
         {
-            // Get the current document and database
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
-            // Start a transaction
-            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-            {
-                // Open the Layer table for read
-                LayerTable acLyrTbl;
-                acLyrTbl = acTrans.GetObject(acCurDb.LayerTableId,
-                    OpenMode.ForRead) as LayerTable;
-                string sLayerName = "ABC";
-                LayerTableRecord acLyrTblRec;
-                if (acLyrTbl.Has(sLayerName) == false)
-                {
-                    acLyrTblRec = new LayerTableRecord();
-                    // Assign the layer a name
-                    acLyrTblRec.Name = sLayerName;
-                    // Upgrade the Layer table for write
-                    acLyrTbl.UpgradeOpen();
-                    // Append the new layer to the Layer table and the transaction
-                    acLyrTbl.Add(acLyrTblRec);
-                    acTrans.AddNewlyCreatedDBObject(acLyrTblRec, true);
-                }
-                else
-                {
-                    acLyrTblRec = acTrans.GetObject(acLyrTbl[sLayerName],
-                        OpenMode.ForWrite) as LayerTableRecord;
-                }
+            string fileName = (string)Application.GetSystemVariable("DWGNAME");
+            string path = (string)Application.GetSystemVariable("DWGPREFIX");
+            string allPath = Path.Combine(path, fileName);
+            Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
 
-                // Lock the layer
-                acLyrTblRec.IsLocked = true;
-                // Save the changes and dispose of the transaction
-                acTrans.Commit();
+            List<Sheet> sheets = new List<Sheet>();
+            LayoutModelCollection layoutModelCollection = new LayoutModelCollection();
+            layoutModelCollection.ListLayouts("Model");
+            string[] blockNames = { "ФорматM25", "Формат"};
+            using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
+            {
+                DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(layoutModelCollection)
+                {
+                    BlockNameToSearch = blockNames
+                };
+
+                dynamicBlocks.GetLayoutsWithDynBlocks(trans);
+
+                layoutModelCollection.DeleteEmptyLayout();
+
+                var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
+                if (blocksList.Length == 0) return;
+
+                layoutModelCollection.SetPrintModels(trans);
+                layoutModelCollection.SetLayoutPlotSetting();
+                trans.Commit();
+            }
+
+            using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
+            {
+
+                string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009"};
+                var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
+
+                LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
+                Application.ShowModalWindow(window);
+
+                if (!window.isClicked) return;
+
+                var printPackages = window._printPackages;
+                packageCreator.PrintPackageModels = printPackages;
+
+                packageCreator.PublishAllPackages();
+
+                var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
+
+                Utils utils = new Utils();
+                GetSheetsFromBlocks(Active.Editor, sheets, trans, new ObjectIdCollection(blockIds));
+
+                utils.CreateJsonFile(sheets);
             }
         }
 
-        private static void DisplayDynBlockProperties(Editor ed, BlockReference br, string name)
+        private static void CreateLayoutCollectionFromBlockNames(Transaction trans, LayoutModelCollection layoutModelCollection,  string[] blockNames)
         {
-            // Only continue is we have a valid dynamic block
-            if (br != null && br.IsDynamicBlock)
+            DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(layoutModelCollection)
             {
-                ed.WriteMessage("\nDynamic properties for \"{0}\"\n", name);
+                BlockNameToSearch = blockNames
+            };
 
-                // Get the dynamic block's property collection
-                DynamicBlockReferencePropertyCollection pc =
-                    br.DynamicBlockReferencePropertyCollection;
-                // Loop through, getting the info for each property
-                foreach (DynamicBlockReferenceProperty prop in pc)
+            dynamicBlocks.GetLayoutsWithDynBlocks(trans);
+
+            layoutModelCollection.DeleteEmptyLayout();
+
+            var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
+            if (blocksList.Length == 0) return;
+
+            layoutModelCollection.SetPrintModels(trans);
+            layoutModelCollection.SetLayoutPlotSetting();
+        }
+        public delegate void TransactionDelegate(Transaction tr);
+        public static void UsingTransaction(TransactionDelegate action)
+        {
+            using (var tr = Active.Database.TransactionManager.StartTransaction())
+            {
+                try
                 {
-                    // Start with the property name, type and description
-                    ed.WriteMessage("\nProperty: \"{0}\" : {1}", prop.PropertyName, prop.UnitsType);
-
-                    if (prop.Description != "")
-                        ed.WriteMessage("\n  Description: {0}", prop.Description);
-                    // Is it read-only?
-                    if (prop.ReadOnly)
-                        ed.WriteMessage(" (Read Only)");
-                    // Get the allowed values, if it's constrained
-                    bool first = true;
-                    foreach (object value in prop.GetAllowedValues())
-                    {
-                        ed.WriteMessage((first ? "\n  Allowed values: [" : ", "));
-                        ed.WriteMessage("\"{0}\"", value);
-                        first = false;
-                    }
-
-                    if (!first) ed.WriteMessage("]");
-                    // And finally the current value
-                    ed.WriteMessage("\n  Current value: \"{0}\"\n", prop.Value);
+                    action(tr);
+                    tr.Commit();
+                }
+                catch (System.Exception)
+                {
+                    tr.Abort();
+                    throw;
                 }
             }
         }
-
-
 
         [CommandMethod("CtTransm")]
         public void ListAttributes()
@@ -725,9 +393,9 @@ namespace TransmittalCreator
 
             if (window.isClicked == true)
             {
-
                 //var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
-                ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+                ObjectId mSpaceId = SymbolUtilityServices.GetBlockModelSpaceId(Active.Database);
+                ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences(mSpaceId);
 
                 List<Sheet> dict = new List<Sheet>();
                 List<PrintModel> printModels = new List<PrintModel>();
@@ -771,7 +439,6 @@ namespace TransmittalCreator
                             //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
                         }
                     }
-
                     tr.Commit();
                 }
             }
@@ -779,6 +446,19 @@ namespace TransmittalCreator
 
         public void Initialize()
         {
+            string executablePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            ProxyDomain pd = new ProxyDomain();
+            Assembly assembly = pd.GetAssembly(System.IO.Path.Combine(executablePath, "MaterialDesignThemes.Wpf.dll"));
+
+            Assembly assembly1 = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignColors.dll"));
+
+            if (assembly != null | assembly1 != null)
+            {
+                Active.Editor.WriteMessage("style dlls not load");
+            }
+
+
             StandartCopier standartCopier = new StandartCopier();
             if (!File.Exists(standartCopier.Pc3Location) & !File.Exists(standartCopier.PmpLocation))
             {
@@ -807,219 +487,80 @@ namespace TransmittalCreator
         }
 
 
-        #region из сети
-
-        public static void GetKeywordFromUser()
+        [CommandMethod("OPSV")]
+        public static void OpenSaveDwgFiles()
         {
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
-            pKeyOpts.Message = "\nEnter an option ";
-            pKeyOpts.Keywords.Add("CREatedwg");
-            pKeyOpts.Keywords.Add("ONlydwg");
-            pKeyOpts.AllowNone = true;
-
-            PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
-            if (pKeyRes.StringResult == "CREatedwg")
+            List<Sheet> dict = new List<Sheet>();
+            try
             {
-                Application.ShowAlertDialog("Entered keyword: " +
-                                            pKeyRes.StringResult);
-            }
-
-            else if (pKeyRes.StringResult == "ONlydwg")
-            {
-                Application.ShowAlertDialog("Entered keysdfsdfword: " +
-                                            pKeyOpts.Message);
-            }
-
-            else
-            {
-                ListAttributes1();
-            }
-        }
-
-        [CommandMethod("BlockExt")]
-        public void BlockExt()
-        {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            if (doc == null) return;
-            Editor ed = doc.Editor;
-
-            PromptEntityOptions enOpt =
-                new PromptEntityOptions("\nВыберите примитив: ");
-
-            PromptEntityResult enRes = ed.GetEntity(enOpt);
-            if (enRes.Status == PromptStatus.OK)
-            {
-                Extents3d blockExt =
-                    new Extents3d(Point3d.Origin, Point3d.Origin);
-                Matrix3d mat = Matrix3d.Identity;
-                using (Entity en =
-                    enRes.ObjectId.GetObject(OpenMode.ForRead) as Entity)
+                var path = @"C:\Users\yusufzhon.marasulov\Desktop\test";
+                DirectoryInfo d = new DirectoryInfo(path);
+                FileInfo[] Files = d.GetFiles("*.dwg");
+                foreach (FileInfo file in Files)
                 {
-                    GetBlockExtents(en, ref blockExt, ref mat);
-                }
-
-                string s =
-                    "MinPoint: " + blockExt.MinPoint.ToString() + " " +
-                    "MaxPoint: " + blockExt.MaxPoint.ToString();
-                ed.WriteMessage(s);
-                //------------------------------------------------------------
-                // Только для тестирования полученного габаритного контейнера
-                //------------------------------------------------------------
-
-                #region TestinExts
-
-                using (BlockTableRecord curSpace =
-                    doc.Database.CurrentSpaceId.GetObject(OpenMode.ForWrite) as BlockTableRecord)
-                {
-                    Point3dCollection pts = new Point3dCollection();
-                    pts.Add(blockExt.MinPoint);
-                    pts.Add(new Point3d(blockExt.MinPoint.X,
-                        blockExt.MaxPoint.Y, blockExt.MinPoint.Z));
-                    pts.Add(blockExt.MaxPoint);
-                    pts.Add(new Point3d(blockExt.MaxPoint.X,
-                        blockExt.MinPoint.Y, blockExt.MinPoint.Z));
-                    using (Polyline3d poly =
-                        new Polyline3d(Poly3dType.SimplePoly, pts, true))
+                    var fileName = Path.GetFileName(file.FullName);
+                    string dwgFlpath = file.FullName;
+                    using (Database db = new Database(false, true))
                     {
-                        curSpace.AppendEntity(poly);
-                    }
-                }
-
-                #endregion
-            }
-        }
-
-        /// <summary>
-        /// Рекурсивное получение габаритного контейнера для выбранного примитива.
-        /// </summary>
-        /// <param name="en">Имя примитива</param>
-        /// <param name="ext">Габаритный контейнер</param>
-        /// <param name="mat">Матрица преобразования из системы координат блока в МСК.</param>
-        void GetBlockExtents(Entity en, ref Extents3d ext, ref Matrix3d mat)
-        {
-            if (!IsLayerOn(en.LayerId))
-                return;
-            if (en is BlockReference)
-            {
-                BlockReference bref = en as BlockReference;
-                Matrix3d matIns = mat * bref.BlockTransform;
-                using (BlockTableRecord btr =
-                    bref.BlockTableRecord.GetObject(OpenMode.ForRead) as BlockTableRecord)
-                {
-                    foreach (ObjectId id in btr)
-                    {
-                        using (DBObject obj = id.GetObject(OpenMode.ForRead) as DBObject)
+                        db.ReadDwgFile(dwgFlpath, FileOpenMode.OpenForReadAndAllShare, false, null);
+                        using (Transaction tr = db.TransactionManager.StartTransaction())
                         {
-                            Entity enCur = obj as Entity;
-                            if (enCur == null || enCur.Visible != true)
-                                continue;
-                            // Пропускаем неконстантные и невидимые определения атрибутов
-                            AttributeDefinition attDef = enCur as AttributeDefinition;
-                            if (attDef != null && (!attDef.Constant || attDef.Invisible))
-                                continue;
-                            GetBlockExtents(enCur, ref ext, ref matIns);
+                            ObjectId mSpaceId = SymbolUtilityServices.GetBlockModelSpaceId(db);
+                            ObjectIdCollection idArray = Utils.SelectDynamicBlockReferences(mSpaceId);
+                            GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                            tr.Commit();
                         }
+                        db.SaveAs(dwgFlpath, DwgVersion.Current);
                     }
                 }
-
-                // Отдельно обрабатываем атрибуты блока
-                if (bref.AttributeCollection.Count > 0)
-                {
-                    foreach (ObjectId idAtt in bref.AttributeCollection)
-                    {
-                        using (AttributeReference attRef =
-                            idAtt.GetObject(OpenMode.ForRead) as AttributeReference)
-                        {
-                            if (!attRef.Invisible && attRef.Visible)
-                                GetBlockExtents(attRef, ref ext, ref mat);
-                        }
-                    }
-                }
+                Application.ShowAlertDialog("All files processed");
             }
-            else
+            catch (System.Exception ex)
             {
-                if (mat.IsUniscaledOrtho())
-                {
-                    using (Entity enTr = en.GetTransformedCopy(mat))
-                    {
-                        if (enTr is Dimension)
-                            (enTr as Dimension).RecomputeDimensionBlock(true);
-                        if (enTr is Table)
-                            (enTr as Table).RecomputeTableBlock(true);
-                        if (IsEmptyExt(ref ext))
-                            try
-                            {
-                                ext = enTr.GeometricExtents;
-                            }
-                            catch
-                            {
-                                // ignored
-                            }
-                        else
-                        {
-                            try
-                            {
-                                ext.AddExtents(enTr.GeometricExtents);
-                            }
-                            catch
-                            {
-                                // ignored
-                            }
-                        }
-
-                        return;
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        Extents3d curExt = en.GeometricExtents;
-                        curExt.TransformBy(mat);
-                        if (IsEmptyExt(ref ext))
-                            ext = curExt;
-                        else
-                            ext.AddExtents(curExt);
-                    }
-                    catch
-                    {
-                    }
-
-                    return;
-                }
+                Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage(ex.ToString());
             }
         }
 
-        /// <summary>
-        /// Определяет видны ли объекты на слое, указанном его ObjectId.
-        /// </summary>
-        /// <param name="layerId">ObjectId слоя.</param>
-        /// <returns></returns>
-        bool IsLayerOn(ObjectId layerId)
+        static public void BatchTransmittal(List<string> docsToPlot)
         {
-            using (LayerTableRecord ltr = layerId.GetObject(OpenMode.ForRead) as LayerTableRecord)
+            List<Sheet> dict = new List<Sheet>();
+            List<PrintModel> printModels = new List<PrintModel>();
+            Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+            Document doc = Active.Document;
+            foreach (string filename in docsToPlot)
             {
-                if (ltr.IsFrozen) return false;
-                if (ltr.IsOff) return false;
+                using (DocumentLock doclock = doc.LockDocument())
+                {
+                    Database db = new Database(false, true);
+                    db.ReadDwgFile(filename, System.IO.FileShare.Read, true, "");
+
+                    using (Transaction tr = db.TransactionManager.StartTransaction())
+                    {
+                        ObjectId mSpaceId = SymbolUtilityServices.GetBlockModelSpaceId(db);
+                        ObjectIdCollection idArray = Utils.SelectDynamicBlockReferences(mSpaceId);
+
+
+                        //TODO надо проверить предыдущий и нижние методы на поиск по Id
+                        GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                        string selAttrName = "НОМЕР_ЛИСТА";
+                        GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
+
+                        Utils utils = new Utils();
+                        //utils.CreateOnlyVed(dict);
+                        utils.CreateJsonFile(dict);
+
+                        foreach (var printModel in printModels)
+                        {
+                            //Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
+                            PlotCurrentLayout(printModel.DocNumber, printModel);
+                        }
+                        tr.Commit();
+                    }
+                }
             }
 
-            return true;
         }
-
-        /// <summary>
-        /// Определят не пустой ли габаритный контейнер.
-        /// </summary>
-        /// <param name="ext">Габаритный контейнер.</param>
-        /// <returns></returns>
-        bool IsEmptyExt(ref Extents3d ext)
-        {
-            if (ext.MinPoint.DistanceTo(ext.MaxPoint) < Tolerance.Global.EqualPoint)
-                return true;
-            else
-                return false;
-        }
-
-        #endregion
     }
+
+
 }

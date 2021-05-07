@@ -5,50 +5,62 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TestWPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="500"
+        Title="MainWindow" Height="{Binding SystemParameters.PrimaryScreenHeight}" 
+        Width="300"
+        MaxHeight="600"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight ="Regular"
         TextElement.FontSize="14"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}"
-        >
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="0.8*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="0.2*" />
-        </Grid.RowDefinitions>
-        <ComboBox Grid.Column="0" ItemsSource="{Binding Phones}"
-                  SelectedItem="{Binding SelectedPhone}">
-            <ComboBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Margin="5">
-                        <TextBlock FontSize="18" Text="{Binding Path=Title}" />
-                        <TextBlock Text="{Binding Path=Company}" />
-                        <TextBlock Text="{Binding Path=Price}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Button Command="{Binding AddCommand}">+</Button>
-        </StackPanel>
+        Background="{DynamicResource MaterialDesignBody}"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+    <Window.DataContext>
+        <local:ApplicationViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <ResourceDictionary>
+            <Style x:Key="TreeViewItemStyle" TargetType="TreeViewItem">
+                <Setter Property="IsExpanded" Value="True" />
+                <Setter Property="IsSelected" Value="{Binding IsInitiallySelected, Mode=OneTime}" />
+                <Setter Property="KeyboardNavigation.AcceptsReturn" Value="True" />
+                <Setter Property="local:VirtualToggleButton.IsVirtualToggleButton" Value="True" />
+                <Setter Property="local:VirtualToggleButton.IsChecked" Value="{Binding IsChecked}" />
+            </Style>
 
-        <StackPanel Grid.Column="1" DataContext="{Binding SelectedPhone}">
-            <TextBlock Text="Выбранный элемент"  />
-            <TextBlock Text="Модель" />
-            <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Text="Производитель" />
-            <TextBox Text="{Binding Company, UpdateSourceTrigger=PropertyChanged}" />
-            <TextBlock Text="Цена" />
-            <TextBox Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}" />
-        </StackPanel>
-    </Grid>
-   
+            <HierarchicalDataTemplate x:Key="CheckBoxItemTemplate"
+                                      ItemsSource="{Binding Children, Mode=OneTime}">
+                <StackPanel Orientation="Horizontal">
+                    <CheckBox Focusable="False" IsChecked="{Binding IsChecked}" 
+                              VerticalAlignment="Center"/>
+                    <ContentPresenter 
+                        Content="{Binding Name, Mode=OneTime}" 
+                        Margin="2,0"/>
+                </StackPanel>
+            </HierarchicalDataTemplate>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <DockPanel>
+        <Button DockPanel.Dock="Bottom" 
+                Command="Undo" CommandTarget="{Binding Path=PlacementTarget,RelativeSource={RelativeSource AncestorType={x:Type UndoAction}}}"
+                Content="Uncheck All" 
+                HorizontalAlignment="Center"
+                Margin="0,2"
+                Padding="8,0"
+        />
+        <Button DockPanel.Dock="Bottom" 
+                Content="Create" 
+                HorizontalAlignment="Center"
+                Margin="0,2"
+                Padding="8,0"
+                Command="{Binding AddCommand}" CommandParameter="{Binding ElementName=tree, Path=SelectedItem}" />
+        <TreeView x:Name="tree"
+                  ItemContainerStyle="{StaticResource TreeViewItemStyle}"
+                  ItemsSource="{Binding Mode=OneTime}"
+                  ItemTemplate="{StaticResource CheckBoxItemTemplate}"
+        />
+        
+    </DockPanel>
 </Window>

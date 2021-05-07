@@ -1,17 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace TestWPF
 {
@@ -22,8 +10,54 @@ namespace TestWPF
     {
         public MainWindow()
         {
+            
+            //ApplicationViewModel root = this.tree.Items[0] as ApplicationViewModel;
+
+            var nodes =new ApplicationViewModel().CreateFoos();
+
             InitializeComponent();
-            DataContext = new ApplicationViewModel();
+           
+            this.tree.ItemsSource = nodes;
+         
+            this.tree.Focus();
+            
+            base.CommandBindings.Add(
+                new CommandBinding(
+                    ApplicationCommands.Undo,
+                    (sender, e) => // Execute
+                    {                        
+                        e.Handled = true;
+                        //nodes.IsChecked = false;
+                        this.tree.Focus();
+                    },
+                    (sender, e) => // CanExecute
+                    {
+                        e.Handled = true;
+                        //e.CanExecute = (root.IsChecked != false);
+                    }));
+
+
+
+            this.SizeToContent = SizeToContent.Height;
         }
+
+        //private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        //{
+        //    e.CanExecute = true;
+        //}
+
+        //private void NewCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        //{
+        //    var avm = e.Parameter as ApplicationViewModel;
+            
+        //    foreach (var param in avm.Children)
+        //    {
+        //        foreach (var pparam in param.Children)
+        //        {
+        //            var vv = pparam.IsChecked.Value;
+        //        }
+        //    }
+        //    MessageBox.Show("The New command was invoked");
+        //}
     }
 }

@@ -18,46 +18,33 @@
         FontSize="14"
         SizeToContent="WidthAndHeight">
 
+    <Window.Resources>
+
+        <HierarchicalDataTemplate DataType="{x:Type local:DirectoryItem}"
+                                  ItemsSource="{Binding Items}">
+            <TextBlock Text="{Binding Path=Name}" ToolTip="{Binding Path=Path}"  > </TextBlock>
+            
+        </HierarchicalDataTemplate>
+
+        <DataTemplate DataType="{x:Type local:FileModel}">
+            <TextBlock Text="{Binding Path=Name}" ToolTip="{Binding Path=Path}" />
+        </DataTemplate>
+
+    </Window.Resources>
+
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Border BorderBrush="Gray" Background="Gray" BorderThickness="1" >
-            <Grid Row="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Grid.Row="0" >
-                    <TextBlock Text="Drawing Path" Margin="5"/>
-                    <TextBox Width="100" Margin="5"></TextBox>
-                    <Button Width="100" Content="Browse..."></Button>
-                </StackPanel>
-            </Grid>
-        </Border>
-        <StackPanel Orientation="Vertical" Grid.Row="1">
-            <ListBox ItemsSource="{Binding FileModels}" SelectedItem="{Binding SelectedFile}" >
-                <ListBox.ItemTemplate>
+        <TreeView Grid.Row="1" Grid.Column="0" >
+            <TreeViewItem Header="aaa" ItemsSource="{Binding Items}">
+                <TreeViewItem.ItemTemplate>
                     <DataTemplate>
-                        <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Path=FileName}" />
+                        <StackPanel>
+                            <CheckBox Content="{Binding Name}"></CheckBox>
+                        </StackPanel>
                     </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-            <CheckBox Content="Select All"></CheckBox>
-        </StackPanel>
-        <ListBox Height="340" ItemsSource="{Binding Sections}" SelectedItem="{Binding SelectedSection}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Path=Item}" />
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-
-
-
+                </TreeViewItem.ItemTemplate>
+            </TreeViewItem>
+        </TreeView>
+       
     </Grid>
 </Window>

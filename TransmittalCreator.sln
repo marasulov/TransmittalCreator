@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWPF", "TestWPF\TestWPF.
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Transmittals", "AppSetupProject\Transmittals.wixproj", "{9FD2FC17-A486-484E-B509-6F2C70C542E5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9BD2013A-E432-483B-9C19-E06A0E1B6CEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfAppTest", "Tests\WpfAppTest\WpfAppTest.csproj", "{006138E8-CD5B-4793-BBDD-5833A8F4C40F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -94,9 +98,24 @@ Global
 		{9FD2FC17-A486-484E-B509-6F2C70C542E5}.Release|Any CPU.Build.0 = Release|x86
 		{9FD2FC17-A486-484E-B509-6F2C70C542E5}.Release|x86.ActiveCfg = Release|x86
 		{9FD2FC17-A486-484E-B509-6F2C70C542E5}.Release|x86.Build.0 = Release|x86
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Debug|x86.Build.0 = Debug|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.R2015|Any CPU.ActiveCfg = Release|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.R2015|Any CPU.Build.0 = Release|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.R2015|x86.ActiveCfg = Release|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.R2015|x86.Build.0 = Release|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Release|x86.ActiveCfg = Release|Any CPU
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{006138E8-CD5B-4793-BBDD-5833A8F4C40F} = {9BD2013A-E432-483B-9C19-E06A0E1B6CEF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1A51EDF2-1574-4677-9ADC-497AA1EBB9D0}

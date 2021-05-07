@@ -95,8 +95,6 @@ namespace TransmittalCreator.Services
                 // Unlock the document
             }
 
-
-
             return acObjIdColl;
         }
 
@@ -131,9 +129,9 @@ namespace TransmittalCreator.Services
                         //ZoomObjects(acObjIdColl);
                         acTrans.Commit();
                     }
-                    db.SaveAs(dwgFilename, DwgVersion.Current);
+                    db.SaveAs(dwgFilename, db.OriginalFileVersion);
                     FileInfo fi = new FileInfo(dwgFilename);
-                    Active.Editor.WriteMessage("\nSize of {0}: {1}", dwgFilename, fi.Length);
+                    Active.Editor.WriteMessage("\nSize of {0}: {1}-{2}", dwgFilename, fi.Length, db.OriginalFileVersion);
                 }
             }
             catch (Exception e)
@@ -141,98 +139,6 @@ namespace TransmittalCreator.Services
                 Console.WriteLine(e);
                 throw;
             }
-        }
-
-        private void ZoomObjects(ObjectIdCollection idCol)
-        {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
-            Editor ed = doc.Editor;
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            using (ViewTableRecord view = ed.GetCurrentView())
-            {
-                Matrix3d WCS2DCS = Matrix3d.PlaneToWorld(view.ViewDirection);
-                WCS2DCS = Matrix3d.Displacement(view.Target - Point3d.Origin) * WCS2DCS;
-                WCS2DCS = Matrix3d.Rotation(-view.ViewTwist, view.ViewDirection, view.Target) * WCS2DCS;
-                WCS2DCS = WCS2DCS.Inverse();
-                Entity ent = (Entity)tr.GetObject(idCol[0], OpenMode.ForRead);
-                Extents3d ext = ent.GeometricExtents;
-                ext.TransformBy(WCS2DCS);
-                for (int i = 1; i < idCol.Count; i++)
-                {
-                    ent = (Entity)tr.GetObject(idCol[i], OpenMode.ForRead);
-                    Extents3d tmp = ent.GeometricExtents;
-                    tmp.TransformBy(WCS2DCS);
-                    ext.AddExtents(tmp);
-                }
-                double ratio = view.Width / view.Height;
-                double width = ext.MaxPoint.X - ext.MinPoint.X;
-                double height = ext.MaxPoint.Y - ext.MinPoint.Y;
-                if (width > (height * ratio))
-                    height = width / ratio;
-                Point2d center =
-                    new Point2d((ext.MaxPoint.X + ext.MinPoint.X) / 2.0, (ext.MaxPoint.Y + ext.MinPoint.Y) / 2.0);
-                view.Height = height;
-                view.Width = width;
-                view.CenterPoint = center;
-                ed.SetCurrentView(view);
-                tr.Commit();
-            }
-        }
-
-        public void CopyObjectsBetweenDatabases(ObjectIdCollection acObjIdColl, string dwgFilename)
-        {
-            //ObjectIdCollection acObjIdColl = new ObjectIdCollection();
-            // Get the current document and database
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
-
-            // Change the file and path to match a drawing template on your workstation
-            string sLocalRoot = Application.GetSystemVariable("LOCALROOTPREFIX") as string;
-            string sTemplatePath = sLocalRoot + "Template\\acadiso.dwt";
-            // Create a new drawing to copy the objects to
-            DocumentCollection acDocMgr = Application.DocumentManager;
-            Document acNewDoc = acDocMgr.Add(sTemplatePath);
-            Database acDbNewDoc = acNewDoc.Database;
-
-
-            acDocMgr.MdiActiveDocument = acNewDoc;
-            // Lock the new document
-            using (DocumentLock acLckDoc = acNewDoc.LockDocument())
-            {
-                // Start a transaction in the new database
-                using (Transaction acTrans = acDbNewDoc.TransactionManager.StartTransaction())
-                {
-                    // Open the Block table for read
-                    BlockTable acBlkTblNewDoc;
-                    acBlkTblNewDoc = acTrans.GetObject(acDbNewDoc.BlockTableId,
-                                                       OpenMode.ForRead) as BlockTable;
-                    // Open the Block table record Model space for read
-                    BlockTableRecord acBlkTblRecNewDoc;
-                    acBlkTblRecNewDoc = acTrans.GetObject(acBlkTblNewDoc[BlockTableRecord.ModelSpace],
-                                                        OpenMode.ForRead) as BlockTableRecord;
-                    //acTrans.TransactionManager.QueueForGraphicsFlush();
-                    // Clone the objects to the new database
-                    IdMapping acIdMap = new IdMapping();
-                    acCurDb.WblockCloneObjects(acObjIdColl, acBlkTblRecNewDoc.ObjectId, acIdMap,
-                                               DuplicateRecordCloning.Ignore, false);
-                    // Save the copied objects to the database
-                    acTrans.Commit();
-                }
-                // Unlock the document
-            }
-            // Set the new document current
-
-            dynamic acadApp = Autodesk.AutoCAD.ApplicationServices.Application.AcadApplication;
-            acadApp.ZoomExtents();
-            //Active.Document.SendStringToExecute("_.zoom _all ", true, true, false);
-
-            acDbNewDoc.SaveAs(dwgFilename, DwgVersion.Current);
-            acDocMgr.MdiActiveDocument = acNewDoc;
-            //acNewDoc.CloseAndDiscard();
-
-            acDocMgr.MdiActiveDocument = acDoc;
-
         }
     }
 }

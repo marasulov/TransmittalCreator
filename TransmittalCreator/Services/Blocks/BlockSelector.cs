@@ -37,9 +37,6 @@ namespace TransmittalCreator.Services.Blocks
             {
              _selectionResult = Active.Editor.SelectDynBlock("Select block references: ", blockName);
             }
-            
-             
-
         }
 
         public void GetIdsSelectionOrAllBlocks()
@@ -109,7 +106,6 @@ namespace TransmittalCreator.Services.Blocks
     public static class Extension
     {
         static string names;
-
         public static PromptSelectionResult SelectDynBlock(this Editor ed, string message, params string[] blockNames)
         {
             names = string.Join(",", blockNames);

@@ -46,8 +46,6 @@ namespace TransmittalCreator.ViewModel
                 new SpesSheetModel(block.Key, block.Value);
             }
         }
-        //TODO list in model
-
 
         /// <summary>
         /// Raises OnPropertychangedEvent when property changes
