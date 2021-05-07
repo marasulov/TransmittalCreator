@@ -60,13 +60,6 @@
 
     <DockPanel>
         <Button DockPanel.Dock="Bottom" 
-                Command="Undo"
-                Content="Uncheck All" 
-                HorizontalAlignment="Center"
-                Margin="0,2"
-                Padding="8,0"
-        />
-        <Button DockPanel.Dock="Bottom" 
                 Content="Create" 
                 HorizontalAlignment="Center"
                 Margin="0,2"

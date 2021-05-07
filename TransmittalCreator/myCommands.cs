@@ -302,13 +302,9 @@ namespace TransmittalCreator
             List<Sheet> sheets = new List<Sheet>();
             LayoutModelCollection layoutModelCollection = new LayoutModelCollection();
             layoutModelCollection.ListLayouts("Model");
-            string[] blockNames = { "ФорматM25", "Формат" };
+            string[] blockNames = { "ФорматM25", "Формат"};
             using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
             {
-                using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-                {
-
-                }
                 DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(layoutModelCollection)
                 {
                     BlockNameToSearch = blockNames
@@ -321,8 +317,6 @@ namespace TransmittalCreator
                 var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
                 if (blocksList.Length == 0) return;
 
-                ObjectIdCollection blockIdCollection = new ObjectIdCollection(blocksList);
-
                 layoutModelCollection.SetPrintModels(trans);
                 layoutModelCollection.SetLayoutPlotSetting();
                 trans.Commit();
@@ -330,12 +324,9 @@ namespace TransmittalCreator
 
             using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
             {
-                var packageCreator = new PrintPackageCreator(layoutModelCollection, "Форма 3 ГОСТ Р 21.1101-2009 M25");
 
-
-                var layoutPackages = packageCreator.PrintPackageModels;
-                var layoutTree = new LayoutTreeViewModel();
-
+                string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009"};
+                var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
 
                 LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
                 Application.ShowModalWindow(window);
@@ -354,11 +345,7 @@ namespace TransmittalCreator
 
                 utils.CreateJsonFile(sheets);
             }
-
-
         }
-
-
 
         [CommandMethod("CtTransm")]
         public void ListAttributes()

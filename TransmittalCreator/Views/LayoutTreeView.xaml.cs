@@ -59,10 +59,7 @@ namespace TransmittalCreator.Views
                 }
 
                 var tempLayouts = layoutTree.Children;;
-                
-                //var newSequence = (from el in tempLayouts
-                //    where el.IsChecked == true
-                //    select el).ToList();
+
                 if (layoutTree.IsChecked != null) continue;
                 var selectedPackage = _printPackages.FirstOrDefault(x => x.PdfFileName == layoutTree.Name);
                 var selLayouts = selectedPackage.Layouts;
@@ -77,7 +74,6 @@ namespace TransmittalCreator.Views
                     var layoutModel = selLayouts.FirstOrDefault(l => l.LayoutName == layoutName);
                     selLayouts.Remove(layoutModel);
                 }
-                //layoutTree.Children = newSequence;
             }
 
             isClicked = true;

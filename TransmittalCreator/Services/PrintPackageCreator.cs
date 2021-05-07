@@ -12,9 +12,9 @@ namespace TransmittalCreator.Services
     {
         public List<PrintPackageModel> PrintPackageModels { get; set; } = new List<PrintPackageModel>();
         private LayoutModelCollection LayoutModels { get; set; }
-        public string MainPageName { get; set; }
+        public string[] MainPageName { get; set; }
 
-        public PrintPackageCreator(LayoutModelCollection layoutModels, string mainPageName)
+        public PrintPackageCreator(LayoutModelCollection layoutModels, string[] mainPageName)
         {
             LayoutModels = layoutModels;
             MainPageName = mainPageName;
@@ -29,7 +29,7 @@ namespace TransmittalCreator.Services
             {
                 var printModel = layout.PrintModel;
 
-                if (printModel.StampViewName == MainPageName)
+                if (printModel.StampViewName.Contains(MainPageName[0]) || printModel.StampViewName.Contains(MainPageName[1]))
                 {
                     List<LayoutModel> layouts = new List<LayoutModel> { layout };
                     PrintPackageModels.Add(new PrintPackageModel(printModel.DocNumber, layouts));
