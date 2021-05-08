@@ -12,7 +12,7 @@ using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Internal;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
-using DV2177.Common;
+using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
 using TransmittalCreator.Models.Layouts;
 
@@ -121,71 +121,71 @@ namespace TransmittalCreator
             }
         }
 
-        [CommandMethod("ChangePlotSetting")]
-        public static void ChangePlotSetting()
-        {
-            // Get the current document and database, and start a transaction
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
-
-            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-            {
-                // Reference the Layout Manager
-                LayoutManager acLayoutMgr;
-                acLayoutMgr = LayoutManager.Current;
-
-                // Get the current layout and output its name in the Command Line window
-                Layout acLayout;
-
-                LayoutModelCollection layoutModelCollection = new LayoutModelCollection();
-                layoutModelCollection.ListLayouts("Model");
-                var layouts = layoutModelCollection.LayoutModels.OrderBy(x => x.Layout.TabOrder).ToList();
-
-                foreach (var layout in layouts)
-                {
-
-                    acLayout = acTrans.GetObject(layout.LayoutPlotId,
-                        OpenMode.ForRead) as Layout;
-                    if (acLayout != null)
-                    {
-                        // Output the name of the current layout and its device
-                        acDoc.Editor.WriteMessage("\nCurrent layout: " +
-                                                  acLayout.LayoutName);
-
-                        acDoc.Editor.WriteMessage("\nCurrent device name: " +
-                                                  acLayout.PlotConfigurationName);
-
-                        // Get the PlotInfo from the layout
-                        PlotInfo acPlInfo = new PlotInfo();
-                        acPlInfo.Layout = acLayout.ObjectId;
-
-                        // Get a copy of the PlotSettings from the layout
-                        PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
-                        acPlSet.CopyFrom(acLayout);
-
-                        // Update the PlotConfigurationName property of the PlotSettings object
-                        PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
-                        acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3",
-                            "UserDefinedMetric (891.00 x 420.00мм)");
-
-                        acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
-                        // Center the plot
-                        //acPlSetVdr.SetPlotCentered(acPlSet, true);
-
-                        // Update the layout
-                        acLayout.UpgradeOpen();
-                        acLayout.CopyFrom(acPlSet);
-
-                        // Output the name of the new device assigned to the layout
-                        acDoc.Editor.WriteMessage("\nNew device name: " +
-                                                  acLayout.PlotConfigurationName);
-                    }
-                }
-
-                // Save the new objects to the database
-                acTrans.Commit();
-            }
-        }
+        // [CommandMethod("ChangePlotSetting")]
+        // public static void ChangePlotSetting()
+        // {
+        //     // Get the current document and database, and start a transaction
+        //     Document acDoc = Application.DocumentManager.MdiActiveDocument;
+        //     Database acCurDb = acDoc.Database;
+        //
+        //     using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+        //     {
+        //         // Reference the Layout Manager
+        //         LayoutManager acLayoutMgr;
+        //         acLayoutMgr = LayoutManager.Current;
+        //
+        //         // Get the current layout and output its name in the Command Line window
+        //         Layout acLayout;
+        //
+        //         LayoutModelCollection layoutModelCollection = new LayoutModelCollection();
+        //         layoutModelCollection.ListLayouts("Model");
+        //         var layouts = layoutModelCollection.LayoutModels.OrderBy(x => x.Layout.TabOrder).ToList();
+        //
+        //         foreach (var layout in layouts)
+        //         {
+        //
+        //             acLayout = acTrans.GetObject(layout.LayoutPlotId,
+        //                 OpenMode.ForRead) as Layout;
+        //             if (acLayout != null)
+        //             {
+        //                 // Output the name of the current layout and its device
+        //                 acDoc.Editor.WriteMessage("\nCurrent layout: " +
+        //                                           acLayout.LayoutName);
+        //
+        //                 acDoc.Editor.WriteMessage("\nCurrent device name: " +
+        //                                           acLayout.PlotConfigurationName);
+        //
+        //                 // Get the PlotInfo from the layout
+        //                 PlotInfo acPlInfo = new PlotInfo();
+        //                 acPlInfo.Layout = acLayout.ObjectId;
+        //
+        //                 // Get a copy of the PlotSettings from the layout
+        //                 PlotSettings acPlSet = new PlotSettings(acLayout.ModelType);
+        //                 acPlSet.CopyFrom(acLayout);
+        //
+        //                 // Update the PlotConfigurationName property of the PlotSettings object
+        //                 PlotSettingsValidator acPlSetVdr = PlotSettingsValidator.Current;
+        //                 acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3",
+        //                     "UserDefinedMetric (891.00 x 420.00мм)");
+        //
+        //                 acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
+        //                 // Center the plot
+        //                 //acPlSetVdr.SetPlotCentered(acPlSet, true);
+        //
+        //                 // Update the layout
+        //                 acLayout.UpgradeOpen();
+        //                 acLayout.CopyFrom(acPlSet);
+        //
+        //                 // Output the name of the new device assigned to the layout
+        //                 acDoc.Editor.WriteMessage("\nNew device name: " +
+        //                                           acLayout.PlotConfigurationName);
+        //             }
+        //         }
+        //
+        //         // Save the new objects to the database
+        //         acTrans.Commit();
+        //     }
+        // }
 
 
         //////////////////////////////////////////////////////////////////////////

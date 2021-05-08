@@ -2,7 +2,9 @@
 {
     public interface IFileManager
     {
-        string FileName { get; set; }
-        string DirName { get; set; }
+        string FileName { get;  }
+        string DirPath { get; }
+
+        string GetFilePath();
     }
 }
