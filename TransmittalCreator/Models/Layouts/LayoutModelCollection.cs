@@ -1,12 +1,13 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
+﻿using System;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.PlottingServices;
-using DV2177.Common;
+using TransmittalCreator.DBCad;
 using TransmittalCreator.Services;
-using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
+using TransmittalCreator.Services.Blocks;
 using PlotType = Autodesk.AutoCAD.DatabaseServices.PlotType;
 
 namespace TransmittalCreator.Models.Layouts
@@ -14,6 +15,12 @@ namespace TransmittalCreator.Models.Layouts
     public class LayoutModelCollection
     {
         public List<LayoutModel> LayoutModels { get; set; } = new List<LayoutModel>();
+        public DynamicBlockFinder DynamicBlocks { get; set; }
+
+        public LayoutModelCollection(DynamicBlockFinder dynamicBlocks)
+        {
+            DynamicBlocks = dynamicBlocks;
+        }
 
         public void ListLayouts(string notIncludeSpace = "")
         {
@@ -63,12 +70,11 @@ namespace TransmittalCreator.Models.Layouts
 
         public void SetLayoutPlotSetting()
         {
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
+
             StandartCopier standartCopier = new StandartCopier();
             PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
 
-            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+            using (Transaction acTrans = Active.Database.TransactionManager.StartTransaction())
             {
                 Layout acLayout;
 
@@ -86,10 +92,10 @@ namespace TransmittalCreator.Models.Layouts
                     
                     var plotArea = acLayout.Extents;
                     // Output the name of the current layout and its device
-                    acDoc.Editor.WriteMessage("\nCurrent layout: " +
+                    Active.Editor.WriteMessage("\nCurrent layout: " +
                                               acLayout.LayoutName);
 
-                    acDoc.Editor.WriteMessage("\nCurrent device name: " +
+                    Active.Editor.WriteMessage("\nCurrent device name: " +
                                               acLayout.PlotConfigurationName);
 
                     // Get the PlotInfo from the layout
@@ -121,7 +127,7 @@ namespace TransmittalCreator.Models.Layouts
                     acLayout.CopyFrom(acPlSet);
 
                     // Output the name of the new device assigned to the layout
-                    acDoc.Editor.WriteMessage("\nNew device name: " +
+                    Active.Editor.WriteMessage("\nNew device name: " +
                                               acLayout.PlotConfigurationName);
 
                     Active.Editor.Regen();
@@ -137,5 +143,25 @@ namespace TransmittalCreator.Models.Layouts
             return new Extents2d(new Point2d(plotArea.MinPoint.X,
                 plotArea.MinPoint.X), new Point2d(plotArea.MaxPoint.X, plotArea.MaxPoint.X));
         }
+        
+        private void CreateCollectionFromBlockNames(Transaction trans)
+        {
+            DynamicBlocks.GetLayoutsWithDynBlocks(trans, LayoutModels);
+
+            DeleteEmptyLayout();
+
+            var blocksList = this.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
+            if (blocksList.Length == 0) return;
+
+            this.SetPrintModels(trans);
+            this.SetLayoutPlotSetting();
+        }
+
+        public void CreateLayoutCollection()
+        {
+            Active.UsingTransaction(CreateCollectionFromBlockNames);
+        }
+        
+        
     }
 }

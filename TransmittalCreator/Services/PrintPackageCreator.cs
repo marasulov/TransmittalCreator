@@ -12,8 +12,9 @@ namespace TransmittalCreator.Services
     {
         public List<PrintPackageModel> PrintPackageModels { get; set; } = new List<PrintPackageModel>();
         private LayoutModelCollection LayoutModels { get; set; }
-        public string[] MainPageName { get; set; }
+        private string[] MainPageName = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009"};
 
+        //TODO finish refactoring from here
         public PrintPackageCreator(LayoutModelCollection layoutModels, string[] mainPageName)
         {
             LayoutModels = layoutModels;
@@ -50,7 +51,6 @@ namespace TransmittalCreator.Services
                 PublishPackage(package);
             }
         }
-
 
         public void PublishPackage(PrintPackageModel package)
         {

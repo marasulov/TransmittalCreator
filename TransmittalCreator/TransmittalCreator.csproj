@@ -80,11 +80,6 @@
     <Reference Include="DocumentFormat.OpenXml, Version=2.7.2.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\DocumentFormat.OpenXml.2.7.2\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
-    <Reference Include="DV2177.Common">
-      <HintPath>E:\docs\sharp\DV2177_Code\source\DV2177.Delegates\bin\Debug\DV2177.Common.dll</HintPath>
-      <Private>True</Private>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
     <Reference Include="EPPlus, Version=5.4.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.5.4.0\lib\net45\EPPlus.dll</HintPath>
     </Reference>
@@ -143,8 +138,8 @@
     <Folder Include="Models\Blocks\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Archive.cs" />
     <Compile Include="Converters\RatioConverter.cs" />
+    <Compile Include="DBCad\Active.cs" />
     <Compile Include="Hvac.cs" />
     <Compile Include="Models\FilenameModel.cs" />
     <Compile Include="Models\Layouts\LayoutModel.cs" />

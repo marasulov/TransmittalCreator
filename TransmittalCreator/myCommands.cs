@@ -5,12 +5,10 @@ using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
-using DV2177.Common;
+using TransmittalCreator.DBCad;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,10 +16,10 @@ using TransmittalCreator.Models;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Services.Files;
 using TransmittalCreator.ViewModel;
 using TransmittalCreator.Views;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
-using Table = Autodesk.AutoCAD.DatabaseServices.Table;
 
 // This line is not mandatory, but improves loading performances
 [assembly: CommandClass(typeof(TransmittalCreator.MyCommands))]
@@ -30,8 +28,6 @@ namespace TransmittalCreator
 {
     public class MyCommands : Utils, IExtensionApplication
     {
-
-
         #region HvacTable
 
         // Modal Command with pickfirst selection
@@ -46,13 +42,14 @@ namespace TransmittalCreator
 
 
         #region CreateTransPdf
+
         [CommandMethod("CreateTranspdf")]
         public static void CreateTransmittalAndPdf()
         {
             List<Sheet> dict = new List<Sheet>();
             List<PrintModel> printModels = new List<PrintModel>();
             Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-            using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+            using (Transaction tr = DBCad.Active.Database.TransactionManager.StartTransaction())
             {
                 //фильтр для выбора только блока
                 BlockSelector blockSelector = new BlockSelector();
@@ -71,7 +68,7 @@ namespace TransmittalCreator
                 ObjectIdCollection idArray = new ObjectIdCollection();
                 foreach (var objectId in idArrayTemp)
                 {
-                    BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                    BlockReference blRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
                     BlockTableRecord block =
                         tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
                     if (!(block is null))
@@ -100,7 +97,9 @@ namespace TransmittalCreator
                 tr.Commit();
             }
         }
+
         #endregion
+
         #region CreatePdfWithInterfaceSelecting
 
         [CommandMethod("CreatePdf")]
@@ -160,6 +159,7 @@ namespace TransmittalCreator
         #endregion
 
         #region CreateDwg
+
         [CommandMethod("CreateDwg")]
         public static void CreateDwg()
         {
@@ -197,7 +197,7 @@ namespace TransmittalCreator
                     ObjectIdCollection idArray = new ObjectIdCollection();
                     foreach (var objectId in idArrayTemp)
                     {
-                        BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                        BlockReference blRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
                         BlockTableRecord block =
                             tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
                         string blockName = block.Name;
@@ -216,14 +216,14 @@ namespace TransmittalCreator
                     {
                         ObjectCopier objectCopier = new ObjectCopier(objectId);
                         ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-                        BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-                        string selAttrName = "НОМЕР_ЛИСТА";
+                        BlockReference blkRef = (BlockReference) tr.GetObject(objectId, OpenMode.ForRead);
+                        const string selAttrName = "НОМЕР_ЛИСТА";
                         string fileName = Utils.GetBlockAttributeValue(blkRef, selAttrName);
 
                         //HostApplicationServices hs = HostApplicationServices.Current;
                         //string path = Application.GetSystemVariable("DWGPREFIX");
                         //hs.FindFile(doc.Name, doc.Database, FindFileHint.Default);
-                        string createdwgFolder = Path.GetFileNameWithoutExtension(db.OriginalFileName);
+                        //string createdwgFolder = Path.GetFileNameWithoutExtension(db.OriginalFileName);
 
                         string folderdwg = Path.GetDirectoryName(db.OriginalFileName);
                         string dwgFilename = Path.Combine(folderdwg, fileName + ".dwg");
@@ -240,7 +240,6 @@ namespace TransmittalCreator
                 tr.Commit();
             }
         }
-
 
 
         public static string ZoomFilesAndSave(string fileName)
@@ -286,101 +285,46 @@ namespace TransmittalCreator
 
             return newFileName;
         }
+
         #endregion
-
-
-
 
         [CommandMethod("CrLayTr")]
         public void CreateTransmitallFromLayout()
         {
-            string fileName = (string)Application.GetSystemVariable("DWGNAME");
-            string path = (string)Application.GetSystemVariable("DWGPREFIX");
-            string allPath = Path.Combine(path, fileName);
-            Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-
-            List<Sheet> sheets = new List<Sheet>();
-            LayoutModelCollection layoutModelCollection = new LayoutModelCollection();
+            IFileManager fileManager = new FileManager();
+            string allPath = fileManager.GetFilePath();
+            Active.SaveAs(allPath);
+            string[] blockNames = {"ФорматM25", "Формат"};
+            DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
+            LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
             layoutModelCollection.ListLayouts("Model");
-            string[] blockNames = { "ФорматM25", "Формат"};
+            layoutModelCollection.CreateLayoutCollection();
+
+            string[] viewNames = {"Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009"};
+            var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
+
+            LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
+            Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModalWindow(window);
+
+            if (!window.isClicked) return;
+
+            var printPackages = window._printPackages;
+            packageCreator.PrintPackageModels = printPackages;
+
+            packageCreator.PublishAllPackages();
+
+            var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
+
+            Utils utils = new Utils();
+            List<Sheet> sheets = new List<Sheet>();
             using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
             {
-                DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(layoutModelCollection)
-                {
-                    BlockNameToSearch = blockNames
-                };
-
-                dynamicBlocks.GetLayoutsWithDynBlocks(trans);
-
-                layoutModelCollection.DeleteEmptyLayout();
-
-                var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
-                if (blocksList.Length == 0) return;
-
-                layoutModelCollection.SetPrintModels(trans);
-                layoutModelCollection.SetLayoutPlotSetting();
-                trans.Commit();
-            }
-
-            using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
-            {
-
-                string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009"};
-                var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
-
-                LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
-                Application.ShowModalWindow(window);
-
-                if (!window.isClicked) return;
-
-                var printPackages = window._printPackages;
-                packageCreator.PrintPackageModels = printPackages;
-
-                packageCreator.PublishAllPackages();
-
-                var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
-
-                Utils utils = new Utils();
                 GetSheetsFromBlocks(Active.Editor, sheets, trans, new ObjectIdCollection(blockIds));
 
                 utils.CreateJsonFile(sheets);
             }
         }
 
-        private static void CreateLayoutCollectionFromBlockNames(Transaction trans, LayoutModelCollection layoutModelCollection,  string[] blockNames)
-        {
-            DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(layoutModelCollection)
-            {
-                BlockNameToSearch = blockNames
-            };
-
-            dynamicBlocks.GetLayoutsWithDynBlocks(trans);
-
-            layoutModelCollection.DeleteEmptyLayout();
-
-            var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
-            if (blocksList.Length == 0) return;
-
-            layoutModelCollection.SetPrintModels(trans);
-            layoutModelCollection.SetLayoutPlotSetting();
-        }
-        public delegate void TransactionDelegate(Transaction tr);
-        public static void UsingTransaction(TransactionDelegate action)
-        {
-            using (var tr = Active.Database.TransactionManager.StartTransaction())
-            {
-                try
-                {
-                    action(tr);
-                    tr.Commit();
-                }
-                catch (System.Exception)
-                {
-                    tr.Abort();
-                    throw;
-                }
-            }
-        }
 
         [CommandMethod("CtTransm")]
         public void ListAttributes()
@@ -439,6 +383,7 @@ namespace TransmittalCreator
                             //PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
                         }
                     }
+
                     tr.Commit();
                 }
             }
@@ -510,9 +455,11 @@ namespace TransmittalCreator
                             GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
                             tr.Commit();
                         }
+
                         db.SaveAs(dwgFlpath, DwgVersion.Current);
                     }
                 }
+
                 Application.ShowAlertDialog("All files processed");
             }
             catch (System.Exception ex)
@@ -554,13 +501,11 @@ namespace TransmittalCreator
                             //Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
                             PlotCurrentLayout(printModel.DocNumber, printModel);
                         }
+
                         tr.Commit();
                     }
                 }
             }
-
         }
     }
-
-
 }
