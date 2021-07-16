@@ -140,6 +140,13 @@
   <ItemGroup>
     <Compile Include="Converters\RatioConverter.cs" />
     <Compile Include="DBCad\Active.cs" />
+    <Compile Include="CircleDrawJig.cs" />
+    <Compile Include="DocumentWatcher.cs" />
+    <Compile Include="LeaderJig.cs" />
+    <Compile Include="SplinedLeaderJig.cs" />
+    <Compile Include="LineJigger.cs" />
+    <Compile Include="DimMoveJig.cs" />
+    <Compile Include="EntityRotateJigger.cs" />
     <Compile Include="Hvac.cs" />
     <Compile Include="Models\FilenameModel.cs" />
     <Compile Include="Models\Layouts\LayoutModel.cs" />

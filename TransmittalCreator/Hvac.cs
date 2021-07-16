@@ -5,56 +5,69 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
+using Application = System.Windows.Forms.Application;
 using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
 
 namespace TransmittalCreator
 {
-    public class Hvac : Utils
+    public class Hvac : EntityJig
     {
-        public void CreateHvacTable() // This method can have any name
+        public Point3d endPnt = new Point3d();
+        public static bool CreateHvacTable() // This method can have any name
         {
-            string documents = Path.GetDirectoryName(Active.Document.Name);
-            Environment.SetEnvironmentVariable("MYDOCUMENTS", documents);
-
-            var ofd = new OpenFileDialog("Select a file using an OpenFileDialog", documents,
-                "xlsx; *",
-                "File Date Test T22",
-                OpenFileDialog.OpenFileDialogFlags.DefaultIsFolder |
-                OpenFileDialog.OpenFileDialogFlags.ForceDefaultFolder // .AllowMultiple
-            );
-            DialogResult sdResult = ofd.ShowDialog();
-
-            if (sdResult != System.Windows.Forms.DialogResult.OK) return;
-
-            string filename = ofd.Filename;
-
-            List<HvacTable> hvacTables = CreateHvacTableListFromFile(filename);
-
-            Type type = typeof(HvacTable);
-
-            int tableCols = type.GetProperties().Length;
-            CreateLayer();
-
-            MyMessageFilter filter = new MyMessageFilter();
-
-            System.Windows.Forms.Application.AddMessageFilter(filter);
-
-            foreach (var hvacTable in hvacTables)
+            try
             {
-                // Check for user input events
-                System.Windows.Forms.Application.DoEvents();
-                if (filter.bCanceled == true)
+                string documents = Path.GetDirectoryName(Active.Document.Name);
+                Environment.SetEnvironmentVariable("MYDOCUMENTS", documents);
+
+                var ofd = new OpenFileDialog("Select a file using an OpenFileDialog", documents,
+                    "xlsx; *",
+                    "File Date Test T22",
+                    OpenFileDialog.OpenFileDialogFlags.DefaultIsFolder |
+                    OpenFileDialog.OpenFileDialogFlags.ForceDefaultFolder // .AllowMultiple
+                );
+                DialogResult sdResult = ofd.ShowDialog();
+
+                if (sdResult != DialogResult.OK) return false;
+
+                string filename = ofd.Filename;
+
+                List<HvacTable> hvacTables = CreateHvacTableListFromFile(filename);
+
+                Type type = typeof(HvacTable);
+
+                int tableCols = type.GetProperties().Length;
+                CreateLayer();
+
+                MyMessageFilter filter = new MyMessageFilter();
+
+                Application.AddMessageFilter(filter);
+
+                foreach (var hvacTable in hvacTables)
                 {
-                    Active.Editor.WriteMessage("\nLoop cancelled.");
-                    break;
+                    // Check for user input events
+                    Application.DoEvents();
+                    if (filter.bCanceled == true)
+                    {
+                        Active.Editor.WriteMessage("\nLoop cancelled.");
+                        break;
+                    }
+
+                    Utils.AddTable(hvacTable);
                 }
 
-                AddTable(hvacTable, tableCols);
+                Application.RemoveMessageFilter(filter);
+                return true;
             }
-
-            System.Windows.Forms.Application.RemoveMessageFilter(filter);
+            catch (Exception e)
+            {
+                return false;
+            }
         }
 
         public class MyMessageFilter : IMessageFilter
@@ -83,7 +96,7 @@ namespace TransmittalCreator
             }
         }
 
-        public List<HvacTable> CreateHvacTableListFromFile(string filename)
+        public static List<HvacTable> CreateHvacTableListFromFile(string filename)
         {
             FileInfo fileInfo = new FileInfo(filename);
             List<HvacTable> listData = new List<HvacTable>();
@@ -132,7 +145,7 @@ namespace TransmittalCreator
             return listData;
         }
 
-        public void CreateLayer()
+        public static void CreateLayer()
         {
             using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
@@ -163,6 +176,46 @@ namespace TransmittalCreator
                 //make it as current
                 Active.Database.Clayer = ltb["Hvac_Calc"];
             }
+
+        }
+
+        internal Hvac(Table table) : base(table)
+        {
+        }
+
+        protected override SamplerStatus Sampler(JigPrompts prompts)
+        {
+            Document doc = Active.Document;
+
+            JigPromptPointOptions prOptions1 = new JigPromptPointOptions("\nNext point:");
+            prOptions1.BasePoint = (Entity as Line).StartPoint;
+            prOptions1.UseBasePoint = true;
+            prOptions1.UserInputControls = UserInputControls.Accept3dCoordinates
+                                           | UserInputControls.AnyBlankTerminatesInput
+                                           | UserInputControls.GovernedByOrthoMode
+                                           | UserInputControls.GovernedByUCSDetect
+                                           | UserInputControls.UseBasePointElevation
+                                           | UserInputControls.InitialBlankTerminatesInput
+                                           | UserInputControls.NullResponseAccepted;
+            PromptPointResult prResult1 = prompts.AcquirePoint(prOptions1);
+            if (prResult1.Status == PromptStatus.Cancel)
+                return SamplerStatus.Cancel;
+
+            if (prResult1.Value.Equals(endPnt))
+            {
+                return SamplerStatus.NoChange;
+            }
+
+            endPnt = prResult1.Value;
+            return SamplerStatus.OK;
+        }
+
+        protected override bool Update()
+        {
+            Document doc = Active.Document;
+
+            (Entity as Table).Position = endPnt;
+            return true;
         }
     }
 }

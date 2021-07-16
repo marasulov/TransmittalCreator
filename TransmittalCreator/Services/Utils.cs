@@ -155,7 +155,9 @@ namespace TransmittalCreator.Services
             }
             catch (Exception e)
             {
-                Application.ShowAlertDialog(e.Message);
+                if(e.ErrorStatus == ErrorStatus.InvalidInput)
+                    Application.ShowAlertDialog($"{e.Message} : {printModel.Height} - {printModel.Width} не найден в настройках принтера");
+                
             }
         }
 
@@ -245,7 +247,6 @@ namespace TransmittalCreator.Services
                     foreach (ObjectId attId in attCol)
                     {
                         AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
-                        bool vis = attRef.Visible;
                         //ed.WriteMessage("\n{0} значение {1} видимость {2}", attRef.Tag, attRef.TextString, vis.ToString());
                         switch (attRef.Tag)
                         {
@@ -270,9 +271,8 @@ namespace TransmittalCreator.Services
                         }
                     }
 
-                    dict.Add(new Sheet(sheetNumber, docNumber, objectNameEng, docTitleEng, objectNameRu, docTitleRu, stampViewValue));
+                    dict.Add(new Sheet(sheetNumber.Trim(), docNumber.Trim(), objectNameEng.Trim(), docTitleEng.Trim(), objectNameRu.Trim(), docTitleRu.Trim(), stampViewValue.Trim()));
                 }
-
             }
 
             return dict;
@@ -785,8 +785,9 @@ namespace TransmittalCreator.Services
         /// </summary>
         /// <param name="hvacTable"></param>
         /// <param name="columnsNum"></param>
-        public void AddTable(HvacTable hvacTable, int columnsNum)
+        public static void AddTable(HvacTable hvacTable)
         {
+            Editor ed = Active.Editor;
             Database db = HostApplicationServices.WorkingDatabase;
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
@@ -813,6 +814,7 @@ namespace TransmittalCreator.Services
 
                     tb.SetRowHeight(rowheight);
                     tb.SetColumnWidth(columnwidth);
+
 
                     tb.Position = pr.Value;
                     // fill in the cell one by one
@@ -866,7 +868,7 @@ namespace TransmittalCreator.Services
             return (int)Math.Ceiling(double.Parse(str) / divValue);
         }
 
-        private void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
+        private static void SetCellPropsWithValue(Table tb, int curRow, int curCol, int textHeight, short colorNumber, string stringValue)
         {
             var curPos = tb.Cells[curRow, curCol];
             curPos.TextHeight = textHeight;

@@ -46,14 +46,86 @@ namespace TestConsole
         }
     }
 
+    interface IFigure
+    {
+        IFigure Clone();
+        void GetInfo();
+    }
+
+    class Rectangle: IFigure
+    {
+        int width;
+        int height;
+        public Rectangle(int w, int h)
+        {
+            width = w;
+            height = h;
+        }
+ 
+        public IFigure Clone()
+        {
+            return new Rectangle(this.width, this.height);
+        }
+        public void GetInfo()
+        {
+            Console.WriteLine("Прямоугольник длиной {0} и шириной {1}", height, width);
+        }
+    }
+ 
+    [Serializable]
+    class Circle : IFigure
+    {
+        int radius;
+        public Point Point { get; set; }
+        public Circle(int r, int x, int y)
+        {
+            radius = r;
+            this.Point = new Point { X = x, Y = y };
+        }
+ 
+        public IFigure Clone()
+        {
+            return this.MemberwiseClone() as IFigure;
+        }
+        public object DeepCopy()
+        {
+            object figure = null;
+            using (MemoryStream tempStream = new MemoryStream())
+            {
+                BinaryFormatter binFormatter = new BinaryFormatter(null,
+                    new StreamingContext(StreamingContextStates.Clone));
+ 
+                binFormatter.Serialize(tempStream, this);
+                tempStream.Seek(0, SeekOrigin.Begin);
+ 
+                figure = binFormatter.Deserialize(tempStream);
+            }
+            return figure;
+        }
+        public void GetInfo()
+        {
+            Console.WriteLine("Круг радиусом {0} и центром в точке ({1}, {2})", radius, Point.X, Point.Y);
+        }
+    }
+    [Serializable]
+    class Point
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
     class Program
     {
 
         static void Main(string[] args)
         {
-
-
-
+            Circle figure = new Circle(30, 50, 60);
+            Circle clonedFigure=figure.Clone() as Circle;
+            Circle clonedFigure2=figure.DeepCopy() as Circle;
+            figure.Point.X = 100; // изменяем координаты начальной фигуры
+            figure.GetInfo(); // figure.Point.X = 100
+            clonedFigure.GetInfo(); // clonedFigure.Point.X = 100
+            clonedFigure2.GetInfo();
 
             //string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
             //DirectoryInfo directoryInfo = new DirectoryInfo(dir);
