@@ -388,7 +388,7 @@ namespace TransmittalCreator
         }
 
 
-        [CommandMethod("MyMoveJig")]
+        [CommandMethod("MoveJig")]
         public static void RunMyCommand()
         {
             var dwg = Active.Document;
@@ -479,6 +479,56 @@ namespace TransmittalCreator
         }
 
         #endregion
+
+
+        [CommandMethod("CreateVed")]
+        public static void CreateVed()
+        {
+            List<Sheet> dict = new List<Sheet>();
+            List<PrintModel> printModels = new List<PrintModel>();
+            Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+            using (Transaction tr = DBCad.Active.Database.TransactionManager.StartTransaction())
+            {
+                //фильтр для выбора только блока
+                BlockSelector blockSelector = new BlockSelector();
+                blockSelector.GetFilterForSelectBlockId();
+                var res = blockSelector.SelectionResult;
+
+                if (res.Status != PromptStatus.OK)
+                {
+                    Active.Editor.WriteMessage("Надо выбрать блок");
+                    return;
+                }
+
+                SelectionSet selSet = res.Value;
+                ObjectId[] idArrayTemp = selSet.GetObjectIds();
+
+                ObjectIdCollection idArray = new ObjectIdCollection();
+                foreach (var objectId in idArrayTemp)
+                {
+                    BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+                    BlockTableRecord block =
+                        tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+                    if (!(block is null))
+                    {
+                        string blockName = block.Name;
+                        if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+                    }
+                }
+
+                GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+                string selAttrName = "НОМЕР_ЛИСТА";
+                
+                var dictOrdered = dict.OrderBy(x => x.MinPointX).ToList();
+                GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
+                
+                var scale = printModels[0].GetBlockScale();
+
+                Utils utils = new Utils();
+                utils.CreateOnlyVed(dictOrdered, scale);
+                tr.Commit();
+            }
+        }
 
 
         #region CreateTransPdf

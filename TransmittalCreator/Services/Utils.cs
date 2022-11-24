@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Autodesk.AutoCAD.Colors;
+using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.Models;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
@@ -238,6 +239,10 @@ namespace TransmittalCreator.Services
                 if (blkId != ObjectId.Null)
                 {
                     BlockReference blkRef = (BlockReference)tr.GetObject(blkId, OpenMode.ForRead);
+
+                    Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(blkRef.Position.X, blkRef.Position.Y,0), false);
+                    var minPointX = blockPos3d.X;
+
                     string stampViewValue = GetBlockAttributeValueByAttrName(blkRef);
                     BlockTableRecord btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
                     ed.WriteMessage("\nBlock: " + btr.Name);
@@ -271,7 +276,7 @@ namespace TransmittalCreator.Services
                         }
                     }
 
-                    dict.Add(new Sheet(sheetNumber.Trim(), docNumber.Trim(), objectNameEng.Trim(), docTitleEng.Trim(), objectNameRu.Trim(), docTitleRu.Trim(), stampViewValue.Trim()));
+                    dict.Add(new Sheet(sheetNumber.Trim(), docNumber.Trim(), objectNameEng.Trim(), docTitleEng.Trim(), objectNameRu.Trim(), docTitleRu.Trim(), stampViewValue.Trim(), minPointX));
                 }
             }
 
@@ -484,7 +489,7 @@ namespace TransmittalCreator.Services
             return attribs;
         }
 
-        public void CreateOnlyVed(List<Sheet> dict)
+        public void CreateOnlyVed(List<Sheet> dict, double scale=1)
         {
             Editor ed = Active.Editor;
             Transaction tr = Active.Database.TransactionManager.StartTransaction();
@@ -492,7 +497,7 @@ namespace TransmittalCreator.Services
             try
             {
                 //GetSheetsFromBlocks(ed, dict, tr);
-                CreateTableFromList(dict);
+                CreateTableFromList(dict, scale);
                 tr.Commit();
             }
             catch (Exception ex)
@@ -521,9 +526,9 @@ namespace TransmittalCreator.Services
             }
         }
 
-        public void CreateTableFromList(List<Sheet> dict)
+        public void CreateTableFromList(List<Sheet> dict, double scale = 1)
         {
-            dict = dict.OrderBy(x => x.SheetNumber).ToList();
+            //dict = dict.OrderBy(x => x.SheetNumber).ToList();
             Database db = Active.Database;
             Editor ed = Active.Editor;
             using (Transaction tr = db.TransactionManager.StartTransaction())
@@ -541,9 +546,9 @@ namespace TransmittalCreator.Services
                 // Число столбцов
                 int ColumnsNum = 3;
                 // Высота строки
-                double rowheight = 8;
+                double rowheight = 8 * scale;
                 // Ширина столбца
-                double columnwidth = 15;
+                double columnwidth = 15 * scale;
                 // Добавляем строки и колонки
                 tb.InsertRows(0, rowheight, RowsNum + 1);
                 tb.InsertColumns(0, columnwidth, ColumnsNum - 1);
@@ -560,31 +565,41 @@ namespace TransmittalCreator.Services
                 //var row = tb.Rows[RowsNum];
                 range = CellRange.Create(tb, 1, 1, 1, 2);
                 tb.UnmergeCells(range);
-                tb.Columns[0].Width = 15;
-                tb.Cells[0, 0].TextHeight = 5;
+                tb.Columns[0].Width = 15 * scale;
+                tb.Cells[0, 0].TextHeight = 5 * scale;
                 tb.Cells[0, 0].Alignment = CellAlignment.MiddleCenter;
                 tb.Cells[0, 0].TextString = "Ведомость рабочих чертежей основного комплекта";
                 var row = tb.Rows[RowsNum + 1];
                 tb.UnmergeCells(row);
+                tb.Rows[1].Alignment = CellAlignment.MiddleCenter;
+                tb.Rows[1].TextHeight = 3.5 * scale;
                 tb.Cells[1, 0].TextString = "Лист";
-                tb.Columns[1].Width = 140;
+                
+                tb.Columns[1].Width = 140 * scale;
+                
                 tb.Cells[1, 1].TextString = "Наименование";
-                tb.Columns[2].Width = 30;
+
+                tb.Columns[2].Width = 30 * scale;
+                
                 tb.Cells[1, 2].TextString = "Примечание";
                 //заполняем по одной все ячейки
                 int curRow = 2;
+                int i = 0;
                 foreach (var item in dict)
                 {
                     if (!string.IsNullOrWhiteSpace(item.DocNumber))
                     {
-                        tb.Cells[curRow, 0].TextHeight = 3.5;
-                        tb.Cells[curRow, 0].TextString = item.SheetNumber.ToString();
-                        tb.Cells[curRow, 1].TextHeight = 3.5;
+                        i++;
+                        tb.Rows[curRow].TextHeight = 3.0 * scale;
+                        tb.Cells[curRow, 0].TextString = i.ToString();
+                        tb.Cells[curRow, 0].Alignment = CellAlignment.MiddleCenter;
+
+                        
                         tb.Cells[curRow, 1].TextString = item.DocNumber + "_" + item.DocTitleRu;
                         tb.Cells[curRow, 1].Alignment = CellAlignment.MiddleLeft;
                         if (!string.IsNullOrEmpty(item.Comment))
                         {
-                            tb.Cells[curRow, 2].TextHeight = 3.5;
+                            
                             tb.Cells[curRow, 2].TextString = item.Comment;
                             tb.Cells[curRow, 2].Alignment = CellAlignment.MiddleLeft;
                         }

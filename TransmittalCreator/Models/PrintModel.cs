@@ -30,7 +30,7 @@ namespace TransmittalCreator.Models
         public Point2d BlockPosition { get; set; }
         public Point2d BlockDimensions { get; set; }
 
-        private double ScaleX { get; set; }
+        private double _scaleX { get; set; }
         public double Width { get; set; }
         public double Height { get; set; }
         public double MinPointX { get; private set; }
@@ -47,6 +47,11 @@ namespace TransmittalCreator.Models
 
         }
 
+        public double GetBlockScale()
+        {
+            return _scaleX;
+        }
+
         private void GetBlockLengths(ObjectId objectId)
         {
             double blockWidth = 0, blockHeight = 0;
@@ -54,7 +59,7 @@ namespace TransmittalCreator.Models
             using (Transaction Tx = Active.Database.TransactionManager.StartTransaction())
             {
                 BlockReference bref = Tx.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
-                this.ScaleX = bref.ScaleFactors.X;
+                this._scaleX = bref.ScaleFactors.X;
                 Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(bref.Position.X, bref.Position.Y,0), false);
                 MinPointX = blockPos3d.X;
                 MinPointY = blockPos3d.Y;
@@ -115,13 +120,13 @@ namespace TransmittalCreator.Models
 
                     if (IsFormatHorizontal())
                     {
-                        curWidth = Math.Round(Width / ScaleX);
-                        curHeight = Math.Round(Height / ScaleX);
+                        curWidth = Math.Round(Width / _scaleX);
+                        curHeight = Math.Round(Height / _scaleX);
                     }
                     else
                     {
-                        curWidth = Math.Round(Height / ScaleX);
-                        curHeight = Math.Round(Width / ScaleX);
+                        curWidth = Math.Round(Height / _scaleX);
+                        curHeight = Math.Round(Width / _scaleX);
                     }
                     
                     if (items.Item1 == curWidth & items.Item2 == curHeight)

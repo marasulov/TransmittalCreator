@@ -48,7 +48,9 @@ namespace TransmittalCreator
 
         public string ViewValue { get; set; }
 
-        public Sheet(string sheetNumber, string docNumber, string objectNameEng, string docTitleEng, string objectNameRu,  string docTitleRu, string viewValue)
+        public double MinPointX { get; private set; }
+
+        public Sheet(string sheetNumber, string docNumber, string objectNameEng, string docTitleEng, string objectNameRu,  string docTitleRu, string viewValue, double minPointX)
         {
             Int32.TryParse(sheetNumber, out int tempNumber);
             this.SheetNumber = tempNumber;
@@ -58,6 +60,7 @@ namespace TransmittalCreator
             this.ObjectNameRu = objectNameRu;
             this.DocTitleRu = docTitleRu;
             this.ViewValue = viewValue;
+            MinPointX = minPointX;
         }
 
         //public Sheet(string sheetNumber, string docNumber, string commment, string objectNameEng, string docTitleEng, string objectNameRu, string docTitleRu)
