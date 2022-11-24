@@ -20,6 +20,8 @@ namespace TransmittalCreator.Services
         private readonly bool _isAttrChecked;
         private readonly bool _isXChecked;
         private readonly bool _isYChecked;
+        private readonly bool _isXYChecked;
+        private readonly bool _isYXChecked;
 
         private List<PrintModel> _printModels = new List<PrintModel>();
         private ObjectIdCollection _objectIdCollection;
@@ -42,7 +44,9 @@ namespace TransmittalCreator.Services
             _sufix = window1.suffixTextBox.Text;
             _isAttrChecked = window1.attributeCheckBox.IsChecked.Value;
             _isXChecked= window1.RadioButtonX.IsChecked.Value;
-            _isXChecked= window1.RadioButtonY.IsChecked.Value;
+            _isYChecked= window1.RadioButtonY.IsChecked.Value;
+            _isXYChecked= window1.RadioButtonXY.IsChecked.Value;
+            _isYXChecked= window1.RadioButtonYX.IsChecked.Value;
 
         }
 
@@ -54,6 +58,9 @@ namespace TransmittalCreator.Services
             _isAttrChecked = window1.attributeCheckBox.IsChecked.Value;
             _isXChecked= window1.RadioButtonX.IsChecked.Value;
             _isYChecked= window1.RadioButtonY.IsChecked.Value;
+            _isXYChecked= window1.RadioButtonXY.IsChecked.Value;
+            _isYXChecked= window1.RadioButtonYX.IsChecked.Value;
+
             if(_isAttrChecked && !string.IsNullOrEmpty(_attributeName))
             {
                 BlockAttribute blockAttribute = window1.comboAttributs.SelectedItem as BlockAttribute;
@@ -103,7 +110,7 @@ namespace TransmittalCreator.Services
                     blockStamp = prop.Value.ToString();
                 }
             }
-            //TODO correct attrname
+            
             var attrDict = AttributeExtensions.GetAttributesValues(blkRef);
             if (blockStamp == "Форма 3 ГОСТ Р 21.1101-2009 M25" || blockStamp == "Форма 3 ГОСТ Р 21.1101-2009")
                 docNumber = attrDict.FirstOrDefault(x => x.Key == _attributeName).Value;
@@ -115,18 +122,32 @@ namespace TransmittalCreator.Services
             return docNumber;
         }
 
-        private void SortPrintModelsBySelectedOrder()
+        private void SortPrintModelsBySelectedValue()
         {
-            if(_isXChecked) _printModels = _printModels.OrderBy(x => x.MinPointX).ToList();
-            else if (_isYChecked)
+            if(_isXChecked)
+            {
+                _printModels = _printModels.OrderBy(x => x.MinPointX).ToList();
+            }
+            if (_isYChecked)
             {
                 _printModels = _printModels.OrderByDescending(x => x.MinPointY).ToList();
             }
+
+            if (_isXYChecked)
+            {
+
+            }
+
+            if (_isYXChecked)
+            {
+
+            }
+
         }
 
         public List<PrintModel> GetPrintModels()
         {
-            SortPrintModelsBySelectedOrder();
+            SortPrintModelsBySelectedValue();
 
             foreach (var printModel in PrintModels)
             {

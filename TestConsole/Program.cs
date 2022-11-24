@@ -54,27 +54,39 @@ namespace TestConsole
 
     class Rectangle: IFigure
     {
+        public string Position;
+        public double X;
+        public double Y;
         int width;
-        int height;
-        public Rectangle(int w, int h)
+        public double Height;
+        public Rectangle(int w, double h)
         {
             width = w;
-            height = h;
+            Height = h;
         }
- 
+
+        public Rectangle(string position, double x, double y, double height)
+        {
+            Position = position;
+            X = x;
+            Y = y;
+            Height = height;
+        }
+
         public IFigure Clone()
         {
-            return new Rectangle(this.width, this.height);
+            return new Rectangle(this.width, this.Height);
         }
         public void GetInfo()
         {
-            Console.WriteLine("Прямоугольник длиной {0} и шириной {1}", height, width);
+            Console.WriteLine("Прямоугольник длиной {0} и шириной {1}", Height, width);
         }
     }
  
     [Serializable]
     class Circle : IFigure
     {
+        
         int radius;
         public Point Point { get; set; }
         public Circle(int r, int x, int y)
@@ -119,13 +131,25 @@ namespace TestConsole
 
         static void Main(string[] args)
         {
-            Circle figure = new Circle(30, 50, 60);
-            Circle clonedFigure=figure.Clone() as Circle;
-            Circle clonedFigure2=figure.DeepCopy() as Circle;
-            figure.Point.X = 100; // изменяем координаты начальной фигуры
-            figure.GetInfo(); // figure.Point.X = 100
-            clonedFigure.GetInfo(); // clonedFigure.Point.X = 100
-            clonedFigure2.GetInfo();
+            Rectangle rec1 = new Rectangle("1",-109.4765, 3.5459, 2.5);
+            Rectangle rec2 = new Rectangle("2",-105.1077, 3.0005, 2.5);
+            Rectangle rec3 = new Rectangle("3",-100.3877, 3.11, 2.5);
+            Rectangle rec4 = new Rectangle("4",2796.555, 936.048, 2.5);
+            Rectangle rec5 = new Rectangle("5",3787.9363, 936.048, 2.5);
+
+            List<Rectangle> rectangles = new List<Rectangle>{rec1,rec2,rec3,rec4,rec5};
+
+            var sortedRec = rectangles.OrderByDescending(y => y.Y).ToList();
+
+
+
+            //Circle figure = new Circle(30, 50, 60);
+            //Circle clonedFigure=figure.Clone() as Circle;
+            //Circle clonedFigure2=figure.DeepCopy() as Circle;
+            //figure.Point.X = 100; // изменяем координаты начальной фигуры
+            //figure.GetInfo(); // figure.Point.X = 100
+            //clonedFigure.GetInfo(); // clonedFigure.Point.X = 100
+            //clonedFigure2.GetInfo();
 
             //string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
             //DirectoryInfo directoryInfo = new DirectoryInfo(dir);
