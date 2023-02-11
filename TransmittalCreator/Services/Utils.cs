@@ -123,6 +123,12 @@ namespace TransmittalCreator.Services
                                 acPlEng.BeginPlot(acPlProgDlg, null);
                                 // Define the plot output
                                 string filename = Path.Combine(Path.GetDirectoryName(acDoc.Name), pdfFileName);
+                                //if (filename.Contains("."))
+                                //{
+                                //    filename.Replace(".", "_");
+                                //}
+
+                                filename += ".pdf";
                                 Active.Editor.WriteMessage(filename);
 
                                 acPlEng.BeginDocument(acPlInfo, acDoc.Name, null, 1, true, filename);
