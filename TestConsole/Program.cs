@@ -1,266 +1,305 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using OfficeOpenXml;
-using TransmittalCreator.Models;
-using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.RegularExpressions;
 
 
 namespace TestConsole
 {
-    [Serializable]
-    public class MyType : ISerializable
-    {
-        public MyType()
-        {
-            //Console.WriteLine();
-            //Console.WriteLine("MyType instantiated!");
-        }
 
-        private string myProperty_value;
+	[Serializable]
+	public class MyType : ISerializable
+	{
+		public MyType()
+		{
+			//Console.WriteLine();
+			//Console.WriteLine("MyType instantiated!");
+		}
 
-        public string MyProperty
-        {
-            get { return myProperty_value; }
-            set { myProperty_value = value; }
-        }
+		private string myProperty_value;
 
-        // Implement this method to serialize data. The method is called
-        // on serialization.
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            // Use the AddValue method to specify serialized values.
-            info.AddValue("props", myProperty_value, typeof(string));
-        }
+		public string MyProperty
+		{
+			get { return myProperty_value; }
+			set { myProperty_value = value; }
+		}
 
-        // The special constructor is used to deserialize values.
-        public MyType(SerializationInfo info, StreamingContext context)
-        {
-            // Reset the property value using the GetValue method.
-            myProperty_value = (string)info.GetValue("props", typeof(string));
-        }
-    }
+		// Implement this method to serialize data. The method is called
+		// on serialization.
+		public void GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			// Use the AddValue method to specify serialized values.
+			info.AddValue("props", myProperty_value, typeof(string));
+		}
 
-    interface IFigure
-    {
-        IFigure Clone();
-        void GetInfo();
-    }
+		// The special constructor is used to deserialize values.
+		public MyType(SerializationInfo info, StreamingContext context)
+		{
+			// Reset the property value using the GetValue method.
+			myProperty_value = (string)info.GetValue("props", typeof(string));
+		}
+	}
 
-    class Rectangle: IFigure
-    {
-        public string Position;
-        public double X;
-        public double Y;
-        int width;
-        public double Height;
-        public Rectangle(int w, double h)
-        {
-            width = w;
-            Height = h;
-        }
+	interface IFigure
+	{
+		IFigure Clone();
+		void GetInfo();
+	}
 
-        public Rectangle(string position, double x, double y, double height)
-        {
-            Position = position;
-            X = x;
-            Y = y;
-            Height = height;
-        }
+	class Rectangle : IFigure
+	{
+		public string Position;
+		public double X;
+		public double Y;
+		int width;
+		public double Height;
+		public Rectangle(int w, double h)
+		{
+			width = w;
+			Height = h;
+		}
 
-        public IFigure Clone()
-        {
-            return new Rectangle(this.width, this.Height);
-        }
-        public void GetInfo()
-        {
-            Console.WriteLine("Прямоугольник длиной {0} и шириной {1}", Height, width);
-        }
-    }
- 
-    [Serializable]
-    class Circle : IFigure
-    {
-        
-        int radius;
-        public Point Point { get; set; }
-        public Circle(int r, int x, int y)
-        {
-            radius = r;
-            this.Point = new Point { X = x, Y = y };
-        }
- 
-        public IFigure Clone()
-        {
-            return this.MemberwiseClone() as IFigure;
-        }
-        public object DeepCopy()
-        {
-            object figure = null;
-            using (MemoryStream tempStream = new MemoryStream())
-            {
-                BinaryFormatter binFormatter = new BinaryFormatter(null,
-                    new StreamingContext(StreamingContextStates.Clone));
- 
-                binFormatter.Serialize(tempStream, this);
-                tempStream.Seek(0, SeekOrigin.Begin);
- 
-                figure = binFormatter.Deserialize(tempStream);
-            }
-            return figure;
-        }
-        public void GetInfo()
-        {
-            Console.WriteLine("Круг радиусом {0} и центром в точке ({1}, {2})", radius, Point.X, Point.Y);
-        }
-    }
-    [Serializable]
-    class Point
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-    }
+		public Rectangle(string position, double x, double y, double height)
+		{
+			Position = position;
+			X = x;
+			Y = y;
+			Height = height;
+		}
 
-    class Program
-    {
+		public IFigure Clone()
+		{
+			return new Rectangle(this.width, this.Height);
+		}
+		public void GetInfo()
+		{
+			Console.WriteLine("Прямоугольник длиной {0} и шириной {1}", Height, width);
+		}
+	}
 
-        static void Main(string[] args)
-        {
-            Rectangle rec1 = new Rectangle("1",-109.4765, 3.5459, 2.5);
-            Rectangle rec2 = new Rectangle("2",-105.1077, 3.0005, 2.5);
-            Rectangle rec3 = new Rectangle("3",-100.3877, 3.11, 2.5);
-            Rectangle rec4 = new Rectangle("4",2796.555, 936.048, 2.5);
-            Rectangle rec5 = new Rectangle("5",3787.9363, 936.048, 2.5);
+	[Serializable]
+	class Circle : IFigure
+	{
 
-            List<Rectangle> rectangles = new List<Rectangle>{rec1,rec2,rec3,rec4,rec5};
+		int radius;
+		public Point Point { get; set; }
+		public Circle(int r, int x, int y)
+		{
+			radius = r;
+			this.Point = new Point { X = x, Y = y };
+		}
 
-            var sortedRec = rectangles.OrderByDescending(y => y.Y).ToList();
+		public IFigure Clone()
+		{
+			return this.MemberwiseClone() as IFigure;
+		}
+		public object DeepCopy()
+		{
+			object figure = null;
+			using (MemoryStream tempStream = new MemoryStream())
+			{
+				BinaryFormatter binFormatter = new BinaryFormatter(null,
+					new StreamingContext(StreamingContextStates.Clone));
+
+				binFormatter.Serialize(tempStream, this);
+				tempStream.Seek(0, SeekOrigin.Begin);
+
+				figure = binFormatter.Deserialize(tempStream);
+			}
+			return figure;
+		}
+		public void GetInfo()
+		{
+			Console.WriteLine("Круг радиусом {0} и центром в точке ({1}, {2})", radius, Point.X, Point.Y);
+		}
+	}
+	[Serializable]
+	class Point
+	{
+		public int X { get; set; }
+		public int Y { get; set; }
+	}
+
+	class Program
+	{
 
 
+		static void Main(string[] args)
+		{
 
-            //Circle figure = new Circle(30, 50, 60);
-            //Circle clonedFigure=figure.Clone() as Circle;
-            //Circle clonedFigure2=figure.DeepCopy() as Circle;
-            //figure.Point.X = 100; // изменяем координаты начальной фигуры
-            //figure.GetInfo(); // figure.Point.X = 100
-            //clonedFigure.GetInfo(); // clonedFigure.Point.X = 100
-            //clonedFigure2.GetInfo();
-
-            //string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
-            //DirectoryInfo directoryInfo = new DirectoryInfo(dir);
-            //string[] allfiles = Directory.GetFiles(dir, "*.pdf", SearchOption.AllDirectories);
-            //string[] allDirs = Directory.GetDirectories(@"C:\Users\yusufzhon.marasulov\Desktop");
-
-            //string tree = ScanFolder(directoryInfo);
-
-            //Console.WriteLine("Done");
-            //Console.ReadLine();
-        }
-
-        static string ScanFolder(DirectoryInfo directory, string indentation = "\t", int maxLevel = -1, int deep = 0)
-        {
-            StringBuilder builder = new StringBuilder();
-
-            builder.AppendLine(string.Concat(Enumerable.Repeat(indentation, deep)) + directory.Name);
-
-            if (maxLevel == -1 || maxLevel < deep)
-            {
-                foreach (var subdirectory in directory.GetDirectories())
-                    builder.Append(ScanFolder(subdirectory, indentation, maxLevel, deep + 1));
-            }
-
-            foreach (var file in directory.GetFiles())
-                builder.AppendLine(string.Concat(Enumerable.Repeat(indentation, deep + 1)) + file.Name);
-
-            return builder.ToString();
-        }
+			string[] ams =
+			{
+				"salat", "kub", "ddewrwer", "atlas", "kub", "sdfvafasdf", "ubk", "edfwefwqerf", "dwer",
+				"dwer", "dwer", "dwer", "dwer", "dwer", "buk", "atals", "bku"
+			};
 
 
-        public static void DirectorySearch(string dir)
-        {
-            try
-            {
-                foreach (string f in Directory.GetFiles(dir))
-                {
-                    Console.WriteLine(Path.GetFileName(f));
-                }
-                foreach (string d in Directory.GetDirectories(dir))
-                {
-                    Console.WriteLine(Path.GetFileName(d));
-                    DirectorySearch(d);
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-        public static void SerializeItem(string fileName, IFormatter formatter)
-        {
-            // Create an instance of the type and serialize it.
-            MyType t = new MyType();
-            t.MyProperty = "Hello World";
-
-            FileStream s = new FileStream(fileName, FileMode.Create);
-            formatter.Serialize(s, t);
-            s.Close();
-        }
-
-        public static void DeserializeItem(string fileName, IFormatter formatter)
-        {
-            FileStream s = new FileStream(fileName, FileMode.Open);
-            MyType t = (MyType)formatter.Deserialize(s);
-            Console.WriteLine(t.MyProperty);
-        }
-        public static double ConvertToDouble(string Value)
-        {
-            if (Value == null)
-            {
-                return 0;
-            }
-            else
-            {
-                double OutVal;
-                double.TryParse(Value, out OutVal);
-
-                if (double.IsNaN(OutVal) || double.IsInfinity(OutVal))
-                {
-                    return 0;
-                }
-                return OutVal;
-            }
-        }
-
-        public static string GetWithIn(string str)
-        {
-            string rez = "";
-
-            Regex pattern =
-                new Regex(@"\d{1,}?\.[00]{1,2}",
-                    RegexOptions.Compiled |
-                    RegexOptions.Singleline);
-
-            foreach (Match m in pattern.Matches(str))
-                if (m.Success)
-                {
-                    rez = m.Groups["val"].Value;
-
-                }
-
-            return rez;
-        }
-    }
-
-    public class Params
-    {
-        public string Pc3 { get; set; }
-        public string Pmp { get; set; }
 
 
-    }
+			var anagrams = ams.Select(s => new string(s.OrderBy(x => x).ToArray()));
+			var arCount = anagrams.GroupBy(x => x);
+
+			//Console.WriteLine("Число анаграмм: {0}", );
+			Console.ReadKey();
+
+			//Rectangle rec1 = new Rectangle("1",-109.4765, 3.5459, 2.5);
+			//Rectangle rec2 = new Rectangle("2",-105.1077, 3.0005, 2.5);
+			//Rectangle rec3 = new Rectangle("3",-100.3877, 3.11, 2.5);
+			//Rectangle rec4 = new Rectangle("4",2796.555, 936.048, 2.5);
+			//Rectangle rec5 = new Rectangle("5",3787.9363, 936.048, 2.5);
+
+			//List<Rectangle> rectangles = new List<Rectangle>{rec1,rec2,rec3,rec4,rec5};
+
+			//var sortedRec = rectangles.OrderByDescending(y => y.Y).ToList();
+
+
+
+			//Circle figure = new Circle(30, 50, 60);
+			//Circle clonedFigure=figure.Clone() as Circle;
+			//Circle clonedFigure2=figure.DeepCopy() as Circle;
+			//figure.Point.X = 100; // изменяем координаты начальной фигуры
+			//figure.GetInfo(); // figure.Point.X = 100
+			//clonedFigure.GetInfo(); // clonedFigure.Point.X = 100
+			//clonedFigure2.GetInfo();
+
+			//string dir = @"C:\Users\yusufzhon.marasulov\Desktop";
+			//DirectoryInfo directoryInfo = new DirectoryInfo(dir);
+			//string[] allfiles = Directory.GetFiles(dir, "*.pdf", SearchOption.AllDirectories);
+			//string[] allDirs = Directory.GetDirectories(@"C:\Users\yusufzhon.marasulov\Desktop");
+
+			//string tree = ScanFolder(directoryInfo);
+
+			//Console.WriteLine("Done");
+			//Console.ReadLine();
+		}
+
+		static bool isAnagram(string word1, string word2)
+		{
+			if (word1.Length != word2.Length)
+			{
+				return false;
+			}
+			else
+			{
+				for (int i = 0; i < word2.Length; i++)
+				{
+					int indexOfCommonLetter = word1.IndexOf(word2[i]);
+					if (indexOfCommonLetter != -1) //it means that there's no common letters
+					{
+						word1 = word1.Remove(indexOfCommonLetter, 1);
+					}
+					else
+					{
+						return false;
+					}
+				}
+
+				return true; //if program comes so far - there's only common letters
+			}
+		}
+
+		static string ScanFolder(DirectoryInfo directory, string indentation = "\t", int maxLevel = -1, int deep = 0)
+		{
+			StringBuilder builder = new StringBuilder();
+
+			builder.AppendLine(string.Concat(Enumerable.Repeat(indentation, deep)) + directory.Name);
+
+			if (maxLevel == -1 || maxLevel < deep)
+			{
+				foreach (var subdirectory in directory.GetDirectories())
+					builder.Append(ScanFolder(subdirectory, indentation, maxLevel, deep + 1));
+			}
+
+			foreach (var file in directory.GetFiles())
+				builder.AppendLine(string.Concat(Enumerable.Repeat(indentation, deep + 1)) + file.Name);
+
+			return builder.ToString();
+		}
+
+
+		public static void DirectorySearch(string dir)
+		{
+			try
+			{
+				foreach (string f in Directory.GetFiles(dir))
+				{
+					Console.WriteLine(Path.GetFileName(f));
+				}
+				foreach (string d in Directory.GetDirectories(dir))
+				{
+					Console.WriteLine(Path.GetFileName(d));
+					DirectorySearch(d);
+				}
+			}
+			catch (System.Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+			}
+		}
+		public static void SerializeItem(string fileName, IFormatter formatter)
+		{
+			// Create an instance of the type and serialize it.
+			MyType t = new MyType();
+			t.MyProperty = "Hello World";
+
+			FileStream s = new FileStream(fileName, FileMode.Create);
+			formatter.Serialize(s, t);
+			s.Close();
+		}
+
+		public static void DeserializeItem(string fileName, IFormatter formatter)
+		{
+			FileStream s = new FileStream(fileName, FileMode.Open);
+			MyType t = (MyType)formatter.Deserialize(s);
+			Console.WriteLine(t.MyProperty);
+		}
+		public static double ConvertToDouble(string Value)
+		{
+			if (Value == null)
+			{
+				return 0;
+			}
+			else
+			{
+				double OutVal;
+				double.TryParse(Value, out OutVal);
+
+				if (double.IsNaN(OutVal) || double.IsInfinity(OutVal))
+				{
+					return 0;
+				}
+				return OutVal;
+			}
+		}
+
+		public static string GetWithIn(string str)
+		{
+			string rez = "";
+
+			Regex pattern =
+				new Regex(@"\d{1,}?\.[00]{1,2}",
+					RegexOptions.Compiled |
+					RegexOptions.Singleline);
+
+			foreach (Match m in pattern.Matches(str))
+				if (m.Success)
+				{
+					rez = m.Groups["val"].Value;
+
+				}
+
+			return rez;
+		}
+	}
+
+	public class Params
+	{
+		public string Pc3 { get; set; }
+		public string Pmp { get; set; }
+
+
+	}
 }

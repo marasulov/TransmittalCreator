@@ -8,6 +8,7 @@ using Autodesk.AutoCAD.PlottingServices;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Utils;
 using PlotType = Autodesk.AutoCAD.DatabaseServices.PlotType;
 
 namespace TransmittalCreator.Models.Layouts
@@ -63,7 +64,7 @@ namespace TransmittalCreator.Models.Layouts
             foreach (var layout in LayoutModels)
             {
                 string selAttrName = "НОМЕР_ЛИСТА";
-                layout.PrintModel = Utils.GetPrintModelByBlockId(trans, selAttrName, layout.BlocksObjectId);
+                layout.PrintModel = PrintUtils.GetPrintModelByBlockId(trans, selAttrName, layout.BlocksObjectId);
                 layout.CanonicalName = layout.PrintModel.GetCanonNameByWidthAndHeight();
             }
         }

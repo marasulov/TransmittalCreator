@@ -10,6 +10,7 @@ using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
+using TransmittalCreator.Utils;
 using Application = System.Windows.Forms.Application;
 using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
 
@@ -58,7 +59,7 @@ namespace TransmittalCreator
                         break;
                     }
 
-                    Utils.AddTable(hvacTable);
+                    PrintUtils.AddTable(hvacTable);
                 }
 
                 Application.RemoveMessageFilter(filter);

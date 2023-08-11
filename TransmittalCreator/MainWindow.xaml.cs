@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
+using TransmittalCreator.Utils;
 using TransmittalCreator.ViewModel;
 using MessageBox = System.Windows.Forms.MessageBox;
 
@@ -29,7 +30,7 @@ namespace TransmittalCreator
             Dictionary<string, string> attrList = new Dictionary<string, string>();
             Transaction tr = Active.Database.TransactionManager.StartTransaction();
 
-            var names = Utils.GetAttrList(tr, attrList);
+            var names = PrintUtils.GetAttrList(tr, attrList);
             tr?.Dispose();
             attrList = names.Item2;
             _blockName = names.Item1;
