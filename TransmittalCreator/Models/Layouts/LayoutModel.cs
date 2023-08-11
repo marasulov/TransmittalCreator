@@ -1,6 +1,7 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using System.Collections.Generic;
 using TransmittalCreator.Services;
+using TransmittalCreator.Utils;
 
 namespace TransmittalCreator.Models.Layouts
 {
@@ -26,7 +27,7 @@ namespace TransmittalCreator.Models.Layouts
         public void CreatePrintModel(Transaction tr )
         {
             string selAttrName = "НОМЕР_ЛИСТА";
-            PrintModel = Utils.GetPrintModelByBlockId(tr, selAttrName, BlocksObjectId);
+            PrintModel = PrintUtils.GetPrintModelByBlockId(tr, selAttrName, BlocksObjectId);
         }
         
     }

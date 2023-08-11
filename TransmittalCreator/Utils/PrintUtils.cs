@@ -13,12 +13,13 @@ using System.Linq;
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.Models;
+using TransmittalCreator.Services;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
-namespace TransmittalCreator.Services
+namespace TransmittalCreator.Utils
 {
-    public class Utils
+    public static class PrintUtils
     {
         /// <summary>
         /// plotting method
@@ -276,6 +277,9 @@ namespace TransmittalCreator.Services
                             case "НАЗВАНИЕ_ЛИСТАRU":
                                 docTitleRu = attRef.TextString;
                                 break;
+                            case "НАЗВАНИЕ_ЛИСТА":
+	                            docTitleRu = attRef.TextString;
+	                            break;
                             case "ЛИСТ":
                                 sheetNumber = attRef.TextString;
                                 break;
@@ -413,7 +417,7 @@ namespace TransmittalCreator.Services
             return blockStamp;
         }
 
-        public void CreateJsonFile(List<Sheet> dict)
+        public static void CreateJsonFile(List<Sheet> dict)
         {
             dict = dict.OrderBy(x => x.SheetNumber).ToList();
             List<Sheet> newSheets = new List<Sheet>();
@@ -495,7 +499,7 @@ namespace TransmittalCreator.Services
             return attribs;
         }
 
-        public void CreateOnlyVed(List<Sheet> dict, double scale=1)
+        public static void CreateOnlyVed(List<Sheet> dict, double scale=1)
         {
             Editor ed = Active.Editor;
             Transaction tr = Active.Database.TransactionManager.StartTransaction();
@@ -515,7 +519,7 @@ namespace TransmittalCreator.Services
                 tr.Dispose();
             }
         }
-        public void CreateOnlytrans(List<Sheet> dict)
+        public static void CreateOnlytrans(List<Sheet> dict)
         {
             Editor ed = Active.Editor;
             //Transaction tr = Active.Database.TransactionManager.StartTransaction();
@@ -532,7 +536,7 @@ namespace TransmittalCreator.Services
             }
         }
 
-        public void CreateTableFromList(List<Sheet> dict, double scale = 1)
+        public static void CreateTableFromList(List<Sheet> dict, double scale = 1)
         {
             //dict = dict.OrderBy(x => x.SheetNumber).ToList();
             Database db = Active.Database;
@@ -601,7 +605,7 @@ namespace TransmittalCreator.Services
                         tb.Cells[curRow, 0].Alignment = CellAlignment.MiddleCenter;
 
                         
-                        tb.Cells[curRow, 1].TextString = item.DocNumber + "_" + item.DocTitleRu;
+                        tb.Cells[curRow, 1].TextString = item.DocNumber + " " + item.DocTitleRu;
                         tb.Cells[curRow, 1].Alignment = CellAlignment.MiddleLeft;
                         if (!string.IsNullOrEmpty(item.Comment))
                         {

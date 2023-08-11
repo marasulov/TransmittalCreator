@@ -46,6 +46,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -55,6 +56,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -140,11 +142,13 @@
     <Folder Include="Models\Blocks\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandsWatcher.cs" />
     <Compile Include="Converters\RatioConverter.cs" />
     <Compile Include="DBCad\Active.cs" />
     <Compile Include="CircleDrawJig.cs" />
     <Compile Include="DocumentWatcher.cs" />
     <Compile Include="LeaderJig.cs" />
+    <Compile Include="Services\ExtensionMethods.cs" />
     <Compile Include="SplinedLeaderJig.cs" />
     <Compile Include="LineJigger.cs" />
     <Compile Include="DimMoveJig.cs" />
@@ -202,7 +206,9 @@
     <Compile Include="Styles\VS2012\VS2012WindowStyle.xaml.cs">
       <DependentUpon>VS2012WindowStyle.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Services\Utils.cs" />
+    <Compile Include="Utils\PrintUtils.cs" />
+    <Compile Include="Utils\AcadUtils.cs" />
+    <Compile Include="Utils\LayerUtils.cs" />
     <Compile Include="ViewModel\AttributeViewModel.cs" />
     <Compile Include="ViewModel\BlockViewModel.cs" />
     <Compile Include="ViewModel\FileNameViewModel.cs" />

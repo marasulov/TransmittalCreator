@@ -1,19 +1,18 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
-using TransmittalCreator.DBCad;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
-using TransmittalCreator.Services;
+using TransmittalCreator.Utils;
 using TransmittalCreator.ViewModel;
-using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace TransmittalCreator
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
-    public partial class PdfCreator : Window
+	/// <summary>
+	/// Логика взаимодействия для MainWindow.xaml
+	/// </summary>
+	public partial class PdfCreator : Window
     {
         public bool isClicked = false;
         BlockViewModel _data;
@@ -29,7 +28,7 @@ namespace TransmittalCreator
             Dictionary<string, string> attrList = new Dictionary<string, string>();
             Transaction tr = Active.Database.TransactionManager.StartTransaction();
 
-            var names = Utils.GetAttrList(tr, attrList);
+            var names = PrintUtils.GetAttrList(tr, attrList);
             attrList = names.Item2;
             _blockName = names.Item1;
 
