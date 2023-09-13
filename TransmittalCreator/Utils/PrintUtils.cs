@@ -16,6 +16,7 @@ using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
+using iTextSharp.text.pdf;
 
 namespace TransmittalCreator.Utils
 {
@@ -41,9 +42,7 @@ namespace TransmittalCreator.Utils
                     LayoutManager acLayoutMgr;
                     acLayoutMgr = LayoutManager.Current;
                     // Get the current layout and output its name in the Command Line window
-                    Layout acLayout;
-                    acLayout =
-                        acTrans.GetObject(acLayoutMgr.GetLayoutId(acLayoutMgr.CurrentLayout),
+                    Layout acLayout = acTrans.GetObject(acLayoutMgr.GetLayoutId(acLayoutMgr.CurrentLayout),
                             OpenMode.ForRead) as Layout;
 
                     // Get the PlotInfo from the layout
@@ -900,6 +899,58 @@ namespace TransmittalCreator.Utils
             curPos.TextString = stringValue;
             curPos.Alignment = CellAlignment.MiddleCenter;
             curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci, colorNumber);
+        }
+
+                /// <summary>
+        /// принимает список пдф документов для объединения и объединяет их в выходном файле
+        /// </summary>
+        /// <param name="pages">список пдф документов в виде полного названия файла</param>
+        /// <param name="fileName">выходной документ в виде полного названия</param>
+        /// <returns></returns>
+        public static bool UnitePages(List<string> pages, string fileName)
+        { 
+            if (pages.Count == 0) return false;            
+            try
+            {
+                //создаем экземпляр ридера из первого пдф документа
+                using (PdfReader pdfReader = new PdfReader(pages[0]))
+                {
+                    //получаем документ из первого ридера
+                    using (iTextSharp.text.Document document = new iTextSharp.text.Document(pdfReader.GetPageSizeWithRotation(1)))
+                    {
+                        //создаем выходной документ как копию первого открытого
+                        using (PdfCopy pdfCopy = new PdfCopy(document, new System.IO.FileStream(fileName, System.IO.FileMode.CreateNew)))
+                        {
+                            //открываем первый документ
+                            document.Open();
+                            //получаем содержимое первой страницы открытого документа
+                            PdfImportedPage pdfImportedPage = pdfCopy.GetImportedPage(pdfReader, 1);
+                            //добавляем полученную страницу в выходной документ
+                            pdfCopy.AddPage(pdfImportedPage);
+                            //проходим по оставшимся документам
+                            for (int i = 1; i < pages.Count; i++)
+                            {
+                                //создаем новый экземпляр ридера
+                                using (PdfReader pdfReader2 = new PdfReader(pages[i]))
+                                {
+                                    //получаем первую страницу
+                                    using (iTextSharp.text.Document document2 = new iTextSharp.text.Document(pdfReader.GetPageSizeWithRotation(1)))
+                                    {
+                                        //открываем страницу
+                                        document2.Open();
+                                        //записываем содержимое этой страницы
+                                        pdfImportedPage = pdfCopy.GetImportedPage(pdfReader2, 1);
+                                        //добавляем эту страницу в выходной документ
+                                        pdfCopy.AddPage(pdfImportedPage);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+            catch { return false; }
         }
     }
 }

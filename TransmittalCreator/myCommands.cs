@@ -29,6 +29,9 @@ using Arc = Autodesk.AutoCAD.DatabaseServices.Arc;
 using Document = Autodesk.AutoCAD.ApplicationServices.Document;
 using Line = Autodesk.AutoCAD.DatabaseServices.Line;
 using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
+using iTextSharp.text.pdf;
+using System.Windows.Controls;
+using Autodesk.AutoCAD.PlottingServices;
 
 
 // This line is not mandatory, but improves loading performances
@@ -47,7 +50,7 @@ namespace TransmittalCreator
 
 		#region XData
 
-		[CommandMethod("AddXData")]
+		//[CommandMethod("AddXData")]
 		public static void AddXData_Method()
 		{
 			const string TestAppName = "XDataAppName1";
@@ -117,7 +120,7 @@ namespace TransmittalCreator
 			}
 		}
 
-		[CommandMethod("DeleteXData")]
+		//[CommandMethod("DeleteXData")]
 		public static void DeleteXData_Method()
 		{
 			Database db = HostApplicationServices.WorkingDatabase;
@@ -292,7 +295,7 @@ namespace TransmittalCreator
 			ed.Regen();
 		}
 
-		[CommandMethod("AddFieldToAttribute")]
+		//[CommandMethod("AddFieldToAttribute")]
 		public void AddFieldToAttribute()
 		{
 			Database db = Application.DocumentManager.MdiActiveDocument.Database;
@@ -381,7 +384,7 @@ namespace TransmittalCreator
 			}
 		}
 
-		[CommandMethod("ChangeBlockPos")]
+		//[CommandMethod("ChangeBlockPos")]
 		public static void ChangeBlockPosByAttrValue()
 		{
 			Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
@@ -454,7 +457,7 @@ namespace TransmittalCreator
 			}
 		}
 
-		[CommandMethod("InsertBlockByPline")]
+		//[CommandMethod("InsertBlockByPline")]
 		public static void InsertBlockByPline()
 		{
 
@@ -541,7 +544,7 @@ namespace TransmittalCreator
 		}
 
 
-		[CommandMethod("EC")]
+		//[CommandMethod("EC")]
 		public void EventCommand()
 		{
 			var dm = Application.DocumentManager;
@@ -670,7 +673,6 @@ namespace TransmittalCreator
 			}
 			Active.Editor.Regen();
 		}
-
 		private static Arc CreateArcFromPoints(ExcelWorksheet worksheet, int i)
 		{
 			var x1ArcText = worksheet.Cells[i, 15].Text;
@@ -765,7 +767,7 @@ namespace TransmittalCreator
 		//    return empties.All(e => e);
 		//}
 
-		[CommandMethod("ECX")]
+		//[CommandMethod("ECX")]
 		public void StopEventCommand()
 		{
 			var dm = Application.DocumentManager;
@@ -781,7 +783,7 @@ namespace TransmittalCreator
 			ed.WriteMessage("\nNo longer watching folder.");
 		}
 
-		[CommandMethod("MYSL")]
+		//[CommandMethod("MYSL")]
 		public static void SplinedLeader()
 		{
 			Document doc
@@ -824,7 +826,7 @@ namespace TransmittalCreator
 			}
 		}
 
-		[CommandMethod("DL")]
+		//[CommandMethod("DL")]
 		public void DirectionalLeader()
 		{
 			var doc = Application.DocumentManager.MdiActiveDocument;
@@ -862,24 +864,6 @@ namespace TransmittalCreator
 				{
 					tr.Commit();
 				}
-			}
-		}
-
-
-		[CommandMethod("Dci", CommandFlags.NoPaperSpace)]
-		public static void DrawEntities()
-		{
-			var dwg = Active.Document;
-			var ed = dwg.Editor;
-
-			try
-			{
-				CircleDrawJig jig = new CircleDrawJig();
-				jig.DrawEntities();
-			}
-			catch (System.Exception ex)
-			{
-				ed.WriteMessage($"\nInitializing error:\n{ex.Message}\n");
 			}
 		}
 
@@ -974,6 +958,19 @@ namespace TransmittalCreator
 		[CommandMethod("CreateTranspdf")]
 		public static void CreateTransmittalAndPdf()
 		{
+			Document acDoc = Application.DocumentManager.MdiActiveDocument;
+
+			PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
+			pKeyOpts.Message = "\nCombine all printed files in one?/Объединить все файлы в один? ";
+			pKeyOpts.Keywords.Add("Yes");
+			pKeyOpts.Keywords.Add("No");
+			pKeyOpts.Keywords.Default = "No";
+			pKeyOpts.AllowNone = false;
+
+			PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
+
+			//Application.ShowAlertDialog("Entered keyword: " + pKeyRes.StringResult);
+
 			List<Sheet> dict = new List<Sheet>();
 			List<PrintModel> printModels = new List<PrintModel>();
 			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
@@ -1009,7 +1006,7 @@ namespace TransmittalCreator
 				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
 				string selAttrName = "НОМЕР_ЛИСТА";
 				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-
+				
 				
 				//utils.CreateOnlyVed(dict);
 				PrintUtils.CreateJsonFile(dict);
@@ -1020,8 +1017,29 @@ namespace TransmittalCreator
 					PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
 				}
 
-				//utils.CreateOnlytrans(dict);
+				if (pKeyRes.StringResult.ToLower() == "yes")
+				{
+					var filenames = dict.Select(x => Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{x.DocNumber}.pdf")).ToList();
+					var dataDir = Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{Path.GetFileNameWithoutExtension(AcadUtils.Document.Name)}.pdf");
+					var isSuccessPrinted = PrintUtils.UnitePages(filenames, dataDir);
 
+
+					foreach (var file in filenames.Where(file => File.Exists(file)))
+					{
+						try
+						{
+							File.Delete(file);
+						}
+						catch (System.Exception e)
+						{
+							AcadUtils.Editor.WriteMessage(e.Message);
+								
+						}
+					}
+					AcadUtils.Editor.WriteMessage(isSuccessPrinted ? "Все файлы распечатаны\n" : "Произошла ошибка\n");
+
+				}
+				
 				tr.Commit();
 			}
 		}
@@ -1219,9 +1237,22 @@ namespace TransmittalCreator
 		[CommandMethod("CrLayTr")]
 		public void CreateTransmitallFromLayout()
 		{
+			Document acDoc = Application.DocumentManager.MdiActiveDocument;
+
+			PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
+			pKeyOpts.Message = "\nCombine all printed files in one?/Объединить все файлы в один? ";
+			pKeyOpts.Keywords.Add("Yes");
+			pKeyOpts.Keywords.Add("No");
+			pKeyOpts.Keywords.Default = "Yes";
+			pKeyOpts.AllowNone = false;
+
+			PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
+
+
 			IFileManager fileManager = new FileManager();
 			string allPath = fileManager.GetFilePath();
-			Active.SaveAs(allPath);
+			//Active.SaveAs(allPath);
+			//Active.Database.SaveAs(path, DwgVersion.Current);
 			string[] blockNames = { "ФорматM25", "Формат" };
 			DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
 			LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
@@ -1238,7 +1269,8 @@ namespace TransmittalCreator
 
 			var printPackages = window._printPackages;
 			packageCreator.PrintPackageModels = printPackages;
-
+			var sheetType = SheetType.MultiPdf;
+			if(pKeyRes.StringResult.ToLower()== "no") sheetType = SheetType.SinglePdf;
 			packageCreator.PublishAllPackages();
 
 			var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
@@ -1457,175 +1489,10 @@ namespace TransmittalCreator
 			}
 		}
 
-		[CommandMethod("TestVector")]
-		public void TestVector()
-		{
-			//Document doc = Application.DocumentManager.MdiActiveDocument;
-			//Editor ed = doc.Editor;
-			//PromptPointOptions pr =
-			//    new PromptPointOptions("\nУкажите вектор для получения перпендикулярного (ENTER - завершение): ");
-			//pr.AllowNone = true;
-			//PromptPointResult res;
-			//while ((res = ed.GetPoint(pr)).Status == PromptStatus.OK)
-			//{
-			//    Vector3d v = res.Value.GetAsVector();
-			//    v = v.GetNormal();
-			//    Vector3d vPerp1 = v.GetPerpendicularVector(); // Стандартный алгоритм
-			//    Vector3d vPerp2 = GetArbPerpVector(v); // Arbitrary алгоритм
-			//    ed.WriteMessage("\nPerp1 = ({0}) Perp2=({1})", vPerp1, vPerp2);
-			//}
 
-			PromptEntityOptions promptOptions = new PromptEntityOptions("\nSelect Polyline: ");
-			PromptEntityResult entity = Application.DocumentManager.MdiActiveDocument.Editor.GetEntity(promptOptions);
 
-			// Exit if the user presses ESC or cancels the command
-			if (entity.Status != PromptStatus.OK)
-			{
-				return;
-			}
 
-			PromptPointOptions promptPointOptions = new PromptPointOptions("\nSelect Point: ");
-			PromptPointResult userPoint = Application.DocumentManager.MdiActiveDocument.Editor.GetPoint(promptPointOptions);
-
-			// Exit if the user presses ESC or cancels the command
-			if (userPoint.Status != PromptStatus.OK)
-			{
-				return;
-			}
-
-			// Get the current document and database
-			Document document = Application.DocumentManager.MdiActiveDocument;
-			Database database = document.Database;
-
-			// Start a transaction
-			using (Transaction transaction = database.TransactionManager.StartTransaction())
-			{
-				using (Curve curve = (Curve)transaction.GetObject(entity.ObjectId, OpenMode.ForRead))
-				{
-					Point3d pointOnCurve = curve.GetClosestPointTo(userPoint.Value, true);
-					Vector3d tangentVector = curve.GetFirstDerivative(pointOnCurve);
-					Vector3d perpendicularVector = tangentVector.GetPerpendicularVector();
-					perpendicularVector = perpendicularVector.GetNormal();
-
-					double distance = 5.0;
-
-					Point3d startPoint = userPoint.Value;
-					Point3d endPoint = pointOnCurve - perpendicularVector * distance;
-
-					using (BlockTable blockTable = (BlockTable)transaction.GetObject(database.BlockTableId, OpenMode.ForRead))
-					{
-						using (BlockTableRecord blockTableRecord = (BlockTableRecord)transaction.GetObject(blockTable[BlockTableRecord.ModelSpace], OpenMode.ForWrite))
-						{
-							Polyline perpendicularPolyline = new Polyline();
-							perpendicularPolyline.SetDatabaseDefaults();
-							perpendicularPolyline.ColorIndex = 2;
-							perpendicularPolyline.AddVertexAt(0, new Point2d(startPoint.X, startPoint.Y), 0.4141, 0, 0);
-
-							perpendicularPolyline.AddVertexAt(1, new Point2d(endPoint.X, endPoint.Y), 0, 0, 0);
-
-							blockTableRecord.AppendEntity(perpendicularPolyline);
-							transaction.AddNewlyCreatedDBObject(perpendicularPolyline, true);
-						}
-					}
-				}
-
-				transaction.Commit();
-			}
-
-			Application.DocumentManager.MdiActiveDocument.Editor.UpdateScreen();
-		}
-
-		[CommandMethod("TestVector1")]
-		public void TestVector1()
-		{
-			Document doc = Application.DocumentManager.MdiActiveDocument;
-			Database acCurDb = doc.Database;
-			Editor ed = doc.Editor;
-			PromptPointOptions pr =
-				new PromptPointOptions("\nУкажите вектор для получения перпендикулярного (ENTER - завершение): ");
-			pr.AllowNone = true;
-			PromptPointResult res;
-
-			Point3d p1 = new Point3d(50, 0, 0);
-			Point3d p2 = new Point3d(70, 20, 0);
-
-			var vector3d = p1 - p2;
-			Point3d pt3 = p1 - vector3d.GetNormal();
-
-			var perpendicular = vector3d.GetPerpendicularVector();
-			var endPoint3d = pt3 - perpendicular * 10;
-
-			using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-			{
-
-				BlockTable acBlkTbl;
-				acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead) as BlockTable;
-
-				BlockTableRecord acBlkTblRec;
-				acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-				Polyline acPoly = new Polyline();
-				acPoly.AddVertexAt(0, new Point2d(p1.X, p1.Y), -0.4141, 0, 0);
-				acPoly.AddVertexAt(1, new Point2d(endPoint3d.X, endPoint3d.Y), 0, 0, 0);
-				acBlkTblRec.AppendEntity(acPoly);
-				acTrans.AddNewlyCreatedDBObject(acPoly, true);
-
-				acTrans.Commit();
-			}
-
-		}
-
-		[CommandMethod("EditPolyline1111")]
-		public static void EditPolyline()
-		{
-			// Get the current document and database
-			Document acDoc = Application.DocumentManager.MdiActiveDocument;
-			Database acCurDb = acDoc.Database;
-			// Start a transaction
-
-			var options = new PromptPointOptions("\nFirst point: ");
-			var result = Active.Editor.GetPoint(options);
-			if (result.Status != PromptStatus.OK)
-				return;
-			var pt1 = result.Value;
-
-			using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
-			{
-				// Open the Block table for read
-				BlockTable acBlkTbl;
-				acBlkTbl = acTrans.GetObject(acCurDb.BlockTableId,
-					OpenMode.ForRead) as BlockTable;
-				// Open the Block table record Model space for write
-				BlockTableRecord acBlkTblRec;
-				acBlkTblRec = acTrans.GetObject(acBlkTbl[BlockTableRecord.ModelSpace],
-					OpenMode.ForWrite) as BlockTableRecord;
-				// Create a lightweight polyline
-				Polyline acPoly = new Polyline();
-				//acPoly.SetDatabaseDefaults();
-
-				acPoly.AddVertexAt(0, new Point2d(0, 0), -0.4141, 0, 0);
-				acPoly.AddVertexAt(1, new Point2d(5, 5), 0, 0, 0);
-				acPoly.AddVertexAt(2, new Point2d(10, 5), 0.4141, 0, 0);
-				acPoly.AddVertexAt(3, new Point2d(15, 10), 0, 0, 0);
-				//acPoly.AddVertexAt(4, new Point2d(10, 10), 0, 0, 0);
-				// Add the new object to the block table record and the transaction
-				acBlkTblRec.AppendEntity(acPoly);
-				acTrans.AddNewlyCreatedDBObject(acPoly, true);
-				// Sets the bulge at index 3
-				//acPoly.SetBulgeAt(3, -0.6);
-				// Add a new vertex
-				//acPoly.AddVertexAt(5, new Point2d(4, 1), 0, 0, 0);
-				// Sets the start and end width at index 4
-				//acPoly.SetStartWidthAt(0, 0);
-				//acPoly.SetEndWidthAt(4, 0);
-				// Close the polyline
-				//acPoly.Closed = false;
-				// Save the new objects to the database
-				acTrans.Commit();
-			}
-		}
-
-		[CommandMethod("OPSV")]
+		//[CommandMethod("OPSV")]
 		public static void OpenSaveDwgFiles()
 		{
 			List<Sheet> dict = new List<Sheet>();
