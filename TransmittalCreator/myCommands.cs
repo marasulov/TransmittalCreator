@@ -1237,22 +1237,9 @@ namespace TransmittalCreator
 		[CommandMethod("CrLayTr")]
 		public void CreateTransmitallFromLayout()
 		{
-			Document acDoc = Application.DocumentManager.MdiActiveDocument;
-
-			PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
-			pKeyOpts.Message = "\nCombine all printed files in one?/Объединить все файлы в один? ";
-			pKeyOpts.Keywords.Add("Yes");
-			pKeyOpts.Keywords.Add("No");
-			pKeyOpts.Keywords.Default = "Yes";
-			pKeyOpts.AllowNone = false;
-
-			PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
-
-
 			IFileManager fileManager = new FileManager();
 			string allPath = fileManager.GetFilePath();
-			//Active.SaveAs(allPath);
-			//Active.Database.SaveAs(path, DwgVersion.Current);
+			Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
 			string[] blockNames = { "ФорматM25", "Формат" };
 			DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
 			LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
@@ -1270,7 +1257,7 @@ namespace TransmittalCreator
 			var printPackages = window._printPackages;
 			packageCreator.PrintPackageModels = printPackages;
 			var sheetType = SheetType.MultiPdf;
-			if(pKeyRes.StringResult.ToLower()== "no") sheetType = SheetType.SinglePdf;
+			
 			packageCreator.PublishAllPackages();
 
 			var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
