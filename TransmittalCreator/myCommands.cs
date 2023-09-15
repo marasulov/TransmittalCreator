@@ -1,10 +1,10 @@
 ﻿// (C) Copyright 2020 by HP Inc. 
 //
-using AcApp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using LeaderPlacement;
 using OfficeOpenXml;
@@ -29,9 +29,6 @@ using Arc = Autodesk.AutoCAD.DatabaseServices.Arc;
 using Document = Autodesk.AutoCAD.ApplicationServices.Document;
 using Line = Autodesk.AutoCAD.DatabaseServices.Line;
 using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
-using iTextSharp.text.pdf;
-using System.Windows.Controls;
-using Autodesk.AutoCAD.PlottingServices;
 
 
 // This line is not mandatory, but improves loading performances
@@ -205,7 +202,6 @@ namespace TransmittalCreator
 				using (BlockReference blockRef =
 						new BlockReference(blockPoint3d, blockDef.ObjectId))
 				{
-
 					//Add the block reference to modelspace
 					ms.AppendEntity(blockRef);
 					myT.AddNewlyCreatedDBObject(blockRef, true);
@@ -1556,6 +1552,4 @@ namespace TransmittalCreator
 		}
 
 	}
-
-
 }
