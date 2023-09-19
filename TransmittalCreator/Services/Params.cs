@@ -7,7 +7,7 @@ namespace TransmittalCreator.Services
     {
         public string Pc3 { get; set; }
         public string Pmp { get; set; }
-        public string BlockName { get; set; }
+        public string[] StampName { get; set; }
     }
 
 }

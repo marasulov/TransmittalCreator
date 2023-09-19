@@ -34,7 +34,7 @@ namespace TransmittalCreator.Services
         private static string GetLocalNameByAtrrValue(string attrvalue = "А3")
         {
             StandartCopier standartCopier = new StandartCopier();
-            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
+            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Source);
             string canonName = "";
             foreach (var canonicalMediaName in pConfig.CanonicalMediaNames)
             {
@@ -54,7 +54,7 @@ namespace TransmittalCreator.Services
         public string GetCanonNameByExtents()
         {
             StandartCopier standartCopier = new StandartCopier();
-            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
+            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Source);
 
             string pat = @"\d{1,}?\.\d{2}";
 

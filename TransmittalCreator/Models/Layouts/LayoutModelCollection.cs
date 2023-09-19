@@ -72,7 +72,7 @@ namespace TransmittalCreator.Models.Layouts
         public void SetLayoutPlotSetting()
         {
 	        StandartCopier standartCopier = new StandartCopier();
-            PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
+            PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Source);
 
             using (Transaction acTrans = Active.Database.TransactionManager.StartTransaction())
             {

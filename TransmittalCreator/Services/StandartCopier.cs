@@ -1,59 +1,121 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Autodesk.AutoCAD.DatabaseServices;
 using Newtonsoft.Json;
 using TransmittalCreator.Annotations;
+using TransmittalCreator.DBCad;
 
 namespace TransmittalCreator.Services
 {
 
-    public class StandartCopier
-    {
-        //private string confFile = @"\\uz-fs\Install\CAD\Blocks\conf.json";
-        private string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,"conf.json");
-        private string pathEnvPc3Dir = HostApplicationServices.Current.GetEnvironmentVariable("PrinterConfigDir");
-        private string pathEnvPmpDir = HostApplicationServices.Current.GetEnvironmentVariable("PrinterDescDir");
+	public class StandartCopier
+	{
+		//private string confFile = @"\\uz-fs\Install\CAD\Blocks\conf.json";
+		private string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
 
-        public string Pc3Dest { get; set; }
-        public string PmpDest { get; set; }
-        public string Pc3Location { get; set; }
-        public string PmpLocation { get; set; }
+		/// <summary>
+		/// Путь куда копируется pc3 
+		/// </summary>
+		public string Pc3Destination { get; set; }
 
-        public StandartCopier()
-        {
-            string jsonFile = File.ReadAllText(confFile);
-            Params pParams = JsonConvert.DeserializeObject<Params>(jsonFile);
+		/// <summary>
+		/// Путь куда копируется pmp 
+		/// </summary>
+		public string PmpDestination { get; set; }
 
-            //destination folders to copy
-            this.Pc3Dest = Path.Combine(pathEnvPc3Dir, pParams.Pc3);
-            this.PmpDest = Path.Combine(pathEnvPmpDir, pParams.Pmp);
+		/// <summary>
+		/// расположение файлы pc3
+		/// </summary>
+		public string Pc3Source { get; set; }
 
-            // location folder and files path
-            string locationFolder = Path.GetDirectoryName(confFile);
-            this.Pc3Location = Path.Combine(locationFolder, pParams.Pc3);
-            this.PmpLocation = Path.Combine(locationFolder, pParams.Pmp);
-        }
+		/// <summary>
+		/// расположение файлы pmp
+		/// </summary>
+		public string PmpSource { get; set; }
 
-        public bool CopyParamsFiles()
-        {
-            if (!File.Exists(this.Pc3Dest)) IsFileCopied(this.Pc3Location, this.Pc3Dest);
-            if (!File.Exists(this.PmpDest)) IsFileCopied(this.PmpLocation, this.PmpDest);
+		public StandartCopier()
+		{
+			string jsonFile = File.ReadAllText(confFile);
+			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 
-            return true;
-        }
+			try
+			{
+				Pc3Destination = Path.Combine(HostApplicationServices.Current.GetEnvironmentVariable("PrinterConfigDir"), deserializeObject.Pc3);
+				PmpDestination = Path.Combine(HostApplicationServices.Current.GetEnvironmentVariable("PrinterDescDir"), deserializeObject.Pmp);
+				
 
-        private bool IsFileCopied(string location, string destination )
-        {
-            try
-            {
-                File.Copy(location, destination);
-                return true;
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-        }
-    }
+				string locationFolder = Path.GetDirectoryName(confFile);
+				Pc3Source = Path.Combine(locationFolder, deserializeObject.Pc3);
+				PmpSource = Path.Combine(locationFolder, deserializeObject.Pmp);
+				
+			}
+			catch (Exception e)
+			{
+				Active.Editor.WriteMessage(e.Message);
+			}
+		}
+
+		public bool CopyParamsFiles()
+		{
+			if (!File.Exists(Pc3Destination) & !File.Exists(PmpDestination))
+			{
+				if(IsFileCopied(Pc3Source, Pc3Destination))
+					Active.Editor.WriteMessage($"Файл {Pc3Source} скопирован в {Pc3Destination}");
+				if(IsFileCopied(PmpSource, PmpDestination))
+					Active.Editor.WriteMessage($"Файл {PmpSource} скопирован в {PmpDestination}");
+				else
+				{
+					Active.Editor.WriteMessage(
+						$"Не удалось скопировать файлы настройки, скопируйте с сервера \\\\uz-fs\\install\\CAD\\Blocks файлы {Pc3Source}  в {Pc3Destination} и {PmpDestination}");
+				}
+			}
+			else
+			{
+				var pmpSourceInfo = new FileInfo(PmpSource);
+				var pc3SourceInfo = new FileInfo(Pc3Source);
+
+				var pmpOnDestInfo = new FileInfo(PmpDestination);
+				var pc3OnDestInfo = new FileInfo(Pc3Destination);
+
+				
+				if (pc3SourceInfo.LastWriteTime > pc3OnDestInfo.LastWriteTime)
+				{
+					File.Copy(Pc3Source, Pc3Destination, true);
+					Active.Editor.WriteMessage($"Файл {Pc3Source} заменен на {Pc3Destination}");
+				}
+				if (pmpSourceInfo.LastWriteTime > pmpOnDestInfo.LastWriteTime)
+				{
+					File.Copy(PmpSource, PmpDestination, true);
+					Active.Editor.WriteMessage($"Файл {PmpDestination} заменан на {PmpSource}");
+				}
+				else
+				{
+					Active.Editor.WriteMessage(
+						"Не удалось скопировать файлы настройки, скопируйте с сервера \\\\uz-fs\\install\\CAD\\Blocks файлы {0}  в {1} и {2} ",
+						Pc3Destination, Pc3Source, PmpSource);
+				}
+				Active.Editor.WriteMessage("Файлы настройки присутствуют, для перевода в pdf наберите CreateTranspdf");
+			}
+
+			//if (!File.Exists(Pc3Destination)) IsFileCopied(Pc3Source, Pc3Destination);
+			//if (!File.Exists(PmpDestination)) IsFileCopied(PmpSource, PmpDestination);
+
+			return true;
+		}
+
+		private bool IsFileCopied(string location, string destination)
+		{
+			try
+			{
+				File.Copy(location, destination);
+				return true;
+			}
+			catch (Exception e)
+			{
+				return false;
+			}
+		}
+	}
 }
