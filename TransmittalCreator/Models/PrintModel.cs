@@ -101,7 +101,7 @@ namespace TransmittalCreator.Models
         public string GetCanonNameByWidthAndHeight()
         {
             StandartCopier standartCopier = new StandartCopier();
-            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Location);
+            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Source);
 
             //паттерн для размера листов
             string pat = @"\d{1,}?\.\d{2}";

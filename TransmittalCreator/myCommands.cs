@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using TransmittalCreator.Models;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
@@ -36,9 +37,10 @@ using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
 
 namespace TransmittalCreator
 {
-	public class MyCommands :  IExtensionApplication
+	public class MyCommands : IExtensionApplication
 	{
 		const string path = @"C:\Users\yusufzhon.marasulov\Desktop\Test1\1\";
+		//private string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
 		private FileSystemWatcher _fsw = null;
 		private bool _drawing = false;
 		private int _linesPrevQty;
@@ -452,6 +454,8 @@ namespace TransmittalCreator
 				tr.Dispose();
 			}
 		}
+
+		
 
 		//[CommandMethod("InsertBlockByPline")]
 		public static void InsertBlockByPline()
@@ -930,11 +934,16 @@ namespace TransmittalCreator
 					if (!(block is null))
 					{
 						string blockName = block.Name;
-						if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+						
+						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
+						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+
+						//if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
 					}
 				}
 
-			 	PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
 				string selAttrName = "НОМЕР_ЛИСТА";
 
 				var dictOrdered = dict.OrderBy(x => x.MinPointX).ToList();
@@ -942,7 +951,7 @@ namespace TransmittalCreator
 
 				var scale = printModels[0].GetBlockScale();
 
-				
+
 				PrintUtils.CreateOnlyVed(dictOrdered, scale);
 				tr.Commit();
 			}
@@ -954,19 +963,6 @@ namespace TransmittalCreator
 		[CommandMethod("CreateTranspdf")]
 		public static void CreateTransmittalAndPdf()
 		{
-			Document acDoc = Application.DocumentManager.MdiActiveDocument;
-
-			PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
-			pKeyOpts.Message = "\nCombine all printed files in one?/Объединить все файлы в один? ";
-			pKeyOpts.Keywords.Add("Yes");
-			pKeyOpts.Keywords.Add("No");
-			pKeyOpts.Keywords.Default = "No";
-			pKeyOpts.AllowNone = false;
-
-			PromptResult pKeyRes = acDoc.Editor.GetKeywords(pKeyOpts);
-
-			//Application.ShowAlertDialog("Entered keyword: " + pKeyRes.StringResult);
-
 			List<Sheet> dict = new List<Sheet>();
 			List<PrintModel> printModels = new List<PrintModel>();
 			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
@@ -995,15 +991,19 @@ namespace TransmittalCreator
 					if (!(block is null))
 					{
 						string blockName = block.Name;
-						if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
+						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+
+						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
+						
 					}
 				}
 
 				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
 				string selAttrName = "НОМЕР_ЛИСТА";
 				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-				
-				
+
+
 				//utils.CreateOnlyVed(dict);
 				PrintUtils.CreateJsonFile(dict);
 
@@ -1013,34 +1013,142 @@ namespace TransmittalCreator
 					PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
 				}
 
-				if (pKeyRes.StringResult.ToLower() == "yes")
-				{
-					var filenames = dict.Select(x => Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{x.DocNumber}.pdf")).ToList();
-					var dataDir = Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{Path.GetFileNameWithoutExtension(AcadUtils.Document.Name)}.pdf");
-					var isSuccessPrinted = PrintUtils.UnitePages(filenames, dataDir);
-
-
-					foreach (var file in filenames.Where(file => File.Exists(file)))
-					{
-						try
-						{
-							File.Delete(file);
-						}
-						catch (System.Exception e)
-						{
-							AcadUtils.Editor.WriteMessage(e.Message);
-								
-						}
-					}
-					AcadUtils.Editor.WriteMessage(isSuccessPrinted ? "Все файлы распечатаны\n" : "Произошла ошибка\n");
-
-				}
-				
 				tr.Commit();
 			}
 		}
 
 		#endregion
+
+		#region CreateCombinedTransmittalAndPdf
+
+		[CommandMethod("CreateCombinedTransmittalAndPdf")]
+		public static void CreateCombinedTransmittalAndPdf()
+		{
+			Document acDoc = Application.DocumentManager.MdiActiveDocument;
+
+			List<Sheet> dict = new List<Sheet>();
+			List<PrintModel> printModels = new List<PrintModel>();
+			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+			using (Transaction tr = DBCad.Active.Database.TransactionManager.StartTransaction())
+			{
+				//фильтр для выбора только блока
+				BlockSelector blockSelector = new BlockSelector();
+				blockSelector.GetFilterForSelectBlockId();
+				var res = blockSelector.SelectionResult;
+
+				if (res.Status != PromptStatus.OK)
+				{
+					Active.Editor.WriteMessage("Надо выбрать блок");
+					return;
+				}
+
+				SelectionSet selSet = res.Value;
+				ObjectId[] idArrayTemp = selSet.GetObjectIds();
+
+				ObjectIdCollection idArray = new ObjectIdCollection();
+				foreach (var objectId in idArrayTemp)
+				{
+					BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+					BlockTableRecord block =
+						tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+					if (!(block is null))
+					{
+
+						string blockName = block.Name;
+						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
+						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+
+						//if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
+						
+					}
+				}
+
+				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+				string selAttrName = "НОМЕР_ЛИСТА";
+				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
+
+
+				//utils.CreateOnlyVed(dict);
+				PrintUtils.CreateJsonFile(dict);
+
+				foreach (var printModel in printModels)
+				{
+					//Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
+					PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+				}
+
+				//if (pKeyRes.StringResult.ToLower() == "yes")
+				//{
+				var combinedFileName = Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{Path.GetFileNameWithoutExtension(AcadUtils.Document.Name)}.pdf");
+				if (File.Exists(combinedFileName))
+				{
+					try
+					{
+						File.Delete(combinedFileName);
+					}
+					catch (System.Exception e)
+					{
+						AcadUtils.Editor.WriteMessage(e.Message);
+
+					}
+				}
+
+				var filenames = dict.Select(x => Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{x.DocNumber}.pdf")).ToList();
+
+				var isSuccessPrinted = PrintUtils.UnitePages(filenames, combinedFileName);
+
+
+				foreach (var file in filenames.Where(file => File.Exists(file)))
+				{
+					try
+					{
+						File.Delete(file);
+					}
+					catch (System.Exception e)
+					{
+						AcadUtils.Editor.WriteMessage(e.Message);
+
+					}
+				}
+				AcadUtils.Editor.WriteMessage(isSuccessPrinted ? "Все файлы распечатаны\n" : "Произошла ошибка\n");
+
+				//}
+
+				tr.Commit();
+			}
+		}
+
+		#endregion
+
+		[CommandMethod("CIE1")]
+		public void SelectObjectOnScreen()
+		{
+			var doc = Application.DocumentManager.MdiActiveDocument;
+			var db = doc.Database;
+			var ed = doc.Editor;
+
+			var options = new PromptEntityOptions("\nSelect block: ");
+			options.SetRejectMessage("\nSelected object is no a block.");
+			options.AddAllowedClass(typeof(BlockReference), true);
+
+			var result = ed.GetEntity(options);
+			if (result.Status == PromptStatus.OK)
+			{
+				// at this point we know an entity have been selected and it is a Polyline
+				using (var tr = db.TransactionManager.StartTransaction())
+				{
+					var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+
+					BlockTableRecord block =
+						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+					string blockName = block.Name;
+					ed.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName}");
+					tr.Commit();
+				}
+			}
+		}
+
 
 		#region CreatePdfWithInterfaceSelecting
 
@@ -1084,7 +1192,7 @@ namespace TransmittalCreator
 
 						fileNameCreator.GetPrintParametersToPdf(tr);
 
-						
+
 						PrintUtils.CreateJsonFile(dict);
 
 						foreach (var printModel in fileNameCreator.GetPrintModels())
@@ -1144,8 +1252,13 @@ namespace TransmittalCreator
 							tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
 						string blockName = block.Name;
 
-						if (blockName == "Формат") idArray.Add(objectId);
-						else if (blockName == "ФорматM25") idArray.Add(objectId);
+						//if (blockName == "Формат") idArray.Add(objectId);
+						//else if (blockName == "ФорматM25") idArray.Add(objectId);
+						var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+						string jsonFile = File.ReadAllText(Path.Combine(assemblyLocation ?? string.Empty, "conf.json"));
+						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+
+						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
 
 						//Active.Document.Editor.WriteMessage(blockName);
 					}
@@ -1236,7 +1349,11 @@ namespace TransmittalCreator
 			IFileManager fileManager = new FileManager();
 			string allPath = fileManager.GetFilePath();
 			Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-			string[] blockNames = { "ФорматM25", "Формат" };
+			string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
+			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+
+
+			string[] blockNames = deserializeObject.StampName;
 			DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
 			LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
 			layoutModelCollection.ListLayouts("Model");
@@ -1253,12 +1370,12 @@ namespace TransmittalCreator
 			var printPackages = window._printPackages;
 			packageCreator.PrintPackageModels = printPackages;
 			var sheetType = SheetType.MultiPdf;
-			
+
 			packageCreator.PublishAllPackages();
 
 			var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
 
-			
+
 			List<Sheet> sheets = new List<Sheet>();
 			using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
 			{
@@ -1307,7 +1424,7 @@ namespace TransmittalCreator
 
 					if (window.transmittalCheckBox.IsChecked == true)
 					{
-						
+
 						PrintUtils.CreateOnlyVed(dict);
 						PrintUtils.CreateOnlytrans(dict);
 						foreach (var printModel in printModels)
@@ -1391,25 +1508,12 @@ namespace TransmittalCreator
 
 
 			StandartCopier standartCopier = new StandartCopier();
-			if (!File.Exists(standartCopier.Pc3Dest) & !File.Exists(standartCopier.PmpDest))
-			{
-				bool isCopied = standartCopier.CopyParamsFiles();
-				if (isCopied)
-					Active.Editor.WriteMessage("Файлы {0}, {1} скопированы", standartCopier.Pc3Location,
-						standartCopier.PmpLocation);
-				else
-				{
-					Active.Editor.WriteMessage(
-						"Не удалось скопировать файлы настройки, скопируйте с сервера \\\\uz-fs\\install\\CAD\\Blocks файлы {0}  в {1} и {2} ",
-						standartCopier.Pc3Dest, standartCopier.Pc3Location, standartCopier.PmpLocation);
-				}
-			}
-			else
-			{
-				Active.Editor.WriteMessage("Файлы настройки присутствуют, для перевода в pdf наберите CreateTranspdf");
-			}
+			var isConfFileCopied = standartCopier.CopyParamsFiles();
 
-			Active.Editor.WriteMessage("Файлы настройки присутствуют, для перевода в pdf наберите CreateTranspdf");
+			if (!isConfFileCopied)
+			{
+				Active.Editor.WriteMessage($"файлы не скопированы");
+			}
 		}
 
 		public void Terminate()
@@ -1535,7 +1639,7 @@ namespace TransmittalCreator
 						string selAttrName = "НОМЕР_ЛИСТА";
 						PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
 
-						
+
 						//utils.CreateOnlyVed(dict);
 						PrintUtils.CreateJsonFile(dict);
 

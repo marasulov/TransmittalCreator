@@ -5,128 +5,20 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
-
+using System.Text.Json;
+using TransmittalCreator.Services;
 
 namespace TestConsole
 {
-
-	[Serializable]
-	public class MyType : ISerializable
+	public class Params
 	{
-		public MyType()
-		{
-			//Console.WriteLine();
-			//Console.WriteLine("MyType instantiated!");
-		}
-
-		private string myProperty_value;
-
-		public string MyProperty
-		{
-			get { return myProperty_value; }
-			set { myProperty_value = value; }
-		}
-
-		// Implement this method to serialize data. The method is called
-		// on serialization.
-		public void GetObjectData(SerializationInfo info, StreamingContext context)
-		{
-			// Use the AddValue method to specify serialized values.
-			info.AddValue("props", myProperty_value, typeof(string));
-		}
-
-		// The special constructor is used to deserialize values.
-		public MyType(SerializationInfo info, StreamingContext context)
-		{
-			// Reset the property value using the GetValue method.
-			myProperty_value = (string)info.GetValue("props", typeof(string));
-		}
-	}
-
-	interface IFigure
-	{
-		IFigure Clone();
-		void GetInfo();
-	}
-
-	class Rectangle : IFigure
-	{
-		public string Position;
-		public double X;
-		public double Y;
-		int width;
-		public double Height;
-		public Rectangle(int w, double h)
-		{
-			width = w;
-			Height = h;
-		}
-
-		public Rectangle(string position, double x, double y, double height)
-		{
-			Position = position;
-			X = x;
-			Y = y;
-			Height = height;
-		}
-
-		public IFigure Clone()
-		{
-			return new Rectangle(this.width, this.Height);
-		}
-		public void GetInfo()
-		{
-			Console.WriteLine("Прямоугольник длиной {0} и шириной {1}", Height, width);
-		}
-	}
-
-	[Serializable]
-	class Circle : IFigure
-	{
-
-		int radius;
-		public Point Point { get; set; }
-		public Circle(int r, int x, int y)
-		{
-			radius = r;
-			this.Point = new Point { X = x, Y = y };
-		}
-
-		public IFigure Clone()
-		{
-			return this.MemberwiseClone() as IFigure;
-		}
-		public object DeepCopy()
-		{
-			object figure = null;
-			using (MemoryStream tempStream = new MemoryStream())
-			{
-				BinaryFormatter binFormatter = new BinaryFormatter(null,
-					new StreamingContext(StreamingContextStates.Clone));
-
-				binFormatter.Serialize(tempStream, this);
-				tempStream.Seek(0, SeekOrigin.Begin);
-
-				figure = binFormatter.Deserialize(tempStream);
-			}
-			return figure;
-		}
-		public void GetInfo()
-		{
-			Console.WriteLine("Круг радиусом {0} и центром в точке ({1}, {2})", radius, Point.X, Point.Y);
-		}
-	}
-	[Serializable]
-	class Point
-	{
-		public int X { get; set; }
-		public int Y { get; set; }
+		public string Pc3 { get; set; }
+		public string Pmp { get; set; }
+		public string[] StampName { get; set; }
 	}
 
 	class Program
 	{
-
-
 		static void Main(string[] args)
 		{
 
@@ -141,8 +33,18 @@ namespace TestConsole
 
 			var anagrams = ams.Select(s => new string(s.OrderBy(x => x).ToArray()));
 			var arCount = anagrams.GroupBy(x => x);
+			const string filepath = @"conf.json";
 
-			//Console.WriteLine("Число анаграмм: {0}", );
+			// Чтение файла
+			var json = File.ReadAllText(filepath);
+
+			// Десериализация строки в объект
+			
+			var data = JsonSerializer.Deserialize<Params>(json);
+
+
+
+			Console.WriteLine("Число анаграмм: " );
 			Console.ReadKey();
 
 			//Rectangle rec1 = new Rectangle("1",-109.4765, 3.5459, 2.5);
@@ -239,23 +141,7 @@ namespace TestConsole
 				Console.WriteLine(ex.Message);
 			}
 		}
-		public static void SerializeItem(string fileName, IFormatter formatter)
-		{
-			// Create an instance of the type and serialize it.
-			MyType t = new MyType();
-			t.MyProperty = "Hello World";
-
-			FileStream s = new FileStream(fileName, FileMode.Create);
-			formatter.Serialize(s, t);
-			s.Close();
-		}
-
-		public static void DeserializeItem(string fileName, IFormatter formatter)
-		{
-			FileStream s = new FileStream(fileName, FileMode.Open);
-			MyType t = (MyType)formatter.Deserialize(s);
-			Console.WriteLine(t.MyProperty);
-		}
+		
 		public static double ConvertToDouble(string Value)
 		{
 			if (Value == null)
@@ -295,11 +181,5 @@ namespace TestConsole
 		}
 	}
 
-	public class Params
-	{
-		public string Pc3 { get; set; }
-		public string Pmp { get; set; }
-
-
-	}
+	
 }
