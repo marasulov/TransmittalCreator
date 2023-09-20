@@ -231,6 +231,21 @@ namespace TransmittalCreator.Utils
             return (blockName, attrList);
         }
 
+        private static Dictionary<string, string> GetAttributes(BlockReference blkRef, Transaction tr)
+        {
+	        Dictionary<string, string> attrList = new Dictionary<string, string>();
+	        AttributeCollection attCol = blkRef.AttributeCollection;
+	        foreach (ObjectId attId in attCol)
+	        {
+		        AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
+		        string str = ("\n  Attribute Tag: " + attRef.Tag + "\n    Attribute String: " + attRef.TextString);
+		        attrList.Add(attRef.Tag, attRef.TextString);
+		        Active.Editor.WriteMessage(str);
+	        }
+
+	        return attrList;
+        }
+
         public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Transaction tr, ObjectIdCollection idArray)
         {
 

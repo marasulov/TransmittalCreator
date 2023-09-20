@@ -1,9 +1,9 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
-using MaterialDesignColors.Recommended;
 using TransmittalCreator.Utils;
 using AcApp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
+using TransmittalCreator.DBCad;
 
 namespace TransmittalCreator
 {
@@ -65,7 +65,7 @@ namespace TransmittalCreator
 			}
 			catch (System.Exception exception)
 			{
-				AcadUtils.WriteMessageInDebug($"\nException {exception.Message}");
+				Active.WriteMessageInDebug($"\nException {exception.Message}");
 			}
 		}
 
@@ -145,7 +145,7 @@ namespace TransmittalCreator
 			}
 			catch (System.Exception exception)
 			{
-				AcadUtils.WriteMessageInDebug($"\nException {exception.Message}");
+				Active.WriteMessageInDebug($"\nException {exception.Message}");
 			}
 		}
 
@@ -166,12 +166,12 @@ namespace TransmittalCreator
 			if (e.GlobalCommandName == "MIRROR")
 			{
 				Mirroring = true;
-				AcadUtils.Editor.WriteMessage("зеркалирование запущено");
+				Active.WriteMessage("зеркалирование запущено");
 			}
 			else if (e.GlobalCommandName == "ROTATE")
 			{
 				Rotation = true;
-				AcadUtils.Editor.WriteMessage("поворот запущено");
+				Active.WriteMessage("поворот запущено");
 			}
 			//else if (e.GlobalCommandName.ToLower() == "bedit" | e.GlobalCommandName.ToLower() == "_-bedit" | e.GlobalCommandName.ToLower() == "-bedit" | e.GlobalCommandName.ToLower() == "_refedit")
 			//{

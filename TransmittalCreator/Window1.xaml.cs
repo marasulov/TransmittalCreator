@@ -27,17 +27,8 @@ namespace TransmittalCreator
             set => _blockName = value;
         }
 
-
         public Window1(BlockViewModel data)
         {
-            //string executablePath = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            //ProxyDomain pd = new ProxyDomain();
-            //Assembly assembly = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignThemes.Wpf.dll"));
-
-            //ProxyDomain pd1 = new ProxyDomain();
-            //Assembly assembly1 = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignColors.dll"));
-            //////////
             InitializeComponent();
 
             _data = data;
@@ -48,7 +39,6 @@ namespace TransmittalCreator
 
             var names = PrintUtils.GetAttrList(tr, attrList);
             attrList = names.Item2;
-            _blockName = names.Item1;
 
             foreach (KeyValuePair<string, string> entry in attrList)
             {
@@ -57,7 +47,7 @@ namespace TransmittalCreator
 
             comboAttributs.ItemsSource = combolist;
 
-            DataContext = new FilenameModel();
+            //DataContext = new FilenameModel();
         }
 
         private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
