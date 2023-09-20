@@ -55,7 +55,7 @@ namespace TransmittalCreator
                     Application.DoEvents();
                     if (filter.bCanceled == true)
                     {
-                        Active.Editor.WriteMessage("\nLoop cancelled.");
+                        Active.WriteMessage("\nLoop cancelled.");
                         break;
                     }
 

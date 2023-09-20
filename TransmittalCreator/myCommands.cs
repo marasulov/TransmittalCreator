@@ -455,7 +455,7 @@ namespace TransmittalCreator
 			}
 		}
 
-		
+
 
 		//[CommandMethod("InsertBlockByPline")]
 		public static void InsertBlockByPline()
@@ -934,7 +934,7 @@ namespace TransmittalCreator
 					if (!(block is null))
 					{
 						string blockName = block.Name;
-						
+
 						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
 						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 
@@ -995,7 +995,7 @@ namespace TransmittalCreator
 						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 
 						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
-						
+
 					}
 				}
 
@@ -1060,7 +1060,7 @@ namespace TransmittalCreator
 
 						//if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
 						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
-						
+
 					}
 				}
 
@@ -1080,7 +1080,7 @@ namespace TransmittalCreator
 
 				//if (pKeyRes.StringResult.ToLower() == "yes")
 				//{
-				var combinedFileName = Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{Path.GetFileNameWithoutExtension(AcadUtils.Document.Name)}.pdf");
+				var combinedFileName = Path.Combine(Path.GetDirectoryName(Active.Document.Name), $"{Path.GetFileNameWithoutExtension(Active.Document.Name)}.pdf");
 				if (File.Exists(combinedFileName))
 				{
 					try
@@ -1089,12 +1089,12 @@ namespace TransmittalCreator
 					}
 					catch (System.Exception e)
 					{
-						AcadUtils.Editor.WriteMessage(e.Message);
+						Active.WriteMessage(e.Message);
 
 					}
 				}
 
-				var filenames = dict.Select(x => Path.Combine(Path.GetDirectoryName(AcadUtils.Document.Name), $"{x.DocNumber}.pdf")).ToList();
+				var filenames = dict.Select(x => Path.Combine(Path.GetDirectoryName(Active.Document.Name), $"{x.DocNumber}.pdf")).ToList();
 
 				var isSuccessPrinted = PrintUtils.UnitePages(filenames, combinedFileName);
 
@@ -1107,11 +1107,11 @@ namespace TransmittalCreator
 					}
 					catch (System.Exception e)
 					{
-						AcadUtils.Editor.WriteMessage(e.Message);
+						Active.WriteMessage(e.Message);
 
 					}
 				}
-				AcadUtils.Editor.WriteMessage(isSuccessPrinted ? "Все файлы распечатаны\n" : "Произошла ошибка\n");
+				Active.WriteMessage(isSuccessPrinted ? "Все файлы распечатаны\n" : "Произошла ошибка\n");
 
 				//}
 
@@ -1204,6 +1204,106 @@ namespace TransmittalCreator
 					tr.Commit();
 				}
 			}
+		}
+
+		#endregion
+
+		#region CreatePdfWithInterfaceSelecting
+
+		[CommandMethod("CreateP")]
+		public void CreatePdfNameTest()
+		{
+			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+			Dictionary<string, string> attrList = new Dictionary<string, string>();
+
+			var options = new PromptEntityOptions("\nPlease select the block:");
+			options.SetRejectMessage("\nSelected object isn't a block.\n");
+			options.AddAllowedClass(typeof(BlockReference), true);
+
+			var result = Active.Editor.GetEntity(options);
+			if (result.Status == PromptStatus.OK)
+			{
+				using (var tr = Active.Database.TransactionManager.StartTransaction())
+				{
+					var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+
+					BlockTableRecord btr =
+						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+					string blockName = btr.Name;
+					btr.Dispose();
+					AttributeCollection attributeCollection = blockRef.AttributeCollection;
+
+					foreach (ObjectId attId in attributeCollection)
+					{
+						AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
+						string str = ("\n  Attribute Tag: " + attRef.Tag + "\n    Attribute String: " + attRef.TextString);
+						attrList.Add(attRef.Tag, attRef.TextString);
+						Active.Editor.WriteMessage(str);
+					}
+
+					var pdfCreatorView = new PdfCreatorView(attrList);
+					pdfCreatorView.Show();
+
+					Active.Editor.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName}");
+
+					tr.Commit();
+				}
+
+				//var names = PrintUtils.GetAttrList(tr, attrList);
+
+				//attrList = names.Item2;
+				//_blockName = names.Item1;
+
+				//foreach (KeyValuePair<string, string> entry in attrList)
+				//{
+				//	combolist.Add(new BlockAttribute(entry.Key, entry.Value));
+				//}
+
+				//Application.ShowModalWindow(window);
+				//if (window.isClicked)
+				//{
+				//	//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+				//	List<Sheet> dict = new List<Sheet>();
+
+				//	using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+				//	{
+				//		var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+
+				//		BlockTableRecord block = tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+
+				//		ObjectId[] idArrayTemp = { block.Id };
+				//		//ObjectIdCollection idArray = new ObjectIdCollection(idArrayTemp);
+				//		//TODO printing X Y
+				//		//string selAttrName = attributeName.AttributeName;
+
+
+				//		FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
+
+				//		//GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
+
+				//		fileNameCreator.GetPrintParametersToPdf(tr);
+
+				//		PrintUtils.CreateJsonFile(dict);
+
+				//		foreach (var printModel in fileNameCreator.GetPrintModels())
+				//		{
+				//			PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+				//		}
+
+
+				//		tr.Commit();
+				//	}
+				//}
+
+
+
+			}
+			else
+			{
+				Active.Editor.WriteMessage("Надо выбрать блок");
+			}
+
+
 		}
 
 		#endregion
@@ -1459,13 +1559,13 @@ namespace TransmittalCreator
 					{
 						e.Veto();
 						var blockName = Autodesk.AutoCAD.Internal.AcAeUtilities.GetBlockName();
-						AcadUtils.WriteMessageInDebug(blockName);
+						Active.WriteMessageInDebug(blockName);
 					}
 				}
 			}
 			catch (System.Exception exception)
 			{
-				AcadUtils.WriteMessageInDebug($"\nException {exception.Message}");
+				Active.WriteMessageInDebug($"\nException {exception.Message}");
 			}
 		}
 

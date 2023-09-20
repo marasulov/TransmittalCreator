@@ -2,6 +2,7 @@
 using System.Xml.Linq;
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
+using TransmittalCreator.DBCad;
 
 namespace TransmittalCreator.Utils
 {
@@ -15,11 +16,11 @@ namespace TransmittalCreator.Utils
 		/// <param name="layerName">Имя слоя</param>
 		public static bool HasLayer(string layerName)
 		{
-			using (AcadUtils.Document.LockDocument())
+			using (Active.Document.LockDocument())
 			{
-				using (var tr = AcadUtils.Database.TransactionManager.StartOpenCloseTransaction())
+				using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
 				{
-					var lt = tr.GetObject(AcadUtils.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
+					var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
 					if (lt != null)
 					{
 						if (lt.Has(layerName))
@@ -37,11 +38,11 @@ namespace TransmittalCreator.Utils
 		/// <param name="layerName">Имя слоя</param>
 		public static LayerTableRecord GetLayerTableRecordByLayerName(string layerName)
 		{
-			using (AcadUtils.Document.LockDocument())
+			using (Active.Document.LockDocument())
 			{
-				using (var tr = AcadUtils.Database.TransactionManager.StartOpenCloseTransaction())
+				using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
 				{
-					var lt = tr.GetObject(AcadUtils.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
+					var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
 					if (lt != null)
 					{
 						foreach (var layerId in lt)
@@ -65,11 +66,11 @@ namespace TransmittalCreator.Utils
 		/// <param name="layerName">Имя слоя</param>
 		public static bool IsLockedLayer(string layerName)
 		{
-			using (AcadUtils.Document.LockDocument())
+			using (Active.Document.LockDocument())
 			{
-				using (var tr = AcadUtils.Database.TransactionManager.StartOpenCloseTransaction())
+				using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
 				{
-					var lt = tr.GetObject(AcadUtils.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
+					var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
 					if (lt != null)
 					{
 						foreach (var layerId in lt)
@@ -97,12 +98,12 @@ namespace TransmittalCreator.Utils
 			var layerCreated = false;
 			if (layer != null)
 			{
-				using (AcadUtils.Document.LockDocument())
+				using (Active.Document.LockDocument())
 				{
-					using (var tr = AcadUtils.Database.TransactionManager.StartTransaction())
+					using (var tr = Active.Database.TransactionManager.StartTransaction())
 					{
 						using (var lyrTbl =
-							   tr.GetObject(AcadUtils.Database.LayerTableId, OpenMode.ForWrite) as LayerTable)
+							   tr.GetObject(Active.Database.LayerTableId, OpenMode.ForWrite) as LayerTable)
 						{
 							if (lyrTbl != null)
 							{
@@ -139,7 +140,7 @@ namespace TransmittalCreator.Utils
 				return new XElement("LayerTableRecord");
 			}
 
-			using (AcadUtils.Document.LockDocument())
+			using (Active.Document.LockDocument())
 			{
 				var layerTableRecordXml = new XElement("LayerTableRecord");
 				layerTableRecordXml.SetAttributeValue("Name", layerTableRecord.Name); // string
@@ -151,7 +152,7 @@ namespace TransmittalCreator.Utils
 				layerTableRecordXml.SetAttributeValue("IsPlottable", layerTableRecord.IsPlottable); // bool
 				layerTableRecordXml.SetAttributeValue("Color", layerTableRecord.Color.ColorIndex); // color
 				layerTableRecordXml.SetAttributeValue("Linetype",
-					AcadUtils.GetLineTypeName(layerTableRecord.LinetypeObjectId)); // ObjectId
+					Active.GetLineTypeName(layerTableRecord.LinetypeObjectId)); // ObjectId
 				layerTableRecordXml.SetAttributeValue("LineWeight", layerTableRecord.LineWeight); // LineWeight
 				layerTableRecordXml.SetAttributeValue("ViewportVisibilityDefault",
 					layerTableRecord.ViewportVisibilityDefault); // bool
@@ -187,7 +188,7 @@ namespace TransmittalCreator.Utils
 					short.TryParse(layerXElement.Attribute("Color")?.Value, out var sh) ? sh : short.Parse("7"));
 
 				// linetype
-				layerTblR.LinetypeObjectId = AcadUtils.GetLineTypeObjectId(layerXElement.Attribute("Linetype")?.Value);
+				layerTblR.LinetypeObjectId = Active.GetLineTypeObjectId(layerXElement.Attribute("Linetype")?.Value);
 
 				// LineWeight
 				layerTblR.LineWeight = Enum.TryParse(layerXElement.Attribute("LineWeight")?.Value, out LineWeight lw)

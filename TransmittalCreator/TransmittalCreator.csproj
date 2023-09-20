@@ -210,6 +210,7 @@
     <Compile Include="Styles\VS2012\VS2012WindowStyle.xaml.cs">
       <DependentUpon>VS2012WindowStyle.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils\Controls\NumberOnly.cs" />
     <Compile Include="Utils\PrintUtils.cs" />
     <Compile Include="Utils\AcadUtils.cs" />
     <Compile Include="Utils\LayerUtils.cs" />
@@ -217,6 +218,7 @@
     <Compile Include="ViewModel\BlockViewModel.cs" />
     <Compile Include="ViewModel\FileNameViewModel.cs" />
     <Compile Include="ViewModel\LayoutTreeViewModel.cs" />
+    <Compile Include="ViewModel\PdfCreatorViewModel.cs" />
     <Compile Include="ViewModel\SheetViewModel.cs" />
     <Compile Include="ViewModel\VirtualToggleButton.cs" />
     <Compile Include="Views\LayoutTreeView.xaml.cs">
@@ -224,6 +226,9 @@
     </Compile>
     <Compile Include="Views\ObjectDividerView.xaml.cs">
       <DependentUpon>ObjectDividerView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PdfCreatorView.xaml.cs">
+      <DependentUpon>PdfCreatorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
@@ -280,6 +285,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ObjectDividerView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\PdfCreatorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
