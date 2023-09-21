@@ -46,8 +46,9 @@ namespace TransmittalCreator
             }
 
             comboAttributs.ItemsSource = combolist;
+           
 
-            //DataContext = new FilenameModel();
+            DataContext = new AttributeViewModel();
         }
 
         private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)

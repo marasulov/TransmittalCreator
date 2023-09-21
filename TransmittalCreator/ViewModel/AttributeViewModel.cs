@@ -37,14 +37,9 @@ namespace TransmittalCreator.ViewModel
             }
         }
 
-        public AttributeViewModel()
+        public AttributeViewModel(/*Dictionary<string, string> attributes*/)
         {
-            Attributes = new ObservableCollection<BlockAttribute>
-            {
-                new BlockAttribute("name1","value1"),
-                new BlockAttribute("name2","value2"),
-                new BlockAttribute("name3","value3"),
-            };
+            Attributes = new ObservableCollection<BlockAttribute>();
         }
         
         public event PropertyChangedEventHandler PropertyChanged;

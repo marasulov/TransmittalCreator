@@ -15,7 +15,7 @@
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{materialDesign:MaterialDesignFont}" Icon="../0012.png" 
-        ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250" 
+        ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250" Topmost="True" 
         >
     <Window.Resources>
         <ResourceDictionary>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
@@ -51,7 +51,10 @@
             <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>
             <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
                       
-                      SelectedItem="{Binding BlockAttribute}" 
+                      ItemsSource="{Binding BlockAttribute}"
+                      SelectedItem="{Binding BlockAttribute}"
+                      SelectedValue="{Binding BlockAttribute}"
+                      SelectedIndex="0"
                       IsEnabled="{Binding IsChecked, ElementName=attributeCheckBox}" FontSize="12" Margin="8 0 8 0">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -96,7 +99,7 @@
                 <RadioButton Content="Select order" Margin="2 0 5 0" x:Name="RadioButtonSelOrder" IsChecked="True"/>
             </StackPanel>
             <StackPanel Grid.Row="6" Grid.ColumnSpan="3"><Button Name="createButton" 
-                                TabIndex="3" >Create PDF</Button></StackPanel>
+                                TabIndex="3" Command="{Binding ClickCommand}" >Create PDF</Button></StackPanel>
         </Grid>
  </DockPanel>          
 </Window>
