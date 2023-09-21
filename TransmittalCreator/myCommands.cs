@@ -15,6 +15,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
+using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using Newtonsoft.Json;
 using TransmittalCreator.Models;
 using TransmittalCreator.Models.Layouts;
@@ -1214,8 +1215,7 @@ namespace TransmittalCreator
 		public void CreatePdfNameTest()
 		{
 			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			Dictionary<string, string> attrList = new Dictionary<string, string>();
-
+			
 			var options = new PromptEntityOptions("\nPlease select the block:");
 			options.SetRejectMessage("\nSelected object isn't a block.\n");
 			options.AddAllowedClass(typeof(BlockReference), true);
@@ -1231,15 +1231,9 @@ namespace TransmittalCreator
 						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
 					string blockName = btr.Name;
 					btr.Dispose();
-					AttributeCollection attributeCollection = blockRef.AttributeCollection;
+					 AttributeCollection attributeCollection = blockRef.AttributeCollection;
 
-					foreach (ObjectId attId in attributeCollection)
-					{
-						AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
-						string str = ("\n  Attribute Tag: " + attRef.Tag + "\n    Attribute String: " + attRef.TextString);
-						attrList.Add(attRef.Tag, attRef.TextString);
-						Active.Editor.WriteMessage(str);
-					}
+					 Dictionary<string, string> attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
 
 					var pdfCreatorView = new PdfCreatorView(attrList);
 					pdfCreatorView.Show();
@@ -1304,6 +1298,21 @@ namespace TransmittalCreator
 			}
 
 
+		}
+
+		private Dictionary<string, string> GetDictionaryFromAttributeCollection(AttributeCollection attributeCollection, Transaction tr)
+		{
+			var attributesDict = new Dictionary<string, string>();
+
+			foreach (ObjectId attId in attributeCollection)
+			{
+				AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
+				attributesDict.Add(attRef.Tag, attRef.TextString);
+				//string str = ("\n  Attribute Tag: " + attRef.Tag + "\n    Attribute String: " + attRef.TextString);
+				//Active.Editor.WriteMessage(str);
+			}
+
+			return attributesDict;
 		}
 
 		#endregion

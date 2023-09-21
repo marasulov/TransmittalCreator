@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
 using TransmittalCreator.Annotations;
 using TransmittalCreator.ViewModel;
 
@@ -12,6 +14,35 @@ namespace TransmittalCreator.Models
 {
     public class FilenameModel:INotifyPropertyChanged
     {
+	    private ICommand _clickCommand;
+	    public ICommand ClickCommand{
+		    get
+		    {
+			    return _clickCommand ?? (_clickCommand = new CommandHandler(() => MyAction(), ()=> CanExecute));
+		    }
+	    }
+
+	    private void MyAction()
+	    {
+		    var fname = FileName;
+		    string messageBoxText = "Do you want to save changes?";
+		    string caption = "Word Processor";
+		    MessageBoxButton button = MessageBoxButton.OK;
+		    MessageBoxImage icon = MessageBoxImage.Warning;
+		    MessageBoxResult result;
+
+		    result = MessageBox.Show(fname, caption, button, icon, MessageBoxResult.Yes);
+	    }
+
+	    public bool CanExecute
+	    {
+		    get
+		    {
+			    // check if executing is allowed, i.e., validate, check if a process is running, etc. 
+			    return true;
+		    }
+	    }
+
         private const string PdfExt = ".pdf";
         private int _numberingValue = 0;
         private string _suffix;
@@ -147,5 +178,59 @@ namespace TransmittalCreator.Models
             //SetFileName();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        private RelayCommand addCommand;
+        public RelayCommand AddCommand
+        {
+	        get
+	        {
+		        return addCommand ??
+		               (addCommand = new RelayCommand(obj =>
+		               {
+			               _numberingValue = NumberingValue;
+		               }));
+	        }
+        }
+    }
+
+    public class CommandHandler : ICommand
+    {
+	    private Action _action;
+	    private Func<bool> _canExecute;
+
+	    /// <summary>
+	    /// Creates instance of the command handler
+	    /// </summary>
+	    /// <param name="action">Action to be executed by the command</param>
+	    /// <param name="canExecute">A bolean property to containing current permissions to execute the command</param>
+	    public CommandHandler(Action action, Func<bool> canExecute)
+	    {
+		    _action = action;
+		    _canExecute = canExecute;
+	    }
+
+	    /// <summary>
+	    /// Wires CanExecuteChanged event 
+	    /// </summary>
+	    public event EventHandler CanExecuteChanged
+	    {
+		    add { CommandManager.RequerySuggested += value; }
+		    remove { CommandManager.RequerySuggested -= value; }
+	    }
+
+	    /// <summary>
+	    /// Forcess checking if execute is allowed
+	    /// </summary>
+	    /// <param name="parameter"></param>
+	    /// <returns></returns>
+	    public bool CanExecute(object parameter)
+	    {
+		    return _canExecute.Invoke();
+	    }
+
+	    public void Execute(object parameter)
+	    {
+		    _action();
+	    }
     }
 }

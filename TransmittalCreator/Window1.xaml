@@ -47,7 +47,7 @@
             <TextBlock Grid.Column="0" VerticalAlignment="Center">Select block attribute</TextBlock>
             <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>
             <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
-                      ItemsSource="{Binding AttributeViewModel.Attributes}" 
+                      
                       SelectedItem="{Binding BlockAttribute}" 
                       IsEnabled="{Binding IsChecked, ElementName=attributeCheckBox}" FontSize="12" Margin="8 0 8 0">
                 <ComboBox.ItemTemplate>

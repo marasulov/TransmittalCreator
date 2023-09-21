@@ -64,6 +64,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="ApplicationModel.cs" />
+    <Compile Include="Models\AttributeModel.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="RelayCommand.cs" />
@@ -72,6 +73,7 @@
       <DependentUpon>TreeWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModelBase.cs" />
+    <Compile Include="ViewModel\AttributeViewModel.cs" />
     <Compile Include="VirtualToggleButton.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

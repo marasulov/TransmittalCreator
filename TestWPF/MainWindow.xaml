@@ -41,8 +41,17 @@
             </HierarchicalDataTemplate>
         </ResourceDictionary>
     </Window.Resources>
-
-    <DockPanel>
+<Grid>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto"/>
+        <RowDefinition />
+        <RowDefinition />
+    </Grid.RowDefinitions>
+    <DockPanel Grid.Row="0">
         <Button DockPanel.Dock="Bottom" 
                 Command="Undo" CommandTarget="{Binding Path=PlacementTarget,RelativeSource={RelativeSource AncestorType={x:Type UndoAction}}}"
                 Content="Uncheck All" 
@@ -63,4 +72,16 @@
         />
         
     </DockPanel>
+    <StackPanel Grid.Row="1">
+        <StackPanel>
+            
+            <ComboBox ItemsSource="{Binding Path=PhonebookEntries}"
+                      DisplayMemberPath="Name"
+                      SelectedValuePath="Name"
+                      SelectedValue="{Binding Path=PhonebookEntry}" />
+        </StackPanel>
+    </StackPanel>
+</Grid>
+    
+
 </Window>

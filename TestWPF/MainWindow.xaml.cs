@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using TestWPF.ViewModel;
 
 namespace TestWPF
 {
@@ -39,6 +40,8 @@ namespace TestWPF
 
 
             this.SizeToContent = SizeToContent.Height;
+
+            DataContext = new AttributeViewModel();
         }
 
         //private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
