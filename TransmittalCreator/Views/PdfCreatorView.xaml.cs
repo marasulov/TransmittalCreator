@@ -10,22 +10,15 @@ namespace TransmittalCreator.Views
 	public partial class PdfCreatorView : Window
 	{
 		public Dictionary<string,string> BlockAttributes { get; set; }
-		public PdfCreatorView(Dictionary<string, string> attributeList)
+		public PdfCreatorView(FilenameModel filenameModel)
 		{
 			InitializeComponent();
 
-			List<BlockAttribute> combolist = new List<BlockAttribute>();
-
-			foreach (KeyValuePair<string, string> entry in attributeList)
-			{
-				combolist.Add(new BlockAttribute(entry.Key, entry.Value));
-			}
-
 			//AttributeViewModel attributeViewModel = new AttributeViewModel();
 
-			comboAttributs.ItemsSource = combolist;
+			//comboAttributs.ItemsSource = blockAttributes;
 
-			DataContext = new FilenameModel();
+			DataContext = filenameModel;
 		}
 	}
 }

@@ -1122,34 +1122,6 @@ namespace TransmittalCreator
 
 		#endregion
 
-		[CommandMethod("CIE1")]
-		public void SelectObjectOnScreen()
-		{
-			var doc = Application.DocumentManager.MdiActiveDocument;
-			var db = doc.Database;
-			var ed = doc.Editor;
-
-			var options = new PromptEntityOptions("\nSelect block: ");
-			options.SetRejectMessage("\nSelected object is no a block.");
-			options.AddAllowedClass(typeof(BlockReference), true);
-
-			var result = ed.GetEntity(options);
-			if (result.Status == PromptStatus.OK)
-			{
-				// at this point we know an entity have been selected and it is a Polyline
-				using (var tr = db.TransactionManager.StartTransaction())
-				{
-					var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
-
-					BlockTableRecord block =
-						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					string blockName = block.Name;
-					ed.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName}");
-					tr.Commit();
-				}
-			}
-		}
-
 
 		#region CreatePdfWithInterfaceSelecting
 
@@ -1209,13 +1181,13 @@ namespace TransmittalCreator
 
 		#endregion
 
-		#region CreatePdfWithInterfaceSelecting
+		#region CreatePdfWithInterfaceSelecting for test
 
 		[CommandMethod("CreateP")]
 		public void CreatePdfNameTest()
 		{
 			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			
+
 			var options = new PromptEntityOptions("\nPlease select the block:");
 			options.SetRejectMessage("\nSelected object isn't a block.\n");
 			options.AddAllowedClass(typeof(BlockReference), true);
@@ -1231,11 +1203,19 @@ namespace TransmittalCreator
 						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
 					string blockName = btr.Name;
 					btr.Dispose();
-					 AttributeCollection attributeCollection = blockRef.AttributeCollection;
+					AttributeCollection attributeCollection = blockRef.AttributeCollection;
 
-					 Dictionary<string, string> attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
+					Dictionary<string, string> attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
 
-					var pdfCreatorView = new PdfCreatorView(attrList);
+					List<BlockAttribute> blockAttributes = new List<BlockAttribute>();
+
+					foreach (KeyValuePair<string, string> entry in attrList)
+					{
+						blockAttributes.Add(new BlockAttribute(entry.Key, entry.Value));
+					}
+					var filenameModel = new FilenameModel(blockAttributes);
+
+					var pdfCreatorView = new PdfCreatorView(filenameModel);
 					pdfCreatorView.Show();
 
 					Active.Editor.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName}");

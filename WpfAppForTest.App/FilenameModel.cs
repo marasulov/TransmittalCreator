@@ -127,11 +127,6 @@ namespace WpfAppForTest.App
             }
         }
 
-        private void SetFileName()
-        {
-           
-        }
-
         private string SetNumberingValue()
         {
             if (_numberingValue != 0) return NumberingValue.ToString();
