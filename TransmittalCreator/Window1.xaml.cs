@@ -35,7 +35,7 @@ namespace TransmittalCreator
             List<BlockAttribute> combolist = new List<BlockAttribute>();
 
             Dictionary<string, string> attrList = new Dictionary<string, string>();
-            Transaction tr = Active.Database.TransactionManager.StartTransaction();
+            var tr = Active.Database.TransactionManager.StartTransaction();
 
             var names = PrintUtils.GetAttrList(tr, attrList);
             attrList = names.Item2;
