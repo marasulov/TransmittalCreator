@@ -1,21 +1,18 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-using TransmittalCreator.DBCad;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
+using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
-using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
 using TransmittalCreator.ViewModel;
-using Path = System.IO.Path;
 
 namespace TransmittalCreator
 {
 
-    public partial class Window1 : Window
+	public partial class Window1 : Window
     {
         public bool isClicked = false;
         private BlockViewModel _data;
@@ -46,9 +43,8 @@ namespace TransmittalCreator
             }
 
             comboAttributs.ItemsSource = combolist;
-           
 
-            DataContext = new AttributeViewModel();
+            DataContext = new FilenameModel();
         }
 
         private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)

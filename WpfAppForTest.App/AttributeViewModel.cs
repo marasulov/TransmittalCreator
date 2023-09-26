@@ -1,10 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Prism.Commands;
 
 namespace WpfAppForTest.App
 {
-    public class AttributeViewModel : INotifyPropertyChanged
+    public class AttributeViewModel : INotifyPropertyChanged, ICloseWindow
     {
         private BlockAttribute _selectedAttr;
         public ObservableCollection<BlockAttribute> Attributes { get; set; }
@@ -52,5 +54,24 @@ namespace WpfAppForTest.App
         {
             return _selectedAttr;
         }
+
+        //IDialogService _closeCommand = new DialogService();
+
+        private DelegateCommand _closeWindow;
+
+        public DelegateCommand CloseWindow =>
+	        _closeWindow ?? (_closeWindow = new DelegateCommand(ExecuteShowDialog));
+
+        private void ExecuteShowDialog()
+        {
+	        Close ?.Invoke();
+        }
+
+        public Action Close { get; set; }
+    }
+
+    interface ICloseWindow
+    {
+	    Action Close { get; set; }
     }
 }

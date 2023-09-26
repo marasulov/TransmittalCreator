@@ -18,10 +18,10 @@ namespace WpfAppForTest.App
         {
             InitializeComponent();
 
-            FilenameModel filenameModel = new FilenameModel();
+            AttributeViewModel filenameModel = new AttributeViewModel();
             DataContext = filenameModel;
 
-
+			Loaded += MainWindow_Loaded;
 
             //fileNameTextblock.DataContext = FullName();
 
@@ -44,7 +44,18 @@ namespace WpfAppForTest.App
             //}
         }
 
-        private string FullName()
+		private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+		{
+			if (DataContext is ICloseWindow vm)
+			{
+				vm.Close += () =>
+				{
+					this.Close();
+				};
+			}
+		}
+
+		private string FullName()
         {
             return this.comboAttributs.SelectedValue?.ToString() + "" + this.suffixTextBox?.Text + "" +
                    this.numberingTextbox.Text;
@@ -61,14 +72,7 @@ namespace WpfAppForTest.App
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        private void NewCommand_Executed(object sender, RoutedEventArgs e)
-        {
-            bool ccCheckedhecked = this.RadioButtonX.IsChecked.Value;
-            bool cCheckedhecked = this.RadioButtonY.IsChecked.Value;
-            isClicked = true;
-            this.Close();
-            
-        }
+        
 
     }
 

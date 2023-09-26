@@ -113,7 +113,9 @@
                 Style="{DynamicResource MaterialDesignRaisedButton}"
                 materialDesign:ShadowAssist.ShadowDepth="Depth2"
                 
-                Command="{Binding AddCommand}" TabIndex="3" Click="NewCommand_Executed">Submit</Button>
+                Command="{Binding AddCommand}" TabIndex="3">Submit</Button>
+
+            <Button Command="{Binding CloseWindow}"> Show Dialog</Button>
         </Grid>
     </DockPanel>
    </Window>

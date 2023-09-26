@@ -10,14 +10,23 @@ namespace WpfAppTest
 
         public MainWindow()
         {
-            var nodes = new Node().InitRoot();
+            
 
             InitializeComponent();
-            this.Tree.ItemsSource = nodes;
+			Loaded += MainWindow_Loaded;
         }
 
-
-    }
+		private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+		{
+			if (DataContext is ICloseWindow vm)
+			{
+				vm.Close += () =>
+				{
+					this.Close();
+				};
+			}
+		}
+	}
 
     
 
