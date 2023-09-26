@@ -4,6 +4,7 @@ using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using Autodesk.AutoCAD.Geometry;
 //using ModPlusAPI;
 //using ModPlusAPI.Windows;
 using AcApp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
@@ -133,17 +134,6 @@ namespace TransmittalCreator.Utils
 			return scale.DrawingUnits / scale.PaperUnits;
 		}
 
-		
-
-		
-
-		
-
-		
-
-
-		
-
 		/// <summary>
 		/// Найти все блоки в текущем пространстве (модель/лист), представляющие интеллектуальный примитив указанного типа
 		/// </summary>
@@ -209,6 +199,55 @@ namespace TransmittalCreator.Utils
 		{
 			// https://spiderinnet1.typepad.com/blog/2014/05/autocad-net-detect-current-space-model-or-paper-and-viewport.html
 			return AcApp.DocumentManager.MdiActiveDocument.Database.TileMode;
+		}
+
+		/// <summary>
+		/// Зуммирует объекты в файле по границам
+		/// </summary>
+		/// <param name="fileName">Имя файла</param>
+		/// <returns></returns>
+		public static string ZoomFilesAndSave(string fileName)
+		{
+			string newFileName = "";
+			using (Database db = new Database(false, false))
+			{
+				db.ReadDwgFile(fileName, FileOpenMode.OpenForReadAndReadShare, true, null);
+				Database prevDb = HostApplicationServices.WorkingDatabase;
+				HostApplicationServices.WorkingDatabase = db;
+				db.UpdateExt(true);
+				using (ViewportTable vTab = db.ViewportTableId.GetObject(OpenMode.ForRead) as ViewportTable)
+				{
+					ObjectId acVptId = vTab["*Active"];
+					using (ViewportTableRecord vpTabRec = acVptId.GetObject(OpenMode.ForWrite) as ViewportTableRecord)
+					{
+						double scrRatio = (vpTabRec.Width / vpTabRec.Height);
+						Matrix3d matWCS2DCS = Matrix3d.PlaneToWorld(vpTabRec.ViewDirection);
+						matWCS2DCS = Matrix3d.Displacement(vpTabRec.Target - Point3d.Origin) * matWCS2DCS;
+						matWCS2DCS = Matrix3d.Rotation(-vpTabRec.ViewTwist,
+							             vpTabRec.ViewDirection,
+							             vpTabRec.Target)
+						             * matWCS2DCS;
+						matWCS2DCS = matWCS2DCS.Inverse();
+						Extents3d extents = new Extents3d(db.Extmin, db.Extmax);
+						extents.TransformBy(matWCS2DCS);
+						double width = (extents.MaxPoint.X - extents.MinPoint.X);
+						double height = (extents.MaxPoint.Y - extents.MinPoint.Y);
+						Point2d center = new Point2d((extents.MaxPoint.X + extents.MinPoint.X) * 0.5,
+							(extents.MaxPoint.Y + extents.MinPoint.Y) * 0.5);
+						if (width > (height * scrRatio))
+							height = width / scrRatio;
+						vpTabRec.Height = height;
+						vpTabRec.Width = height * scrRatio;
+						vpTabRec.CenterPoint = center;
+					}
+				}
+
+				HostApplicationServices.WorkingDatabase = prevDb;
+				newFileName = fileName.Substring(0, fileName.Length - 4) + "z.dwg";
+				db.SaveAs(newFileName, DwgVersion.Current);
+			}
+
+			return newFileName;
 		}
 	}
 }

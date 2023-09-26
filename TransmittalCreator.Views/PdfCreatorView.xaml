@@ -5,37 +5,25 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:no="clr-namespace:TransmittalCreator.Utils.Controls"
-        xmlns:vm="clr-namespace:TransmittalCreator.Models"
+        xmlns:vm="clr-namespace:TransmittalCreator.ViewModels;assembly=TransmittalCreator.ViewModels"
         
-        mc:Ignorable="d"
-        Title="PDFCreator" Height="250" Width="600"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight ="Regular"
-        TextElement.FontSize="14"
-        TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto"
-        Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}" Icon="../0012.png" 
-        ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250" Topmost="True" 
 
+        
+         
+        ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250" Topmost="True"
         >
-    <Window.DataContext>
-        <vm:FilenameModel />
-    </Window.DataContext>
-    <Window.Resources>
+  <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="LightBlue" SecondaryColor="Lime" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/materialdesigntheme.dark.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/primary/materialdesigncolor.blue.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml"/>
+
             </ResourceDictionary.MergedDictionaries>
 
         </ResourceDictionary>
     </Window.Resources>
-
+    <!--<Window.DataContext>
+        <vm:PdfCreatorViewModel />
+    </Window.DataContext>-->
     <DockPanel>
         <Grid VerticalAlignment="Stretch" Margin="8 2 8 0">
             <Grid.RowDefinitions>
@@ -56,10 +44,10 @@
             <TextBlock Grid.Column="0" VerticalAlignment="Center">Select block attribute</TextBlock>
             <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>
             <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
-                      ItemsSource="{Binding BlockAttributes}"
-                      SelectedItem="{Binding BlockAttributes[0]}"
+                      ItemsSource="{Binding Attributes}"
+                      SelectedItem="{Binding SelectedAttr}"
                       SelectedIndex="0"
-                      IsEnabled="{Binding IsChecked, ElementName=attributeCheckBox}" FontSize="12" Margin="8 0 8 0">
+                      FontSize="12" Margin="8 0 8 0">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical">
@@ -80,7 +68,7 @@
             <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Numbering start with:</TextBlock>
             <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
             <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
-                     Text="{Binding Path=NumberingValue}" no:NumberOnly.IsEnabled="True"
+                     Text="{Binding Path=NumberingValue}" 
                      IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0">
             </TextBox>
 

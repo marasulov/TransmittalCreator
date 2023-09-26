@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace TransmittalCreator.Views
+namespace TransmittalCreator.View
 {
     /// <summary>
     /// Логика взаимодействия для ObjectDividerView.xaml

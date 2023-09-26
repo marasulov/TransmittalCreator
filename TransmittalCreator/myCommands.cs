@@ -10,6 +10,7 @@ using LeaderPlacement;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,7 +25,7 @@ using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 using TransmittalCreator.ViewModel;
-using TransmittalCreator.Views;
+using TransmittalCreator.View;
 using Active = TransmittalCreator.DBCad.Active;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using Arc = Autodesk.AutoCAD.DatabaseServices.Arc;
@@ -904,122 +905,10 @@ namespace TransmittalCreator
 
 		#endregion
 
-		[CommandMethod("CreateVed")]
-		public static void CreateVed()
-		{
-			List<Sheet> dict = new List<Sheet>();
-			List<PrintModel> printModels = new List<PrintModel>();
-			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			using (Transaction tr = DBCad.Active.Database.TransactionManager.StartTransaction())
-			{
-				//фильтр для выбора только блока
-				BlockSelector blockSelector = new BlockSelector();
-				blockSelector.GetFilterForSelectBlockId();
-				var res = blockSelector.SelectionResult;
-
-				if (res.Status != PromptStatus.OK)
-				{
-					Active.Editor.WriteMessage("Надо выбрать блок");
-					return;
-				}
-
-				SelectionSet selSet = res.Value;
-				ObjectId[] idArrayTemp = selSet.GetObjectIds();
-
-				ObjectIdCollection idArray = new ObjectIdCollection();
-				foreach (var objectId in idArrayTemp)
-				{
-					BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-					BlockTableRecord block =
-						tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					if (!(block is null))
-					{
-						string blockName = block.Name;
-
-						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
-						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-						//if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
-						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
-					}
-				}
-
-				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-				string selAttrName = "НОМЕР_ЛИСТА";
-
-				var dictOrdered = dict.OrderBy(x => x.MinPointX).ToList();
-				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-
-				var scale = printModels[0].GetBlockScale();
+		
 
 
-				PrintUtils.CreateOnlyVed(dictOrdered, scale);
-				tr.Commit();
-			}
-		}
-
-
-		#region CreateTransPdf
-
-		[CommandMethod("CreateTranspdf")]
-		public static void CreateTransmittalAndPdf()
-		{
-			List<Sheet> dict = new List<Sheet>();
-			List<PrintModel> printModels = new List<PrintModel>();
-			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			using (Transaction tr = DBCad.Active.Database.TransactionManager.StartTransaction())
-			{
-				//фильтр для выбора только блока
-				BlockSelector blockSelector = new BlockSelector();
-				blockSelector.GetFilterForSelectBlockId();
-				var res = blockSelector.SelectionResult;
-
-				if (res.Status != PromptStatus.OK)
-				{
-					Active.Editor.WriteMessage("Надо выбрать блок");
-					return;
-				}
-
-				SelectionSet selSet = res.Value;
-				ObjectId[] idArrayTemp = selSet.GetObjectIds();
-
-				ObjectIdCollection idArray = new ObjectIdCollection();
-				foreach (var objectId in idArrayTemp)
-				{
-					BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-					BlockTableRecord block =
-						tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					if (!(block is null))
-					{
-						string blockName = block.Name;
-						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
-						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
-
-					}
-				}
-
-				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-				string selAttrName = "НОМЕР_ЛИСТА";
-				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-
-
-				//utils.CreateOnlyVed(dict);
-				PrintUtils.CreateJsonFile(dict);
-
-				foreach (var printModel in printModels)
-				{
-					//Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
-					PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-				}
-
-				tr.Commit();
-			}
-		}
-
-		#endregion
-
+		
 		#region CreateCombinedTransmittalAndPdf
 
 		[CommandMethod("CreateCombinedTransmittalAndPdf")]
@@ -1181,104 +1070,106 @@ namespace TransmittalCreator
 
 		#endregion
 
-		#region CreatePdfWithInterfaceSelecting for test
+		//#region CreatePdfWithInterfaceSelecting for test
 
-		[CommandMethod("CreateP")]
-		public void CreatePdfNameTest()
-		{
-			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+		//[CommandMethod("CreateP")]
+		//public void CreatePdfNameTest()
+		//{
+		//	Active.Document.SendStringToExecute("REGENALL ", true, false, true);
 
-			var options = new PromptEntityOptions("\nPlease select the block:");
-			options.SetRejectMessage("\nSelected object isn't a block.\n");
-			options.AddAllowedClass(typeof(BlockReference), true);
+		//	var options = new PromptEntityOptions("\nPlease select the block:");
+		//	options.SetRejectMessage("\nSelected object isn't a block.\n");
+		//	options.AddAllowedClass(typeof(BlockReference), true);
 
-			var result = Active.Editor.GetEntity(options);
-			if (result.Status == PromptStatus.OK)
-			{
-				using (var tr = Active.Database.TransactionManager.StartTransaction())
-				{
-					var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+		//	var result = Active.Editor.GetEntity(options);
+		//	if (result.Status == PromptStatus.OK)
+		//	{
+		//		using (var tr = Active.Database.TransactionManager.StartTransaction())
+		//		{
+		//			var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
 
-					BlockTableRecord btr =
-						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					string blockName = btr.Name;
-					btr.Dispose();
-					AttributeCollection attributeCollection = blockRef.AttributeCollection;
+		//			BlockTableRecord btr =
+		//				tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+		//			string blockName = btr.Name;
+		//			btr.Dispose();
+		//			AttributeCollection attributeCollection = blockRef.AttributeCollection;
 
-					Dictionary<string, string> attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
+		//			Dictionary<string, string> attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
 
-					List<BlockAttribute> blockAttributes = new List<BlockAttribute>();
+		//			ObservableCollection<BlockAttribute> blockAttributes = new ObservableCollection<BlockAttribute>();
 
-					foreach (KeyValuePair<string, string> entry in attrList)
-					{
-						blockAttributes.Add(new BlockAttribute(entry.Key, entry.Value));
-					}
-					var filenameModel = new FilenameModel(blockAttributes);
+		//			foreach (KeyValuePair<string, string> entry in attrList)
+		//			{
+		//				blockAttributes.Add(new BlockAttribute(entry.Key, entry.Value));
+		//			}
+		//			//var filenameModel = new FilenameModel(blockAttributes);
 
-					var pdfCreatorView = new PdfCreatorView(filenameModel);
-					pdfCreatorView.Show();
+		//			var pdfCreatorViewModel = new PdfCreatorViewModel(blockAttributes);
 
-					Active.Editor.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName}");
+		//			var pdfCreatorView = new PdfCreatorView(pdfCreatorViewModel);
+		//			pdfCreatorView.Show();
 
-					tr.Commit();
-				}
+					
 
-				//var names = PrintUtils.GetAttrList(tr, attrList);
+		//			//Active.Editor.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName} selected attr {pdfCreatorViewModel.SelectedAttr.AttributeName}");
 
-				//attrList = names.Item2;
-				//_blockName = names.Item1;
+		//			tr.Commit();
+		//		}
 
-				//foreach (KeyValuePair<string, string> entry in attrList)
-				//{
-				//	combolist.Add(new BlockAttribute(entry.Key, entry.Value));
-				//}
+		//		//var names = PrintUtils.GetAttrList(tr, attrList);
 
-				//Application.ShowModalWindow(window);
-				//if (window.isClicked)
-				//{
-				//	//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
-				//	List<Sheet> dict = new List<Sheet>();
+		//		//attrList = names.Item2;
+		//		//_blockName = names.Item1;
 
-				//	using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-				//	{
-				//		var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+		//		//foreach (KeyValuePair<string, string> entry in attrList)
+		//		//{
+		//		//	combolist.Add(new BlockAttribute(entry.Key, entry.Value));
+		//		//}
 
-				//		BlockTableRecord block = tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+		//		//Application.ShowModalWindow(window);
+		//		//if (window.isClicked)
+		//		//{
+		//		//	//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+		//		//	List<Sheet> dict = new List<Sheet>();
 
-				//		ObjectId[] idArrayTemp = { block.Id };
-				//		//ObjectIdCollection idArray = new ObjectIdCollection(idArrayTemp);
-				//		//TODO printing X Y
-				//		//string selAttrName = attributeName.AttributeName;
+		//		//	using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+		//		//	{
+		//		//		var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
 
+		//		//		BlockTableRecord block = tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
 
-				//		FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
-
-				//		//GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
-
-				//		fileNameCreator.GetPrintParametersToPdf(tr);
-
-				//		PrintUtils.CreateJsonFile(dict);
-
-				//		foreach (var printModel in fileNameCreator.GetPrintModels())
-				//		{
-				//			PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-				//		}
+		//		//		ObjectId[] idArrayTemp = { block.Id };
+		//		//		//ObjectIdCollection idArray = new ObjectIdCollection(idArrayTemp);
+		//		//		//TODO printing X Y
+		//		//		//string selAttrName = attributeName.AttributeName;
 
 
-				//		tr.Commit();
-				//	}
-				//}
+		//		//		FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
+
+		//		//		//GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
+
+		//		//		fileNameCreator.GetPrintParametersToPdf(tr);
+
+		//		//		PrintUtils.CreateJsonFile(dict);
+
+		//		//		foreach (var printModel in fileNameCreator.GetPrintModels())
+		//		//		{
+		//		//			PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+		//		//		}
+
+
+		//		//		tr.Commit();
+		//		//	}
+		//		//}
 
 
 
-			}
-			else
-			{
-				Active.Editor.WriteMessage("Надо выбрать блок");
-			}
-
-
-		}
+		//	}
+		//	else
+		//	{
+		//		Active.Editor.WriteMessage("Надо выбрать блок");
+		//	}
+		//}
 
 		private Dictionary<string, string> GetDictionaryFromAttributeCollection(AttributeCollection attributeCollection, Transaction tr)
 		{
@@ -1295,246 +1186,8 @@ namespace TransmittalCreator
 			return attributesDict;
 		}
 
-		#endregion
 
-		#region CreateDwg
-
-		[CommandMethod("CreateDwg")]
-		public static void CreateDwg()
-		{
-			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			Document doc = Application.DocumentManager.MdiActiveDocument;
-			Database db = doc.Database;
-
-			Dictionary<ObjectId, bool> layersDictionary = LayerManipulation.GetLayersIsBlockedCol();
-			if (doc == null) return;
-			doc.LockOrUnlockLayers(false, ignoreCurrent: false, lockZero: true);
-
-			bool isExec = true;
-			using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-			{
-				BlockSelector blockSelector = new BlockSelector();
-				blockSelector.GetFilterForSelectBlockId();
-				var res = blockSelector.SelectionResult;
-				if (res.Status != PromptStatus.OK)
-				{
-					isExec = false;
-					Active.Editor.WriteMessage("Надо выбрать блок");
-				}
-
-				if (isExec)
-				{
-					SelectionSet selSet = res.Value;
-					ObjectId[] idArrayTemp = selSet.GetObjectIds();
-
-					//idArray.Select(id => (BlockReference) tr.GetObject(id, OpenMode.ForRead))
-					//    .Where(br =>
-					//        ((BlockTableRecord) tr.GetObject(br.DynamicBlockTableRecord, OpenMode.ForRead)).Name ==
-					//        "Формат")
-					//    .Select(br => br.ObjectId);
-
-					ObjectIdCollection idArray = new ObjectIdCollection();
-					foreach (var objectId in idArrayTemp)
-					{
-						BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-						BlockTableRecord block =
-							tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-						string blockName = block.Name;
-
-						//if (blockName == "Формат") idArray.Add(objectId);
-						//else if (blockName == "ФорматM25") idArray.Add(objectId);
-						var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-						string jsonFile = File.ReadAllText(Path.Combine(assemblyLocation ?? string.Empty, "conf.json"));
-						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
-
-						//Active.Document.Editor.WriteMessage(blockName);
-					}
-
-					//MyCommands.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-					//MyCommands.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray);
-					//Active.Editor.WriteMessage("печать {0} - {1}", printModels[0].DocNumber, printModels.Count);
-
-					foreach (ObjectId objectId in idArray)
-					{
-						ObjectCopier objectCopier = new ObjectCopier(objectId);
-						ObjectIdCollection objectIds = objectCopier.SelectCrossingWindow();
-						BlockReference blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-						string selAttrName = "НАЗВАНИЕ_ЛИСТА";
-						string fileName = PrintUtils.GetBlockAttributeValue(blkRef, selAttrName);
-
-						//HostApplicationServices hs = HostApplicationServices.Current;
-						//string path = Application.GetSystemVariable("DWGPREFIX");
-						//hs.FindFile(doc.Name, doc.Database, FindFileHint.Default);
-						//string createdwgFolder = Path.GetFileNameWithoutExtension(db.OriginalFileName);
-
-						string folderdwg = Path.GetDirectoryName(db.OriginalFileName);
-						string dwgFilename = Path.Combine(folderdwg, fileName + ".dwg");
-						objectCopier.CopyObjectsNewDatabases(objectIds, dwgFilename);
-						// objectCopier.CopyObjectsBetweenDatabases(objectIds, dwgFilename);
-						Active.Editor.WriteMessage("{0} сохранен", dwgFilename);
-						string newFileName = ZoomFilesAndSave(dwgFilename);
-						File.Delete(dwgFilename);
-						System.IO.File.Move(newFileName, dwgFilename);
-					}
-				}
-
-				doc.LockLayers(layersDictionary);
-				tr.Commit();
-			}
-		}
-
-
-		public static string ZoomFilesAndSave(string fileName)
-		{
-			string newFileName = "";
-			using (Database db = new Database(false, false))
-			{
-				db.ReadDwgFile(fileName, FileOpenMode.OpenForReadAndReadShare, true, null);
-				Database prevDb = HostApplicationServices.WorkingDatabase;
-				HostApplicationServices.WorkingDatabase = db;
-				db.UpdateExt(true);
-				using (ViewportTable vTab = db.ViewportTableId.GetObject(OpenMode.ForRead) as ViewportTable)
-				{
-					ObjectId acVptId = vTab["*Active"];
-					using (ViewportTableRecord vpTabRec = acVptId.GetObject(OpenMode.ForWrite) as ViewportTableRecord)
-					{
-						double scrRatio = (vpTabRec.Width / vpTabRec.Height);
-						Matrix3d matWCS2DCS = Matrix3d.PlaneToWorld(vpTabRec.ViewDirection);
-						matWCS2DCS = Matrix3d.Displacement(vpTabRec.Target - Point3d.Origin) * matWCS2DCS;
-						matWCS2DCS = Matrix3d.Rotation(-vpTabRec.ViewTwist,
-										 vpTabRec.ViewDirection,
-										 vpTabRec.Target)
-									 * matWCS2DCS;
-						matWCS2DCS = matWCS2DCS.Inverse();
-						Extents3d extents = new Extents3d(db.Extmin, db.Extmax);
-						extents.TransformBy(matWCS2DCS);
-						double width = (extents.MaxPoint.X - extents.MinPoint.X);
-						double height = (extents.MaxPoint.Y - extents.MinPoint.Y);
-						Point2d center = new Point2d((extents.MaxPoint.X + extents.MinPoint.X) * 0.5,
-							(extents.MaxPoint.Y + extents.MinPoint.Y) * 0.5);
-						if (width > (height * scrRatio))
-							height = width / scrRatio;
-						vpTabRec.Height = height;
-						vpTabRec.Width = height * scrRatio;
-						vpTabRec.CenterPoint = center;
-					}
-				}
-
-				HostApplicationServices.WorkingDatabase = prevDb;
-				newFileName = fileName.Substring(0, fileName.Length - 4) + "z.dwg";
-				db.SaveAs(newFileName, DwgVersion.Current);
-			}
-
-			return newFileName;
-		}
-
-		#endregion
-
-		[CommandMethod("CrLayTr")]
-		public void CreateTransmitallFromLayout()
-		{
-			IFileManager fileManager = new FileManager();
-			string allPath = fileManager.GetFilePath();
-			Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-			string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
-			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-
-			string[] blockNames = deserializeObject.StampName;
-			DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
-			LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
-			layoutModelCollection.ListLayouts("Model");
-			layoutModelCollection.CreateLayoutCollection();
-
-			string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
-			var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
-
-			LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
-			Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModalWindow(window);
-
-			if (!window.isClicked) return;
-
-			var printPackages = window._printPackages;
-			packageCreator.PrintPackageModels = printPackages;
-			var sheetType = SheetType.MultiPdf;
-
-			packageCreator.PublishAllPackages();
-
-			var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
-
-
-			List<Sheet> sheets = new List<Sheet>();
-			using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
-			{
-				PrintUtils.GetSheetsFromBlocks(Active.Editor, sheets, trans, new ObjectIdCollection(blockIds));
-				PrintUtils.CreateJsonFile(sheets);
-			}
-		}
-
-		[CommandMethod("CtTransm")]
-		public void ListAttributes()
-		{
-			Dictionary<string, string> attrList = new Dictionary<string, string>();
-
-			MainWindow window = new MainWindow(new BlockViewModel(attrList));
-
-			Application.ShowModalWindow(window);
-
-			if (window.isClicked == true)
-			{
-				//var objectIds = Utils.GetAllCurrentSpaceBlocksByName(window.NameBlock.Text);
-				ObjectId mSpaceId = SymbolUtilityServices.GetBlockModelSpaceId(Active.Database);
-				ObjectIdCollection objectIds = PrintUtils.SelectDynamicBlockReferences(mSpaceId);
-
-				List<Sheet> dict = new List<Sheet>();
-				List<PrintModel> printModels = new List<PrintModel>();
-
-				BlockAttribute objectNameEn = window.ComboObjectNameEn.SelectedItem as BlockAttribute;
-				BlockAttribute objectNameRu = window.ComboObjectNameRu.SelectedItem as BlockAttribute;
-
-				BlockAttribute position = window.ComboBoxPosition.SelectedItem as BlockAttribute;
-				BlockAttribute nomination = window.ComboBoxNomination.SelectedItem as BlockAttribute;
-				BlockAttribute comment = window.ComboBoxComment.SelectedItem as BlockAttribute;
-				BlockAttribute trItem = window.ComboBoxTrItem.SelectedItem as BlockAttribute;
-				BlockAttribute trDocNumber = window.ComboBoxTrDocNumber.SelectedItem as BlockAttribute;
-				BlockAttribute trDocTitleEn = window.ComboBoxTrDocTitleEn.SelectedItem as BlockAttribute;
-				BlockAttribute trDocTitleRu = window.ComboBoxTrDocTitleRu.SelectedItem as BlockAttribute;
-
-				AttributModel attributModel = new AttributModel(objectNameEn, objectNameRu, position, nomination,
-					comment, trItem, trDocNumber, trDocTitleEn, trDocTitleRu);
-
-				using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-				{
-					PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, objectIds);
-					string selAttrName = "НОМЕР_ЛИСТА";
-					PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
-
-					if (window.transmittalCheckBox.IsChecked == true)
-					{
-
-						PrintUtils.CreateOnlyVed(dict);
-						PrintUtils.CreateOnlytrans(dict);
-						foreach (var printModel in printModels)
-						{
-							PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-						}
-					}
-					else
-					{
-						//Utils utils = new Utils();
-						//utils.CreateOnlyVed(dict);
-						foreach (var printModel in printModels)
-						{
-							//PlotCurrentLayout(printModel.DocNumber, printModel.BlockExtents3d, printModel.StampViewName);
-						}
-					}
-
-					tr.Commit();
-				}
-			}
-		}
+		
 
 		public static bool UseBedit = true;
 		private static void DocumentManager_DocumentLockModeChanged(
@@ -1572,7 +1225,6 @@ namespace TransmittalCreator
 			CommandsWatcher.SubscribeDocument(doc);
 		}
 
-
 		public void Initialize()
 		{
 			CommandsWatcher.Initialize();
@@ -1609,64 +1261,6 @@ namespace TransmittalCreator
 		{
 			throw new NotImplementedException();
 		}
-
-		[CommandMethod("BlockExt")]
-		public void BlockExt()
-		{
-			Document doc = Application.DocumentManager.MdiActiveDocument;
-			if (doc == null) return;
-			Editor ed = doc.Editor;
-			PromptEntityOptions enOpt =
-				new PromptEntityOptions("\nВыберите вставку блока:");
-			enOpt.SetRejectMessage("Это не вставка блока");
-			enOpt.AddAllowedClass(typeof(BlockReference), true);
-			PromptEntityResult enRes = ed.GetEntity(enOpt);
-			if (enRes.Status == PromptStatus.OK)
-			{
-				Extents3d blockExt = new Extents3d(Point3d.Origin, Point3d.Origin);
-				using (BlockReference bref = enRes.ObjectId.Open(OpenMode.ForRead) as BlockReference)
-				{
-					Matrix3d mat = bref.BlockTransform;
-					using (BlockTableRecord btr = bref.BlockTableRecord.Open(OpenMode.ForRead) as BlockTableRecord)
-					{
-						foreach (ObjectId id in btr)
-						{
-							using (DBObject obj = id.Open(OpenMode.ForRead) as DBObject)
-							{
-								Entity en = obj as Entity;
-								if (en != null && en.Visible == true)
-								{
-
-									try
-									{
-										Extents3d ext = en.GeometricExtents;
-										ext.TransformBy(mat);
-										if (blockExt.MinPoint == Point3d.Origin && blockExt.MaxPoint == Point3d.Origin)
-											blockExt = ext;
-										else
-											blockExt.AddExtents(ext);
-									}
-									catch (Autodesk.AutoCAD.Runtime.Exception e)
-									{
-										Active.Editor.WriteMessage(e.Message);
-
-									}
-
-
-								}
-							}
-						}
-					}
-				}
-				string s =
-					"MinPoint: " + blockExt.MinPoint.ToString() + " " +
-					"MaxPoint: " + blockExt.MaxPoint.ToString();
-				ed.WriteMessage(s);
-			}
-		}
-
-
-
 
 		//[CommandMethod("OPSV")]
 		public static void OpenSaveDwgFiles()
@@ -1743,6 +1337,5 @@ namespace TransmittalCreator
 				}
 			}
 		}
-
 	}
 }

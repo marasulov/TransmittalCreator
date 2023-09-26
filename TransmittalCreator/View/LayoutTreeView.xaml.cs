@@ -7,7 +7,7 @@ using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
 using TransmittalCreator.ViewModel;
 
-namespace TransmittalCreator.Views
+namespace TransmittalCreator.View
 {
     /// <summary>
     /// Логика взаимодействия для LayoutTreeView.xaml

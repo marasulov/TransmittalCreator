@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
-using TransmittalCreator.Models;
+using TransmittalCreator.ViewModel;
 
-namespace TransmittalCreator.Views
+namespace TransmittalCreator.View
 {
 	/// <summary>
 	/// Логика взаимодействия для PdfCreatorView.xaml
@@ -10,15 +10,15 @@ namespace TransmittalCreator.Views
 	public partial class PdfCreatorView : Window
 	{
 		public Dictionary<string,string> BlockAttributes { get; set; }
-		public PdfCreatorView(FilenameModel filenameModel)
+		public PdfCreatorView(PdfCreatorViewModel pdfCreatorViewModel)
 		{
 			InitializeComponent();
 
 			//AttributeViewModel attributeViewModel = new AttributeViewModel();
 
 			//comboAttributs.ItemsSource = blockAttributes;
-
-			DataContext = filenameModel;
+			comboAttributs.ItemsSource = pdfCreatorViewModel.Attributes;
+			DataContext = pdfCreatorViewModel;
 		}
 	}
 }

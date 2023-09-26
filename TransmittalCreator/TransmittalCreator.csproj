@@ -146,7 +146,14 @@
     <Folder Include="Models\Blocks\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CadCommands\BlockExtCommand.cs" />
+    <Compile Include="CadCommands\CreateDwgCommand.cs" />
+    <Compile Include="CadCommands\CreateLayoutTrCommand.cs" />
+    <Compile Include="CadCommands\CreateTransPdfCommand.cs" />
+    <Compile Include="CadCommands\CreateVedCommand.cs" />
+    <Compile Include="CadCommands\CtTransmCommand.cs" />
     <Compile Include="CommandsWatcher.cs" />
+    <Compile Include="CadCommands\PdfCreatorCommand.cs" />
     <Compile Include="Converters\RatioConverter.cs" />
     <Compile Include="DBCad\Active.cs" />
     <Compile Include="CircleDrawJig.cs" />
@@ -221,13 +228,13 @@
     <Compile Include="ViewModel\PdfCreatorViewModel.cs" />
     <Compile Include="ViewModel\SheetViewModel.cs" />
     <Compile Include="ViewModel\VirtualToggleButton.cs" />
-    <Compile Include="Views\LayoutTreeView.xaml.cs">
+    <Compile Include="View\LayoutTreeView.xaml.cs">
       <DependentUpon>LayoutTreeView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\ObjectDividerView.xaml.cs">
+    <Compile Include="View\ObjectDividerView.xaml.cs">
       <DependentUpon>ObjectDividerView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\PdfCreatorView.xaml.cs">
+    <Compile Include="View\PdfCreatorView.xaml.cs">
       <DependentUpon>PdfCreatorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Window1.xaml.cs">
@@ -280,15 +287,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\LayoutTreeView.xaml">
+    <Page Include="View\LayoutTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\ObjectDividerView.xaml">
+    <Page Include="View\ObjectDividerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\PdfCreatorView.xaml">
+    <Page Include="View\PdfCreatorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,22 +1,21 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-using TransmittalCreator.DBCad;
+﻿using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
+using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
-using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
 using Application = System.Windows.Forms.Application;
 using OpenFileDialog = Autodesk.AutoCAD.Windows.OpenFileDialog;
 
 namespace TransmittalCreator
 {
-    public class Hvac : EntityJig
+	public class Hvac : EntityJig
     {
         public Point3d endPnt = new Point3d();
         public static bool CreateHvacTable() // This method can have any name
