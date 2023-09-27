@@ -30,7 +30,6 @@ namespace TransmittalCreator.CadCommands
 			string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
 			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 
-
 			string[] blockNames = deserializeObject.StampName;
 			DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
 			LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
@@ -52,7 +51,6 @@ namespace TransmittalCreator.CadCommands
 			packageCreator.PublishAllPackages();
 
 			var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
-
 
 			List<Sheet> sheets = new List<Sheet>();
 			using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
