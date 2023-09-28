@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
@@ -36,15 +37,7 @@ namespace TransmittalCreator.CadCommands
 			List<BlockReference> blockReferences = new List<BlockReference>();
 			using (Transaction transaction = Active.Database.TransactionManager.StartTransaction())
 			{
-				foreach (var blockRefId in selSet.GetObjectIds())
-				{
-					var blockRef = blockRefId.GetObject(OpenMode.ForRead) as BlockReference;
-					if (blockRef != null)
-					{
-						blockReferences.Add(blockRef);
-					}
-				}
-
+				blockReferences.AddRange(selSet.GetObjectIds().Select(blockRefId => blockRefId.GetObject(OpenMode.ForRead)).OfType<BlockReference>());
 
 
 				BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "Page", "Лист" });
