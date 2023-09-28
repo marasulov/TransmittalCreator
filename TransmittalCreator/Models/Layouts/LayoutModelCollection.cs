@@ -149,10 +149,15 @@ namespace TransmittalCreator.Models.Layouts
             DynamicBlocks.GetLayoutsWithDynBlocks(trans, LayoutModels);
 
             DeleteEmptyLayout();
+            
+            var blocksList = this.LayoutModels.Select(x => x.BlocksObjectId).ToList();
+            if (blocksList.Count == 0) return;
 
-            var blocksList = this.LayoutModels.Select(x => x.BlocksObjectId).ToArray();
-            if (blocksList.Length == 0) return;
-
+            //TODO сюда вставить нумерацию листов
+            List<BlockReference> blockReferences = new List<BlockReference>();
+            blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForWrite)).OfType<BlockReference>());
+            
+            BlockUtils.BlockAttributeEnumerator(blockReferences,new []{"Page", "Лист"},);
             this.SetPrintModels(trans);
             this.SetLayoutPlotSetting();
         }
@@ -161,7 +166,5 @@ namespace TransmittalCreator.Models.Layouts
         {
             Active.UsingTransaction(CreateCollectionFromBlockNames);
         }
-        
-        
     }
 }

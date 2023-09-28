@@ -150,6 +150,7 @@
     <Compile Include="CadCommands\CreateDwgCommand.cs" />
     <Compile Include="CadCommands\CreateLayoutTrCommand.cs" />
     <Compile Include="CadCommands\CreatePdfWithRenumberingCommand.cs" />
+    <Compile Include="CadCommands\CreatePTestCommand.cs" />
     <Compile Include="CadCommands\CreateTransPdfCommand.cs" />
     <Compile Include="CadCommands\CreateVedCommand.cs" />
     <Compile Include="CadCommands\CtTransmCommand.cs" />

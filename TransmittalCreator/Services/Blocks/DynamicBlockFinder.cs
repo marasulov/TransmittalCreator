@@ -9,14 +9,19 @@ namespace TransmittalCreator.Services.Blocks
     public class DynamicBlockFinder
     {
         private BlockTable _blokTable;
-        public string[] BlockNameToSearch { get; set; }
+        private string[] _blockNameToSearch;
         public ObjectIdCollection BlockRefIds { get; set; }
 
         public DynamicBlockFinder(string[] blockNames)
         {
-            BlockNameToSearch = blockNames;
+            _blockNameToSearch = blockNames;
         }
 
+        /// <summary>
+        /// Получает листы содержащие блоки со штампами
+        /// </summary>
+        /// <param name="trans"></param>
+        /// <param name="layoutModels"></param>
         public void GetLayoutsWithDynBlocks(Transaction trans, List<LayoutModel> layoutModels)
         {
             // получаем таблицу блоков и проходим по всем записям таблицы блоков
@@ -25,7 +30,7 @@ namespace TransmittalCreator.Services.Blocks
             {
                 // получаем запись таблицы блоков и смотри анонимная ли она
                 BlockTableRecord btr = (BlockTableRecord) trans.GetObject(btrId, OpenMode.ForRead);
-                if (!btr.IsDynamicBlock || !BlockNameToSearch.Contains(btr.Name)) continue;
+                if (!btr.IsDynamicBlock || !_blockNameToSearch.Contains(btr.Name)) continue;
                 // получаем все анонимные блоки динамического блока
                 ObjectIdCollection anonymousIds = btr.GetAnonymousBlockIds();
 
@@ -42,6 +47,11 @@ namespace TransmittalCreator.Services.Blocks
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="trans"></param>
+        /// <param name="layoutModels"></param>
         private void GetBlockInLayout(Transaction trans, List<LayoutModel> layoutModels)
         {
             foreach (ObjectId id in BlockRefIds)

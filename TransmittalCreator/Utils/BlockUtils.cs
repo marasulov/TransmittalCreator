@@ -10,7 +10,7 @@ namespace TransmittalCreator.Utils
 {
 	public static class BlockUtils
 	{
-		public static void BlockAttributeEnumerator(List<BlockReference> blocks, string[] attributeNames, int startFrom = 0)
+		public static void BlockAttributeEnumerator(List<BlockReference> blocks, string[] attributeNames, int startFrom = 0, bool allPages = false)
 		{
 			//string tag = "ATT_TAG";
 
@@ -28,7 +28,12 @@ namespace TransmittalCreator.Utils
 						if (attr.Equals(attRef.Tag, StringComparison.InvariantCultureIgnoreCase)) 
 						{
 							attRef.TextString = startFrom.ToString();
-						}	
+							
+						}
+
+						if (!allPages) continue;
+						if (attRef.Tag.Equals("Листов", StringComparison.InvariantCultureIgnoreCase))
+							attRef.TextString = blocks.Count.ToString();
 					}
 				}
 			}

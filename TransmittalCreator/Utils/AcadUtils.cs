@@ -62,6 +62,10 @@ namespace TransmittalCreator.Utils
 			}
 		}
 
+#if DEBUG
+		
+#endif
+
 		/// <summary>
 		/// Текущий аннотативный масштаб
 		/// </summary>

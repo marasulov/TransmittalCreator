@@ -1,37 +1,88 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
+using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
-using TransmittalCreator.Services;
-using TransmittalCreator.Utils;
-using TransmittalCreator.View;
 
 namespace TransmittalCreator.CadCommands
 {
-	
+
 	public class RenumberBlockPagesInLayoutCommand
 	{
+		[CommandMethod("ListLayouts")]
+		public static void ListLayoutsMethod()
+		{
+			LayoutManager layoutMgr = LayoutManager.Current;
+			Active.WriteMessage(
+				String.Format
+				(
+					"{0}Active Layout is : {1}",
+					Environment.NewLine,
+					layoutMgr.CurrentLayout
+				)
+			);
+			Active.WriteMessage
+			(
+				String.Format
+				(
+					"{0}Number of Layouts: {1}{0}List of all Layouts:",
+					Environment.NewLine,
+					layoutMgr.LayoutCount
+				)
+			);
+			using (Transaction tr
+				= Active.Database.TransactionManager.StartTransaction())
+			{
+				DBDictionary layoutDic
+					= tr.GetObject(
+						Active.Database.LayoutDictionaryId,
+						OpenMode.ForRead,
+						false
+					) as DBDictionary;
+				foreach (DBDictionaryEntry entry in layoutDic)
+				{
+					ObjectId layoutId = entry.Value;
+					Layout layout
+						= tr.GetObject(
+							layoutId,
+							OpenMode.ForRead
+						) as Layout;
+					Active.WriteMessage(
+						String.Format(
+							"{0}--> {1}",
+							Environment.NewLine,
+							layout.LayoutName
+						)
+					);
+				}
+				tr.Commit();
+			}
+		}
+
 		[CommandMethod("RenumberBlocksInLayout")]
 		public static void RenumberBlockPagesInLayout()
 		{
+
+
 			IFileManager fileManager = new FileManager();
 			string allPath = fileManager.GetFilePath();
-			Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-			string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
+			//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
+			var confFilePath =
+				Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
+					"conf.json");
+
+#if DEBUG
+			confFilePath = "D:\\data\\source\\repos\\TransmittalCreator\\TransmittalCreator\\conf.json";
+#endif
+			string jsonFile = File.ReadAllText(confFilePath);
 			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-
+			
 			string[] blockNames = deserializeObject.StampName;
 			DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
 			LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
