@@ -8,9 +8,9 @@ using TransmittalCreator.Infrastructure.Commands.Base;
 
 namespace TransmittalCreator.Infrastructure.Commands
 {
-	public class CreatePdfCommand : Command
+	public class CreatePdfCommand : BaseCommand
 	{
-		public override bool CanExecute(object? parameter) => true;
+		public override bool CanExecute(object? parameter) ;
 		public override void Execute(object? parameter)
 		{
 			throw new NotImplementedException();

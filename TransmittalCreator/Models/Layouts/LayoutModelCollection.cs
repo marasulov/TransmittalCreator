@@ -157,7 +157,7 @@ namespace TransmittalCreator.Models.Layouts
             List<BlockReference> blockReferences = new List<BlockReference>();
             blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForWrite)).OfType<BlockReference>());
             
-            BlockUtils.BlockAttributeEnumerator(blockReferences,new []{"Page", "Лист"},);
+            BlockUtils.BlockAttributeEnumerator(blockReferences,new []{"Page", "Лист"});
             this.SetPrintModels(trans);
             this.SetLayoutPlotSetting();
         }

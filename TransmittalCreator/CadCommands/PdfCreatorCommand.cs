@@ -1,61 +1,66 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using TransmittalCreator.DBCad;
-using TransmittalCreator.Models;
+using TransmittalCreator.Services;
+using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Utils;
 using TransmittalCreator.ViewModel;
-using TransmittalCreator.View;
-
 
 namespace TransmittalCreator.CadCommands
 {
 	public static class PdfCreatorCommand
 	{
-		[CommandMethod("CreateP")]
-		public static void CreatePdfNameTest()
+		[CommandMethod("CreatePdf")]
+		public static void CreatePdfName()
 		{
 			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-
-			var options = new PromptEntityOptions("\nPlease select the block:");
-			options.SetRejectMessage("\nSelected object isn't a block.\n");
-			options.AddAllowedClass(typeof(BlockReference), true);
-
-			var result = Active.Editor.GetEntity(options);
-			if (result.Status == PromptStatus.OK)
+			Dictionary<string, string> attrList = new Dictionary<string, string>();
+			Window1 window = new Window1(new BlockViewModel(attrList));
+			Application.ShowModalWindow(window);
+			if (window.isClicked)
 			{
-				using (var tr = Active.Database.TransactionManager.StartTransaction())
+				//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+				List<Sheet> dict = new List<Sheet>();
+
+				using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
 				{
-					var blockRef = (BlockReference)tr.GetObject(result.ObjectId, OpenMode.ForWrite);
+					BlockSelector blockSelector = new BlockSelector();
+					blockSelector.GetFilterForSelectBlockId(window.BlockName);
+					bool isExec = true;
+					var res = blockSelector.SelectionResult;
 
-					BlockTableRecord btr =
-						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					
-					btr?.Dispose();
-
-					AttributeCollection attributeCollection = blockRef.AttributeCollection;
-
-					//Dictionary<string, string> attrList =
-					//	GetDictionaryFromAttributeCollection(attributeCollection, tr);
-
-					ObservableCollection<BlockAttribute> blockAttributes =
-						new ObservableCollection<BlockAttribute>();
-
-					foreach (ObjectId attId in attributeCollection)
+					if (res.Status != PromptStatus.OK)
 					{
-						AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
-						blockAttributes.Add(new BlockAttribute(attRef.Tag, attRef.TextString));
-
+						isExec = false;
+						Active.Editor.WriteMessage("Надо выбрать блок");
 					}
 
-					var pdfCreatorViewModel = new PdfCreatorViewModel(blockAttributes);
+					if (isExec)
+					{
+						SelectionSet selSet = res.Value;
+						ObjectId[] idArrayTemp = selSet.GetObjectIds();
+						//ObjectIdCollection idArray = new ObjectIdCollection(idArrayTemp);
+						//TODO printing X Y
+						//string selAttrName = attributeName.AttributeName;
 
-					var pdfCreatorView = new PdfCreatorView(pdfCreatorViewModel);
-					pdfCreatorView.Show();
+
+						FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
+
+						//GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
+
+						fileNameCreator.GetPrintParametersToPdf(tr);
 
 
+						PrintUtils.CreateJsonFile(dict);
 
-					//Active.Editor.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName} selected attr {pdfCreatorViewModel.SelectedAttr.AttributeName}");
+						foreach (var printModel in fileNameCreator.GetPrintModels())
+						{
+							PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+						}
+					}
 
 					tr.Commit();
 				}

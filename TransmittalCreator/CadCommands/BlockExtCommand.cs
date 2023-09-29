@@ -2,14 +2,18 @@
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
+using TransmittalCreator.CadCommands;
 using TransmittalCreator.DBCad;
 
+//[assembly: CommandClass(typeof(BlockExtCommand))]
 namespace TransmittalCreator.CadCommands
 {
-	public class BlockExtCommand
+	
+	public static class BlockExtCommand
 	{
+		
 		[CommandMethod("BlockExt")]
-		public void BlockExt()
+		public static void BlockExt()
 		{
 			if (Active.Document == null) return;
 			

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using TransmittalCreator.ViewModels.Annotations;
 
 
-namespace TransmittalCreator.ViewModels.Base
+namespace TransmittalCreator.ViewModels
 {
 	public abstract class ViewModel : INotifyPropertyChanged
 	{
@@ -18,6 +18,18 @@ namespace TransmittalCreator.ViewModels.Base
 		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
+
+		public virtual bool Set<T>(ref T field, T value, [CallerMemberName] string MemberName = null)
+		{
+			if (Equals(field, value))
+			{
+				return false;
+			}
+
+			field = value;
+			OnPropertyChanged(MemberName);
+			return true;
 		}
 	}
 }

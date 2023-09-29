@@ -57,7 +57,8 @@
     <Compile Include="Base\ViewModel.cs" />
     <Compile Include="CommandHandler.cs" />
     <Compile Include="Models\BlockAttribute.cs" />
-    <Compile Include="PdfCreatorViewModel.cs" />
+    <Compile Include="ViewModels\IRenumberPagesViewModel.cs" />
+    <Compile Include="ViewModels\PdfCreatorViewModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -72,6 +73,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="ViewModels\RelayCommand.cs" />
+    <Compile Include="ViewModels\RenumberPagesViewModel.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -81,5 +84,6 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

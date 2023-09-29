@@ -22,8 +22,7 @@ namespace TransmittalCreator.View
 
         public LayoutTreeView(List<PrintPackageModel> printPackages)
         {
-
-            _printPackages = printPackages;
+	        _printPackages = printPackages;
 
             foreach (var package in _printPackages)
             {
