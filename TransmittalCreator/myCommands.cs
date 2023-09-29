@@ -4,28 +4,19 @@ using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using LeaderPlacement;
 using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-using DocumentFormat.OpenXml.Office2010.PowerPoint;
-using Newtonsoft.Json;
 using TransmittalCreator.Models;
-using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
-using TransmittalCreator.Services.Blocks;
-using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
-using TransmittalCreator.ViewModel;
-using TransmittalCreator.View;
 using Active = TransmittalCreator.DBCad.Active;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using Arc = Autodesk.AutoCAD.DatabaseServices.Arc;
@@ -35,7 +26,7 @@ using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
 
 
 // This line is not mandatory, but improves loading performances
-[assembly: CommandClass(typeof(TransmittalCreator.MyCommands))]
+//[assembly: CommandClass(typeof(TransmittalCreator.MyCommands))]
 
 namespace TransmittalCreator
 {
@@ -47,6 +38,7 @@ namespace TransmittalCreator
 		private bool _drawing = false;
 		private int _linesPrevQty;
 		int _arcPrevQty;
+
 
 
 		#region XData
@@ -905,190 +897,9 @@ namespace TransmittalCreator
 
 		#endregion
 
-		
-
 
 		
-		#region CreateCombinedTransmittalAndPdf
 
-		[CommandMethod("CreateCombinedTransmittalAndPdf")]
-		public static void CreateCombinedTransmittalAndPdf()
-		{
-			Document acDoc = Application.DocumentManager.MdiActiveDocument;
-
-			List<Sheet> dict = new List<Sheet>();
-			List<PrintModel> printModels = new List<PrintModel>();
-			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			using (Transaction tr = DBCad.Active.Database.TransactionManager.StartTransaction())
-			{
-				//фильтр для выбора только блока
-				BlockSelector blockSelector = new BlockSelector();
-				blockSelector.GetFilterForSelectBlockId();
-				var res = blockSelector.SelectionResult;
-
-				if (res.Status != PromptStatus.OK)
-				{
-					Active.Editor.WriteMessage("Надо выбрать блок");
-					return;
-				}
-
-				SelectionSet selSet = res.Value;
-				ObjectId[] idArrayTemp = selSet.GetObjectIds();
-
-				ObjectIdCollection idArray = new ObjectIdCollection();
-				foreach (var objectId in idArrayTemp)
-				{
-					BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-					BlockTableRecord block =
-						tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					if (!(block is null))
-					{
-
-						string blockName = block.Name;
-						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
-						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-						//if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
-						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
-
-					}
-				}
-
-				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-				string selAttrName = "НОМЕР_ЛИСТА";
-				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-
-
-				//utils.CreateOnlyVed(dict);
-				PrintUtils.CreateJsonFile(dict);
-
-				foreach (var printModel in printModels)
-				{
-					//Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
-					PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-				}
-
-				//if (pKeyRes.StringResult.ToLower() == "yes")
-				//{
-				var combinedFileName = Path.Combine(Path.GetDirectoryName(Active.Document.Name), $"{Path.GetFileNameWithoutExtension(Active.Document.Name)}.pdf");
-				if (File.Exists(combinedFileName))
-				{
-					try
-					{
-						File.Delete(combinedFileName);
-					}
-					catch (System.Exception e)
-					{
-						Active.WriteMessage(e.Message);
-
-					}
-				}
-
-				var filenames = dict.Select(x => Path.Combine(Path.GetDirectoryName(Active.Document.Name), $"{x.DocNumber}.pdf")).ToList();
-
-				var isSuccessPrinted = PrintUtils.UnitePages(filenames, combinedFileName);
-
-
-				foreach (var file in filenames.Where(file => File.Exists(file)))
-				{
-					try
-					{
-						File.Delete(file);
-					}
-					catch (System.Exception e)
-					{
-						Active.WriteMessage(e.Message);
-
-					}
-				}
-				Active.WriteMessage(isSuccessPrinted ? "Все файлы распечатаны\n" : "Произошла ошибка\n");
-
-				//}
-
-				tr.Commit();
-			}
-		}
-
-		#endregion
-
-
-		#region CreatePdfWithInterfaceSelecting
-
-		[CommandMethod("CreatePdf")]
-		public void CreatePdfName()
-		{
-			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			Dictionary<string, string> attrList = new Dictionary<string, string>();
-			Window1 window = new Window1(new BlockViewModel(attrList));
-			Application.ShowModalWindow(window);
-			if (window.isClicked)
-			{
-				//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
-				List<Sheet> dict = new List<Sheet>();
-
-				using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
-				{
-					BlockSelector blockSelector = new BlockSelector();
-					blockSelector.GetFilterForSelectBlockId(window.BlockName);
-					bool isExec = true;
-					var res = blockSelector.SelectionResult;
-
-					if (res.Status != PromptStatus.OK)
-					{
-						isExec = false;
-						Active.Editor.WriteMessage("Надо выбрать блок");
-					}
-
-					if (isExec)
-					{
-						SelectionSet selSet = res.Value;
-						ObjectId[] idArrayTemp = selSet.GetObjectIds();
-						//ObjectIdCollection idArray = new ObjectIdCollection(idArrayTemp);
-						//TODO printing X Y
-						//string selAttrName = attributeName.AttributeName;
-
-
-						FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
-
-						//GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
-
-						fileNameCreator.GetPrintParametersToPdf(tr);
-
-
-						PrintUtils.CreateJsonFile(dict);
-
-						foreach (var printModel in fileNameCreator.GetPrintModels())
-						{
-							PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-						}
-					}
-
-					tr.Commit();
-				}
-			}
-		}
-
-		#endregion
-
-
-
-		private Dictionary<string, string> GetDictionaryFromAttributeCollection(AttributeCollection attributeCollection, Transaction tr)
-		{
-			var attributesDict = new Dictionary<string, string>();
-
-			foreach (ObjectId attId in attributeCollection)
-			{
-				AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
-				attributesDict.Add(attRef.Tag, attRef.TextString);
-				//string str = ("\n  Attribute Tag: " + attRef.Tag + "\n    Attribute String: " + attRef.TextString);
-				//Active.Editor.WriteMessage(str);
-			}
-
-			return attributesDict;
-		}
-
-
-		
 
 		public static bool UseBedit = true;
 		private static void DocumentManager_DocumentLockModeChanged(

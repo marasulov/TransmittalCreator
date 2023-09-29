@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Windows.Input;
-using TransmittalCreator.ViewModels.Base;
-using TransmittalCreator.ViewModels.Models;
 
 namespace TransmittalCreator.ViewModels
 {
@@ -46,5 +44,6 @@ namespace TransmittalCreator.ViewModels
 		{
 			return SelectedAttr.AttributeName;
 		}
+
 	}
 }

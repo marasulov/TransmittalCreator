@@ -1,12 +1,8 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
 using TransmittalCreator.View;
@@ -52,10 +48,6 @@ namespace TransmittalCreator.CadCommands
 
 					var pdfCreatorView = new PdfCreatorView(pdfCreatorViewModel);
 					pdfCreatorView.Show();
-
-
-
-					//Active.Editor.WriteMessage($"block id {blockRef.ObjectId} blockname {blockName} selected attr {pdfCreatorViewModel.SelectedAttr.AttributeName}");
 
 					tr.Commit();
 				}
@@ -113,6 +105,21 @@ namespace TransmittalCreator.CadCommands
 			{
 				Active.Editor.WriteMessage("Надо выбрать блок");
 			}
+		}
+
+		private Dictionary<string, string> GetDictionaryFromAttributeCollection(AttributeCollection attributeCollection, Transaction tr)
+		{
+			var attributesDict = new Dictionary<string, string>();
+
+			foreach (ObjectId attId in attributeCollection)
+			{
+				AttributeReference attRef = (AttributeReference)tr.GetObject(attId, OpenMode.ForRead);
+				attributesDict.Add(attRef.Tag, attRef.TextString);
+				//string str = ("\n  Attribute Tag: " + attRef.Tag + "\n    Attribute String: " + attRef.TextString);
+				//Active.Editor.WriteMessage(str);
+			}
+
+			return attributesDict;
 		}
 	}
 }

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace TransmittalCreator.ViewModels.Models
+namespace TransmittalCreator.ViewModels
 {
 	public class BlockAttribute: INotifyPropertyChanged
 	{

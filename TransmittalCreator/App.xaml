@@ -7,12 +7,24 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="LightBlue" SecondaryColor="Lime" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/materialdesigntheme.dark.xaml" /> 
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" /> 
+                
+                <ResourceDictionary Source="Resources/WindowResourceDictionary.xaml"  /> 
+                <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" /> 
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/primary/materialdesigncolor.blue.xaml"/> 
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml"/> 
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml"/>--> 
+
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
+    
+    
 </Application>
+    
+<!--TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight ="Regular"
+        TextElement.FontSize="14"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}" Icon="../0012.png" 
+        ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250" Topmost="True"-->

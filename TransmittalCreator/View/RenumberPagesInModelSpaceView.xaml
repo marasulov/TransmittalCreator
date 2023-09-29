@@ -1,0 +1,101 @@
+﻿<Window x:Class="TransmittalCreator.View.RenumberPagesInModelSpaceView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TransmittalCreator.View"
+        xmlns:controls="clr-namespace:TransmittalCreator.Utils.Controls"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight ="Regular"
+        TextElement.FontSize="14"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}" 
+        Title="EnumeratePagesView" Height="250" Width="600" >
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="LightBlue" SecondaryColor="Lime" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/materialdesigntheme.dark.xaml" /> 
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" /> 
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/primary/materialdesigncolor.blue.xaml"/> 
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml"/> 
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+<DockPanel>
+        <Grid VerticalAlignment="Stretch" Margin="8 2 8 0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" VerticalAlignment="Center">Select block attribute</TextBlock>
+            <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>
+            <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
+                      ItemsSource="{Binding Attributes}"
+                      SelectedItem="{Binding SelectedAttr}"
+                      SelectedIndex="0"
+                      FontSize="12" Margin="8 0 8 0">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontWeight="Thin" xml:space="preserve" 
+                                               Text="Attribute Name: "/>
+                                <TextBlock FontWeight="Medium" Name="AttrNameTextBlock"  Text="{Binding Path=AttributeName}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontWeight="Thin" xml:space="preserve" Text="Attribute Value: "/>
+                                <TextBlock FontWeight="DemiBold" Name="attrValueTextBox"  Text="{Binding Path = AttributeValue}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Numbering start with:</TextBlock>
+            <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
+            <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
+                     Text="{Binding Path=NumberingValue}" controls:NumberOnly.IsEnabled="True"
+                     IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0">
+            </TextBox>
+
+            <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Prefix</TextBlock>
+            <!--<CheckBox Grid.Column="1" Grid.Row="2" ></CheckBox>-->
+            <TextBox Grid.Column="2" Grid.Row="2" Name="prefixTextBox" Text="{Binding Path=Prefix}" Margin="8 0 8 0"></TextBox>
+
+            <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center">Suffix</TextBlock>
+            <!--<CheckBox Grid.Column="1" Grid.Row="3"></CheckBox>-->
+            <TextBox Grid.Column="2" Grid.Row="3" Name="suffixTextBox" Text="{Binding Path=Suffix}" Margin="8 0 8 0"></TextBox>
+            <TextBlock Grid.Column="0" Grid.Row="4" Text="Page sample"/>
+            <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName}"/>
+            <TextBlock Name="TextBlock1" Visibility="Collapsed" ></TextBlock>
+            <TextBox Grid.Column="0" Grid.Row="5" Text="Printing numbering order" Margin="2 3 5 0"></TextBox>
+            <StackPanel Grid.Column="2" Grid.Row="5" Orientation="Horizontal" Margin="5" >
+                <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX"></RadioButton>
+                <RadioButton Content="Y" Margin="2 0 5 0" Name="RadioButtonY"></RadioButton>
+                <RadioButton Content="Select order" Margin="2 0 5 0" x:Name="RadioButtonSelOrder" IsChecked="True"/>
+            </StackPanel>
+            <StackPanel Grid.Row="6" Grid.ColumnSpan="3">
+                <Button Name="createButton" 
+                        TabIndex="3" 
+                        Command="{Binding ClickCommand}">Create PDF</Button>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>
