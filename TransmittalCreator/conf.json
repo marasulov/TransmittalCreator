@@ -3,5 +3,5 @@
 	"Pmp": "Uzle.pmp",
 	"CheckListTemplate": "CheckList.docx",
 	"StampName": [ "Формат", "ФорматM25" ],
-	"StampPagesAttributeName": ["Page", "Лист"]
+	"StampPagesAttributeName": [ "page", "лист", "ЛИСТ2_СПЕЦ" ]
 }

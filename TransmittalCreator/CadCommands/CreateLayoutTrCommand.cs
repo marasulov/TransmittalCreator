@@ -2,20 +2,17 @@
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
+using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
-using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
-using TransmittalCreator.DBCad;
 
 namespace TransmittalCreator.CadCommands
 {
@@ -26,7 +23,7 @@ namespace TransmittalCreator.CadCommands
 		{
 			IFileManager fileManager = new FileManager();
 			string allPath = fileManager.GetFilePath();
-			Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
+			//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
 			string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
 			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 

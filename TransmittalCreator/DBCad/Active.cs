@@ -15,31 +15,22 @@ namespace TransmittalCreator.DBCad
     /// </summary>
     public static class Active
     {
-        /// <summary>
-        /// Returns the active Editor object.
-        /// </summary>
-        public static Editor Editor
-        {
-            get { return Document.Editor; }
-        }
+		/// <summary>
+		/// Returns the active Editor object.
+		/// </summary>
+		public static Editor Editor => Document.Editor;
 
-        /// <summary>
-        /// Returns the active Document object.
-        /// </summary>
-        public static Document Document
-        {
-            get { return Application.DocumentManager.MdiActiveDocument; }
-        }
+		/// <summary>
+		/// Returns the active Document object.
+		/// </summary>
+		public static Document Document => Application.DocumentManager.MdiActiveDocument;
 
-        /// <summary>
+		/// <summary>
         /// Returns the active Database object.
         /// </summary>
-        public static Database Database
-        {
-            get { return Document.Database; }
-        }
+        public static Database Database => Document.Database;
 
-        /// <summary>
+		/// <summary>
         /// Sends a string to the command line in the active Editor
         /// </summary>
         /// <param name="message">The message to send.</param>
@@ -66,20 +57,17 @@ namespace TransmittalCreator.DBCad
         public delegate void TransactionDelegate(Transaction tr);
         public static void UsingTransaction(TransactionDelegate action)
         {
-            using (var tr = Database.TransactionManager.StartTransaction())
-            {
-                try
-                {
-                    action(tr);
-                    tr.Commit();
-                }
-                catch (System.Exception)
-                {
-                    tr.Abort();
-                    throw;
-                }
-            }
-        }
+			using var tr = Database.TransactionManager.StartTransaction();
+			try
+			{
+				action(tr);
+				tr.Commit();
+			}
+			catch (System.Exception)
+			{
+				tr.Abort();
+			}
+		}
 
         /// <summary>
         /// Список слоев текущей базы данных

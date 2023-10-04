@@ -37,6 +37,7 @@ namespace TransmittalCreator.CadCommands
 			List<BlockReference> blockReferences = new List<BlockReference>();
 			using (Transaction transaction = Active.Database.TransactionManager.StartTransaction())
 			{
+				
 				blockReferences.AddRange(selSet.GetObjectIds().Select(blockRefId => blockRefId.GetObject(OpenMode.ForRead)).OfType<BlockReference>());
 
 

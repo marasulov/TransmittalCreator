@@ -14,12 +14,14 @@ namespace TransmittalCreator.Models
 {
     public class PrintModel
     {
-        /// <summary>
+	    private double _scaleX { get; set; }
+
+	    /// <summary>
         /// Номер листа
         /// </summary>
         public string DocNumber { get; set; }
 
-        /// <summary>
+	    /// <summary>
         /// Pdf Document Name
         /// </summary>
         public string StampViewName { get; set; }
@@ -28,9 +30,12 @@ namespace TransmittalCreator.Models
         /// Position of block
         /// </summary>
         public Point2d BlockPosition { get; set; }
+
+        /// <summary>
+        /// размеры блока
+        /// </summary>
         public Point2d BlockDimensions { get; set; }
 
-        private double _scaleX { get; set; }
         public double Width { get; set; }
         public double Height { get; set; }
         public double MinPointX { get; private set; }
@@ -68,19 +73,19 @@ namespace TransmittalCreator.Models
 
                 foreach (DynamicBlockReferenceProperty prop in props)
                 {
-                    if (prop.PropertyName == "Ширина")
+                    switch (prop.PropertyName)
                     {
-                        blockWidth = double.Parse(prop.Value.ToString(),
-                            System.Globalization.CultureInfo.InvariantCulture);
-                    }
-                    if (prop.PropertyName == "Высота")
-                    {
-                        blockHeight = double.Parse(prop.Value.ToString(),
-                            System.Globalization.CultureInfo.InvariantCulture);
-                    }
-                    if (prop.PropertyName == "Штамп")
-                    {
-                        StampViewName = prop.Value.ToString();
+	                    case "Ширина":
+		                    blockWidth = double.Parse(prop.Value.ToString(),
+			                    System.Globalization.CultureInfo.InvariantCulture);
+		                    break;
+	                    case "Высота":
+		                    blockHeight = double.Parse(prop.Value.ToString(),
+			                    System.Globalization.CultureInfo.InvariantCulture);
+		                    break;
+	                    case "Штамп":
+		                    StampViewName = prop.Value.ToString();
+		                    break;
                     }
                 }
                 BlockDimensions = new Point2d(BlockPosition.X + blockWidth, BlockPosition.Y + blockHeight);
@@ -93,24 +98,22 @@ namespace TransmittalCreator.Models
             Width = BlockDimensions.X - BlockPosition.X;
             Height = BlockDimensions.Y - BlockPosition.Y;
 
-            if (Width > Height) return true;
-
-            return false;
+            return Width > Height;
         }
 
         public string GetCanonNameByWidthAndHeight()
         {
-            StandartCopier standartCopier = new StandartCopier();
-            PlotConfig pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Source);
+            var standartCopier = new StandartCopier();
+            var pConfig = PlotConfigManager.SetCurrentConfig(standartCopier.Pc3Source);
 
             //паттерн для размера листов
-            string pat = @"\d{1,}?\.\d{2}";
+            var pat = @"\d{1,}?\.\d{2}";
 
-            string canonName = "";
+            var canonName = "";
 
             foreach (var line in pConfig.CanonicalMediaNames)
             {
-                Regex pattern = new Regex(pat, RegexOptions.Compiled |
+                var pattern = new Regex(pat, RegexOptions.Compiled |
                                                RegexOptions.Singleline);
                 if (pattern.IsMatch(line))
                 {
