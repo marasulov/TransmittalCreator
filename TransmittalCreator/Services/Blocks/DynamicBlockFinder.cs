@@ -8,8 +8,7 @@ namespace TransmittalCreator.Services.Blocks
 {
     public class DynamicBlockFinder
     {
-        private BlockTable _blokTable;
-        private string[] _blockNameToSearch;
+	    private string[] _blockNameToSearch;
         public ObjectIdCollection BlockRefIds { get; set; }
 
         public DynamicBlockFinder(string[] blockNames)
@@ -25,8 +24,8 @@ namespace TransmittalCreator.Services.Blocks
         public void GetLayoutsWithDynBlocks(Transaction trans, List<LayoutModel> layoutModels)
         {
             // получаем таблицу блоков и проходим по всем записям таблицы блоков
-            _blokTable = (BlockTable) trans.GetObject(Active.Database.BlockTableId, OpenMode.ForRead);
-            foreach (ObjectId btrId in _blokTable)
+            var blokTable = (BlockTable) trans.GetObject(Active.Database.BlockTableId, OpenMode.ForRead);
+            foreach (ObjectId btrId in blokTable)
             {
                 // получаем запись таблицы блоков и смотри анонимная ли она
                 BlockTableRecord btr = (BlockTableRecord) trans.GetObject(btrId, OpenMode.ForRead);
@@ -48,7 +47,7 @@ namespace TransmittalCreator.Services.Blocks
         }
 
         /// <summary>
-        /// 
+        /// записывает id блока в блок layout'a
         /// </summary>
         /// <param name="trans"></param>
         /// <param name="layoutModels"></param>

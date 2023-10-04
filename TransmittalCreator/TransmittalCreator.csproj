@@ -90,6 +90,9 @@
     <Reference Include="EPPlus, Version=5.4.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.5.4.0\lib\net45\EPPlus.dll</HintPath>
     </Reference>
+    <Reference Include="Gile.AutoCAD.Extension">
+      <HintPath>..\..\..\..\..\docs\Downloads\Gile.AutoCAD.Extension\Gile.AutoCAD.Extension.dll</HintPath>
+    </Reference>
     <Reference Include="itextsharp, Version=5.5.13.3, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
       <HintPath>..\packages\iTextSharp.5.5.13.3\lib\itextsharp.dll</HintPath>
     </Reference>

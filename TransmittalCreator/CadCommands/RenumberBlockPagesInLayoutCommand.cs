@@ -2,16 +2,21 @@
 using Autodesk.AutoCAD.Runtime;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
-using TransmittalCreator.DBCad;
+using Gile.AutoCAD.Extension;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
+using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
+using Active = TransmittalCreator.DBCad.Active;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 
 namespace TransmittalCreator.CadCommands
 {
@@ -97,45 +102,91 @@ namespace TransmittalCreator.CadCommands
 
 			if (!renumberVm.ButtonClicked) return;
 
-			MessageBox.Show(
-				$"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, RenumberStartValue - {renumberVm.RenumberStartValue}");
-
-			if (renumberVm.InsertTotalPages)
-			{
-
-			}
-
-			if (renumberVm.RenumberLayouts)
-			{
-
-			}
-
-			if (renumberVm.RenumberStartValue != 0)
-			{
-
-			}
+			Active.WriteMessageInDebug($"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, RenumberStartValue - {renumberVm.RenumberStartValue}");
 
 			IFileManager fileManager = new FileManager();
 			string allPath = fileManager.GetFilePath();
 			//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-			var confFilePath =
-				Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
-					"conf.json");
+			var confFilePath = Path.Combine(Path.GetDirectoryName(
+				Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
 
 #if DEBUG
 			confFilePath = "D:\\data\\source\\repos\\TransmittalCreator\\TransmittalCreator\\conf.json";
 #endif
 			string jsonFile = File.ReadAllText(confFilePath);
 			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+			using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
+			{
+				string[] blockNames = deserializeObject.StampName;
+				var dynamicBlocks = new DynamicBlockFinder(blockNames);
+				var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
+				layoutModelCollection.ListLayouts("Model");
+				Active.UsingTransaction(layoutModelCollection.CreateCollectionFromBlockNames);
 
-			string[] blockNames = deserializeObject.StampName;
-			DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
-			LayoutModelCollection layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
-			layoutModelCollection.ListLayouts("Model");
-			layoutModelCollection.CreateLayoutCollection();
+				List<BlockReference> blockReferences = new List<BlockReference>();
+				//BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "Page", "Лист" });
+				layoutModelCollection.SetPrintModels(trans);
+				layoutModelCollection.SetLayoutPlotSetting();
+				layoutModelCollection.DynamicBlocks.GetLayoutsWithDynBlocks(trans, layoutModelCollection.LayoutModels);
 
-			string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
-			var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
+				//layoutModelCollection.ExcludeEmptyLayout();
+
+				var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToList();
+				if (blocksList.Count == 0) return;
+				blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForRead)).OfType<BlockReference>());
+
+
+				var totalPages = 0;
+				var pageStartNumber = 1;
+
+				if (renumberVm.InsertTotalPages)
+				{
+					totalPages = blockReferences.Count;
+				}
+
+				if (renumberVm.RenumberStartValue != 1)
+				{
+					pageStartNumber = renumberVm.RenumberStartValue;
+				}
+
+				BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "page", "лист", "ЛИСТ2_СПЕЦ" }, pageStartNumber, totalPages);
+
+				if (renumberVm.RenumberLayouts)
+				{
+					//var layouts = DatabaseExtension.GetLayouts(Active.Database, mode:OpenMode.ForWrite);
+					foreach (var layoutModel in layoutModelCollection.LayoutModels)
+					{
+						var attributeValue = GetAttributeValueByTag(layoutModel.BlocksObjectId, "page");
+						var btr = trans.GetObject(layoutModel.Layout.BlockTableRecordId, OpenMode.ForRead) as BlockTableRecord;
+						if (btr != null & btr.IsLayout)
+						{
+							var layout = trans.GetObject(btr.LayoutId, OpenMode.ForWrite) as Layout;
+							if (layout != null & !layout.LayoutName.Equals("Model") & attributeValue != layoutModel.LayoutName)
+							{
+								layout.LayoutName = attributeValue;
+							}
+						}
+						
+						//var blockRef = layoutModel.BlocksObjectId.GetObject(OpenMode.ForWrite) as BlockReference;
+					}
+				}
+
+				//layoutModelCollection.SetPrintModels(trans);
+				//layoutModelCollection.SetLayoutPlotSetting();
+
+
+
+
+				//TODO сюда вставить нумерацию листов
+				blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForWrite)).OfType<BlockReference>());
+				layoutModelCollection.CreateLayoutCollection();
+
+				string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
+				//var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
+				trans.Commit();
+				Active.Editor.Regen();
+			}
+
 		}
 
 
@@ -160,7 +211,21 @@ namespace TransmittalCreator.CadCommands
 		//	PrintUtils.GetSheetsFromBlocks(Active.Editor, sheets, trans, new ObjectIdCollection(blockIds));
 		//	PrintUtils.CreateJsonFile(sheets);
 		//}
+		private static string GetAttributeValueByTag(ObjectId blockRefId, string tag)
+		{
+			var blockRef = blockRefId.GetObject(OpenMode.ForWrite) as BlockReference;
 
+			foreach (ObjectId attRefId in blockRef.AttributeCollection)
+			{
+				AttributeReference attRef = attRefId.GetObject(OpenMode.ForRead) as AttributeReference;
+				if (attRef != null && attRef.Tag.Equals(tag, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return attRef.TextString;
+				}
+			}
+			return null;
+		}
 	}
+
 }
 
