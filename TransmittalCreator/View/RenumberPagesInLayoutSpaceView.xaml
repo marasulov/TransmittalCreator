@@ -4,13 +4,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:TransmittalCreator.Utils.Controls"
+        xmlns:viewModels="clr-namespace:TransmittalCreator.ViewModels;assembly=TransmittalCreator.ViewModels"
         mc:Ignorable="d"
         Title="" Height="320" Width="300" 
         Style="{DynamicResource WindowElementStyle}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
 
-    <!--<Window.DataContext>
+    <Window.DataContext>
         <viewModels:RenumberPagesViewModel></viewModels:RenumberPagesViewModel>
-    </Window.DataContext>-->
+    </Window.DataContext>
     <Window.Resources>
         <ResourceDictionary>
             <Style TargetType="{x:Type TextBlock}">
@@ -48,16 +49,16 @@
             <!--<CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>-->
 
             <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Insert total pages <LineBreak/> Вставить кол-во Листов</TextBlock>
-            <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding InsertTotalPages, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
+            <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding InsertTotalPages, UpdateSourceTrigger=PropertyChanged}"/>
             <!--<TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
                      Text="{Binding Path=NumberingValue}" controls:NumberOnly.IsEnabled="True"
                      IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0"/>-->
 
             <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Renumber Layouts <LineBreak/>Перенумеровать Листы</TextBlock>
-            <CheckBox Grid.Column="1" Grid.Row="2" Name="numberingLayCheckbox" IsChecked="{Binding RenumberLayouts, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
+            <CheckBox Grid.Column="1" Grid.Row="2" Name="numberingLayCheckbox" IsChecked="{Binding RenumberLayouts, UpdateSourceTrigger=PropertyChanged}"/>
 
             <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center">Delete empty Layouts<LineBreak/>Удалить пустые Листы</TextBlock>
-            <CheckBox Grid.Column="1" Grid.Row="3" Name="deleteLayCheckbox" IsChecked="{Binding RenumberLayouts, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
+            <CheckBox Grid.Column="1" Grid.Row="3" Name="deleteLayCheckbox" IsChecked="{Binding DeleteEmptyLayouts, UpdateSourceTrigger=PropertyChanged}"/>
 
             <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Text="Prefix / Префикс"/>
             <!--<CheckBox Grid.Column="1" Grid.Row="2" ></CheckBox>-->

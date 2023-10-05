@@ -6,7 +6,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows;
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Windows;
 using Gile.AutoCAD.Extension;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
@@ -17,6 +21,7 @@ using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
 using Active = TransmittalCreator.DBCad.Active;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
+
 
 namespace TransmittalCreator.CadCommands
 {
@@ -38,7 +43,7 @@ namespace TransmittalCreator.CadCommands
 			{
 
 				MessageBox.Show(
-					$"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, RenumberStartValue - {renumberVm.RenumberStartValue}");
+					$"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, RenumberStartValue - {renumberVm.RenumberStartValue} DeleteEmptyLayouts -{renumberVm.DeleteEmptyLayouts}");
 
 				LayoutManager layoutMgr = LayoutManager.Current;
 				Active.WriteMessage(
@@ -86,8 +91,38 @@ namespace TransmittalCreator.CadCommands
 					tr.Commit();
 				}
 			}
+		}
 
+		public static void DeleteEmptyLayouts(Database db, Editor ed, List<string> notEmptyList)
+		{
+			var layoutManager = LayoutManager.Current;
 
+			foreach (string layoutName in GetTabOrderedLayoutNames(db))
+			{
+				if (layoutName != "Model" & !notEmptyList.Contains(layoutName))
+					layoutManager.DeleteLayout(layoutName);
+			}
+			ed.Regen();
+		}
+
+		public static List<string> GetTabOrderedLayoutNames(Database db)
+		{
+			if (db == null)
+				return null;
+
+			var tabOrderedLayouts = new Dictionary<int, string>();
+			using (Transaction tr = db.TransactionManager.StartTransaction())
+			{
+				DBDictionary layoutDict = (DBDictionary)tr.GetObject(db.LayoutDictionaryId, OpenMode.ForRead);
+				foreach (DBDictionaryEntry layoutEntry in layoutDict)
+				{
+					Layout layout = (Layout)tr.GetObject(layoutEntry.Value, OpenMode.ForRead);
+					if (!layout.ModelType)
+						tabOrderedLayouts[layout.TabOrder] = layout.LayoutName;
+				}
+				tr.Commit();
+			}
+			return tabOrderedLayouts.OrderBy(n => n.Key).Select(n => n.Value).ToList();
 		}
 
 		[CommandMethod("RenumberBlocksInLayout")]
@@ -102,7 +137,7 @@ namespace TransmittalCreator.CadCommands
 
 			if (!renumberVm.ButtonClicked) return;
 
-			Active.WriteMessageInDebug($"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, RenumberStartValue - {renumberVm.RenumberStartValue}");
+			Active.WriteMessageInDebug($"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, DeleteEmptyLayouts - {renumberVm.DeleteEmptyLayouts} ");
 
 			IFileManager fileManager = new FileManager();
 			string allPath = fileManager.GetFilePath();
@@ -166,30 +201,48 @@ namespace TransmittalCreator.CadCommands
 								layout.LayoutName = attributeValue;
 							}
 						}
-						
+
 						//var blockRef = layoutModel.BlocksObjectId.GetObject(OpenMode.ForWrite) as BlockReference;
 					}
+				}
+
+				if (renumberVm.DeleteEmptyLayouts)
+				{
+					var notEmptyLayoutsList = layoutModelCollection.LayoutModels.Select(x => x.LayoutName).ToList();
+					var db = Active.Database;
+					var ed = Active.Editor;
+					DeleteEmptyLayouts(db,ed,notEmptyLayoutsList);
+
 				}
 
 				//layoutModelCollection.SetPrintModels(trans);
 				//layoutModelCollection.SetLayoutPlotSetting();
 
-
-
-
 				//TODO сюда вставить нумерацию листов
-				blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForWrite)).OfType<BlockReference>());
-				layoutModelCollection.CreateLayoutCollection();
+				//blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForWrite)).OfType<BlockReference>());
+				//layoutModelCollection.CreateLayoutCollection();
 
-				string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
-				//var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
+				//string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
+				////var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
 				trans.Commit();
 				Active.Editor.Regen();
+
+				
+
+				TrayItemBubbleWindow trayItemBubble = new TrayItemBubbleWindow();
+				trayItemBubble.Text = "Листы перенумерованы";
+				trayItemBubble.Title = "Перенумерование завершено";
+
+				
+				TrayItem trayItem = new TrayItem();
+				
+
+				Autodesk.AutoCAD.ApplicationServices.Application.StatusBar.TrayItems.Add(trayItem);
+				trayItem.ShowBubbleWindow(trayItemBubble);
+				Autodesk.AutoCAD.ApplicationServices.Application.StatusBar.Update();
 			}
 
 		}
-
-
 
 		//LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
 		//Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModalWindow(window);

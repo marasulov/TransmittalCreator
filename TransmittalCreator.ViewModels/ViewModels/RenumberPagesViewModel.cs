@@ -13,6 +13,7 @@ namespace TransmittalCreator.ViewModels
 		private bool _canExecute = true;
 		private ICommand _renumberPagesCommand;
 		private bool _buttonClicked;
+		private bool _deleteEmptyLayouts;
 
 		/// <summary>
 		/// Нумерация листов с
@@ -29,7 +30,7 @@ namespace TransmittalCreator.ViewModels
 		public bool RenumberLayouts
 		{
 			get => _enumerateLayouts;
-			set=> Set(ref _enumerateLayouts, value);
+			set => Set(ref _enumerateLayouts, value);
 		}
 
 		/// <summary>
@@ -40,11 +41,25 @@ namespace TransmittalCreator.ViewModels
 			get => _insertTotalPages;
 			set => Set(ref _insertTotalPages, value);
 		}
-		
-		
 
-		//public ICommand RenumberPagesCommand { get; }
-		
+
+		///// <summary>
+		///// 
+		///// </summary>
+		//public bool RemoveEmptyLayouts
+		//{
+		//	get => _deleteEmptyLayouts;
+		//	set => Set(ref _deleteEmptyLayouts, value);
+		//}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool DeleteEmptyLayouts
+		{
+			get => _deleteEmptyLayouts;
+			set => Set(ref _deleteEmptyLayouts, value);
+		}
 
 		public ICommand RenumberPagesCommand
 		{
