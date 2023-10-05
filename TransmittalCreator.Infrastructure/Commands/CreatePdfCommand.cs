@@ -10,7 +10,7 @@ namespace TransmittalCreator.Infrastructure.Commands
 {
 	public class CreatePdfCommand : BaseCommand
 	{
-		public override bool CanExecute(object? parameter) ;
+		
 		public override void Execute(object? parameter)
 		{
 			throw new NotImplementedException();
@@ -19,13 +19,7 @@ namespace TransmittalCreator.Infrastructure.Commands
 		//public override void Execute(object? parameter) => 
 
 		private ICommand _clickCommand;
-		public ICommand ClickCommand
-		{
-			get
-			{
-				return _clickCommand ?? (_clickCommand = new CommandHandler(() => GetFileName(), () => CanExecute));
-			}
-		}
+		
 
 		private void GetFileName()
 		{
