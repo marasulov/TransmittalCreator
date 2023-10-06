@@ -1,17 +1,14 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
+using Autodesk.AutoCAD.Windows;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Windows;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Windows;
-using Gile.AutoCAD.Extension;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
@@ -20,7 +17,6 @@ using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
 using Active = TransmittalCreator.DBCad.Active;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
 
 
 namespace TransmittalCreator.CadCommands
@@ -31,9 +27,9 @@ namespace TransmittalCreator.CadCommands
 		public static void DeleteEmptyLayouts(Database db, Editor ed, List<string> notEmptyList)
 		{
 			var layoutManager = LayoutManager.Current;
-			var layoutNamed = GetTabOrderedLayoutNames(db);
-			if (layoutNamed.Count == notEmptyList.Count) return;
-			foreach (string layoutName in GetTabOrderedLayoutNames(db))
+			var layoutNames = GetTabOrderedLayoutNames(db);
+			if (layoutNames.Count == notEmptyList.Count) return;
+			foreach (string layoutName in layoutNames)
 			{
 				if (layoutName != "Model" & !notEmptyList.Contains(layoutName))
 					layoutManager.DeleteLayout(layoutName);
@@ -126,28 +122,43 @@ namespace TransmittalCreator.CadCommands
 					var notEmptyLayoutsList = layoutModelCollection.LayoutModels.Select(x => x.LayoutName).ToList();
 					var db = Active.Database;
 					var ed = Active.Editor;
-					DeleteEmptyLayouts(db,ed,notEmptyLayoutsList);
+					DeleteEmptyLayouts(db, ed, notEmptyLayoutsList);
 
 				}
 
 				if (renumberVm.RenumberLayouts)
 				{
-					//var layouts = DatabaseExtension.GetLayouts(Active.Database, mode:OpenMode.ForWrite);
-					foreach (var layoutModel in layoutModelCollection.LayoutModels)
+					string errorValue = string.Empty;
+					try
 					{
-						var attributeValue = GetAttributeValueByTag(layoutModel.BlocksObjectId, "page");
-						var btr = trans.GetObject(layoutModel.Layout.BlockTableRecordId, OpenMode.ForRead) as BlockTableRecord;
-						if (btr != null & btr.IsLayout)
+						//var layouts = DatabaseExtension.GetLayouts(Active.Database, mode:OpenMode.ForWrite);
+						foreach (var layoutModel in layoutModelCollection.LayoutModels)
 						{
-							var layout = trans.GetObject(btr.LayoutId, OpenMode.ForWrite) as Layout;
-							if (layout != null & !layout.LayoutName.Equals("Model") & attributeValue != layoutModel.LayoutName)
+							var attributeValue = GetAttributeValueByTag(layoutModel.BlocksObjectId, "page");
+							var btr = trans.GetObject(layoutModel.Layout.BlockTableRecordId, OpenMode.ForRead) as BlockTableRecord;
+							if (btr != null & btr.IsLayout)
 							{
-								layout.LayoutName = attributeValue;
+								var layout = trans.GetObject(btr.LayoutId, OpenMode.ForWrite) as Layout;
+								if (layout != null & !layout.LayoutName.Equals("Model") & attributeValue != layoutModel.LayoutName)
+								{
+									errorValue = attributeValue;
+									layout.LayoutName = attributeValue;
+								}
 							}
-						}
 
-						//var blockRef = layoutModel.BlocksObjectId.GetObject(OpenMode.ForWrite) as BlockReference;
+							//var blockRef = layoutModel.BlocksObjectId.GetObject(OpenMode.ForWrite) as BlockReference;
+						}
 					}
+					catch (Autodesk.AutoCAD.Runtime.Exception aex)
+					{
+						if (aex.ErrorStatus == ErrorStatus.RenameLayoutAlreadyExists)
+						{
+							MessageBox.Show($"Перенумерование отменено Лист {errorValue} существуют, попробуйте сначала изменить с добавлением префикса");	
+							return;
+						}
+						
+					}
+
 				}
 
 				trans.Commit();
@@ -156,9 +167,9 @@ namespace TransmittalCreator.CadCommands
 				TrayItemBubbleWindow trayItemBubble = new TrayItemBubbleWindow();
 				trayItemBubble.Text = "Листы перенумерованы";
 				trayItemBubble.Title = "Перенумерование завершено";
-				
+
 				TrayItem trayItem = new TrayItem();
-				
+
 				Autodesk.AutoCAD.ApplicationServices.Application.StatusBar.TrayItems.Add(trayItem);
 				trayItem.ShowBubbleWindow(trayItemBubble);
 				Autodesk.AutoCAD.ApplicationServices.Application.StatusBar.Update();
