@@ -13,7 +13,8 @@
         <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
         <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}"/>
         <Setter Property="FontWeight" Value="Regular"/>
-        <Setter Property="FontSize" Value="14"></Setter>
+        <Setter Property="FontSize" Value="14"/>
+        
         <Setter Property="FontFamily" Value="{materialDesign:MaterialDesignFont}"/>
         <Setter Property="Icon" Value="../0012.png"/>
         <Setter Property="VerticalAlignment" Value="Center"/>

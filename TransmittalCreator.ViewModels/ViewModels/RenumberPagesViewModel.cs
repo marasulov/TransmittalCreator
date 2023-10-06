@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Windows;
 using System.Windows.Input;
-using TransmittalCreator.ViewModels;
 
 namespace TransmittalCreator.ViewModels
 {
@@ -14,6 +12,9 @@ namespace TransmittalCreator.ViewModels
 		private ICommand _renumberPagesCommand;
 		private bool _buttonClicked;
 		private bool _deleteEmptyLayouts;
+		private string _pageName;
+		private string _suffix;
+		private string _prefix;
 
 		/// <summary>
 		/// Нумерация листов с
@@ -21,7 +22,11 @@ namespace TransmittalCreator.ViewModels
 		public int RenumberStartValue
 		{
 			get => _enumerationStartValue;
-			set => Set(ref _enumerationStartValue, value);
+			set
+			{
+				Set(ref _enumerationStartValue, value);
+				PageName = Prefix + value + Suffix;
+			}
 		}
 
 		/// <summary>
@@ -42,18 +47,8 @@ namespace TransmittalCreator.ViewModels
 			set => Set(ref _insertTotalPages, value);
 		}
 
-
-		///// <summary>
-		///// 
-		///// </summary>
-		//public bool RemoveEmptyLayouts
-		//{
-		//	get => _deleteEmptyLayouts;
-		//	set => Set(ref _deleteEmptyLayouts, value);
-		//}
-
 		/// <summary>
-		/// 
+		/// Удалить листы без блока штампа
 		/// </summary>
 		public bool DeleteEmptyLayouts
 		{
@@ -61,22 +56,48 @@ namespace TransmittalCreator.ViewModels
 			set => Set(ref _deleteEmptyLayouts, value);
 		}
 
+		/// <summary>
+		/// Команда для перенумерования
+		/// </summary>
 		public ICommand RenumberPagesCommand
 		{
 			get => _renumberPagesCommand;
 			set => Set(ref _renumberPagesCommand, value);
 		}
 
+		public string PageName
+		{
+			get => _pageName;
+			set => Set(ref _pageName, value);
+		}
+
+		public string Prefix
+		{
+			get => _prefix;
+			set
+			{
+				Set(ref _prefix, value);
+				PageName = value + RenumberStartValue + Suffix;
+			}
+		}
+
+		public string Suffix
+		{
+			get => _suffix;
+			set
+			{
+				Set(ref _suffix, value);
+				PageName = Prefix + RenumberStartValue + value;
+			}
+		}
+
 		public bool CanExecute
 		{
-			get
-			{
-				return this._canExecute;
-			}
+			get => this._canExecute;
 
 			set
 			{
-				if (this._canExecute == value)
+				if (_canExecute == value)
 				{
 					return;
 				}
@@ -101,12 +122,9 @@ namespace TransmittalCreator.ViewModels
 			string clicked = parameter as string;
 			if (clicked == "Hai")
 			{
-				//MessageBox.Show($"передать параметр {clicked}");
 				_buttonClicked = true;
 				OnRequestClose(this, new EventArgs());
 			}
-
-			//MessageBox.Show($"{_enumerationStartValue}");
 		}
 
 		public event EventHandler OnRequestClose;

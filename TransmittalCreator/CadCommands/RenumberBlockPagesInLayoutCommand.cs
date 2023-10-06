@@ -31,7 +31,8 @@ namespace TransmittalCreator.CadCommands
 		public static void DeleteEmptyLayouts(Database db, Editor ed, List<string> notEmptyList)
 		{
 			var layoutManager = LayoutManager.Current;
-
+			var layoutNamed = GetTabOrderedLayoutNames(db);
+			if (layoutNamed.Count == notEmptyList.Count) return;
 			foreach (string layoutName in GetTabOrderedLayoutNames(db))
 			{
 				if (layoutName != "Model" & !notEmptyList.Contains(layoutName))
@@ -105,7 +106,6 @@ namespace TransmittalCreator.CadCommands
 				if (blocksList.Count == 0) return;
 				blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForRead)).OfType<BlockReference>());
 
-
 				var totalPages = 0;
 				var pageStartNumber = 1;
 
@@ -119,7 +119,16 @@ namespace TransmittalCreator.CadCommands
 					pageStartNumber = renumberVm.RenumberStartValue;
 				}
 
-				BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "page", "лист", "ЛИСТ2_СПЕЦ" }, pageStartNumber, totalPages);
+				BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "page", "лист", "ЛИСТ2_СПЕЦ" }, pageStartNumber, totalPages, renumberVm.Prefix, renumberVm.Suffix);
+
+				if (renumberVm.DeleteEmptyLayouts)
+				{
+					var notEmptyLayoutsList = layoutModelCollection.LayoutModels.Select(x => x.LayoutName).ToList();
+					var db = Active.Database;
+					var ed = Active.Editor;
+					DeleteEmptyLayouts(db,ed,notEmptyLayoutsList);
+
+				}
 
 				if (renumberVm.RenumberLayouts)
 				{
@@ -141,37 +150,15 @@ namespace TransmittalCreator.CadCommands
 					}
 				}
 
-				if (renumberVm.DeleteEmptyLayouts)
-				{
-					var notEmptyLayoutsList = layoutModelCollection.LayoutModels.Select(x => x.LayoutName).ToList();
-					var db = Active.Database;
-					var ed = Active.Editor;
-					DeleteEmptyLayouts(db,ed,notEmptyLayoutsList);
-
-				}
-
-				//layoutModelCollection.SetPrintModels(trans);
-				//layoutModelCollection.SetLayoutPlotSetting();
-
-				//TODO сюда вставить нумерацию листов
-				//blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForWrite)).OfType<BlockReference>());
-				//layoutModelCollection.CreateLayoutCollection();
-
-				//string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
-				////var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
 				trans.Commit();
 				Active.Editor.Regen();
-
-				
 
 				TrayItemBubbleWindow trayItemBubble = new TrayItemBubbleWindow();
 				trayItemBubble.Text = "Листы перенумерованы";
 				trayItemBubble.Title = "Перенумерование завершено";
-
 				
 				TrayItem trayItem = new TrayItem();
 				
-
 				Autodesk.AutoCAD.ApplicationServices.Application.StatusBar.TrayItems.Add(trayItem);
 				trayItem.ShowBubbleWindow(trayItemBubble);
 				Autodesk.AutoCAD.ApplicationServices.Application.StatusBar.Update();
@@ -179,26 +166,6 @@ namespace TransmittalCreator.CadCommands
 
 		}
 
-		//LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
-		//Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModalWindow(window);
-
-		//if (!window.isClicked) return;
-
-		//var printPackages = window._printPackages;
-		//packageCreator.PrintPackageModels = printPackages;
-		//var sheetType = SheetType.MultiPdf;
-
-		//packageCreator.PublishAllPackages();
-
-		//var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
-
-
-		//List<Sheet> sheets = new List<Sheet>();
-		//using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
-		//{
-		//	PrintUtils.GetSheetsFromBlocks(Active.Editor, sheets, trans, new ObjectIdCollection(blockIds));
-		//	PrintUtils.CreateJsonFile(sheets);
-		//}
 		private static string GetAttributeValueByTag(ObjectId blockRefId, string tag)
 		{
 			var blockRef = blockRefId.GetObject(OpenMode.ForWrite) as BlockReference;
@@ -214,6 +181,5 @@ namespace TransmittalCreator.CadCommands
 			return null;
 		}
 	}
-
 }
 

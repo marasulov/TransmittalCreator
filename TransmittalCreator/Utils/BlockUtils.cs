@@ -11,7 +11,7 @@ namespace TransmittalCreator.Utils
 {
 	public static class BlockUtils
 	{
-		public static void BlockAttributeEnumerator(List<BlockReference> blocks, string[] attributeNames, int startFrom = 1, int allPages = 0)
+		public static void BlockAttributeEnumerator(List<BlockReference> blocks, string[] attributeNames, int startFrom = 1, int allPages = 0, string prefix = "", string suffix = "" )
 		{
 			foreach (var block in blocks)
 			{
@@ -25,7 +25,7 @@ namespace TransmittalCreator.Utils
 						attribute.OpenForWrite();
 						if (attributeName.Equals(attribute.Tag, StringComparison.InvariantCultureIgnoreCase))
 						{
-							attribute.TextString = startFrom.ToString();
+							attribute.TextString = prefix + startFrom + suffix;
 						}
 					}
 
@@ -34,7 +34,7 @@ namespace TransmittalCreator.Utils
 					foreach (var allPage in allPagesAttributes)
 					{
 						if (attribute.Tag.Equals(allPage, StringComparison.InvariantCultureIgnoreCase))
-							attribute.TextString = allPages.ToString();
+							attribute.TextString =  allPages.ToString();
 					}
 				}
 
