@@ -19,7 +19,7 @@ namespace TransmittalCreator.CadCommands
 {
 	public class CreatePdfWithRenumberingCommand
 	{
-		[CommandMethod("CreateTranspdf")]
+		//[CommandMethod("CreateTranspdf")]
 		public static void CreatePdfWithRenumbering()
 		{
 			List<Sheet> dict = new List<Sheet>();
