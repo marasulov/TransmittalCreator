@@ -2,15 +2,11 @@
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Windows;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows;
 using TransmittalCreator.Models.Layouts;
-using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
@@ -21,7 +17,6 @@ using Active = TransmittalCreator.DBCad.Active;
 
 namespace TransmittalCreator.CadCommands
 {
-
 	public class RenumberBlockPagesInLayoutCommand
 	{
 		public static void DeleteEmptyLayouts(Database db, Editor ed, List<string> notEmptyList)
@@ -71,21 +66,21 @@ namespace TransmittalCreator.CadCommands
 
 			Active.WriteMessageInDebug($"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, DeleteEmptyLayouts - {renumberVm.DeleteEmptyLayouts} ");
 
-			IFileManager fileManager = new FileManager();
-			string allPath = fileManager.GetFilePath();
 			//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-			var confFilePath = Path.Combine(Path.GetDirectoryName(
-				Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
-
-#if DEBUG
-			confFilePath = "D:\\data\\source\\repos\\TransmittalCreator\\TransmittalCreator\\conf.json";
-#endif
-			string jsonFile = File.ReadAllText(confFilePath);
-			Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+//			var confFilePath = Path.Combine(Path.GetDirectoryName(
+//				Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
+			
+//#if DEBUG
+//			confFilePath = "D:\\data\\source\\repos\\TransmittalCreator\\TransmittalCreator\\conf.json";
+//#endif
+//			string jsonFile = File.ReadAllText(confFilePath);
+			//Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+			string[] blockNames = FileManager.GetBlockNames();
+			var dynamicBlocks = new DynamicBlockFinder(blockNames);
 			using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
 			{
-				string[] blockNames = deserializeObject.StampName;
-				var dynamicBlocks = new DynamicBlockFinder(blockNames);
+				
+				
 				var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
 				layoutModelCollection.ListLayouts("Model");
 				Active.UsingTransaction(layoutModelCollection.CreateCollectionFromBlockNames);

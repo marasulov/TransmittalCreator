@@ -2,18 +2,15 @@
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using TransmittalCreator.Models;
-using TransmittalCreator.Services.Blocks;
-using TransmittalCreator.Services;
-using TransmittalCreator.Utils;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Models;
+using TransmittalCreator.Services;
+using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Utils;
 
 namespace TransmittalCreator.CadCommands
 {
@@ -50,7 +47,8 @@ namespace TransmittalCreator.CadCommands
 					if (!(block is null))
 					{
 						string blockName = block.Name;
-						string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
+						string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
+						string jsonFile = File.ReadAllText(confFile);
 						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 
 						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);

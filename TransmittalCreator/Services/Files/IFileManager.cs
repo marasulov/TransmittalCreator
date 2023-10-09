@@ -5,6 +5,6 @@
         string FileName { get;  }
         string DirPath { get; }
 
-        string GetFilePath();
+        //string GetFilePath();
     }
 }

@@ -112,7 +112,7 @@ namespace TransmittalCreator.Services
 				File.Copy(location, destination);
 				return true;
 			}
-			catch (Exception e)
+			catch (Exception)
 			{
 				return false;
 			}

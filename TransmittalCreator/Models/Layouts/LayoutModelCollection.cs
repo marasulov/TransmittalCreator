@@ -26,6 +26,11 @@ namespace TransmittalCreator.Models.Layouts
             DynamicBlocks = dynamicBlocks;
         }
 
+        public LayoutModelCollection(string[] dynamicBlocksName)
+        {
+	        var dirPath = dynamicBlocksName;
+        }
+
         /// <summary>
         /// Создает коллекцию Layout
         /// </summary>
