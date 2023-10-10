@@ -19,6 +19,7 @@ namespace WpfAppForTest.App
             InitializeComponent();
 
             AttributeViewModel filenameModel = new AttributeViewModel();
+            
             DataContext = filenameModel;
 
 			Loaded += MainWindow_Loaded;

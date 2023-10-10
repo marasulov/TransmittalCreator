@@ -1,14 +1,10 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Runtime;
-using System.Collections.Generic;
-using System.Xml.Linq;
 using Autodesk.AutoCAD.Geometry;
+using System.Collections.Generic;
 //using ModPlusAPI;
 //using ModPlusAPI.Windows;
 using AcApp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
-using MessageBox = System.Windows.MessageBox;
 
 namespace TransmittalCreator.Utils
 {
@@ -62,10 +58,6 @@ namespace TransmittalCreator.Utils
 			}
 		}
 
-#if DEBUG
-		
-#endif
-
 		/// <summary>
 		/// Текущий аннотативный масштаб
 		/// </summary>
@@ -73,8 +65,6 @@ namespace TransmittalCreator.Utils
 		{
 			return ObjectContextCollection.CurrentContext as AnnotationScale;
 		}
-
-		
 
 		/// <summary>
 		/// Открыть объект для чтения
@@ -137,42 +127,6 @@ namespace TransmittalCreator.Utils
 		{
 			return scale.DrawingUnits / scale.PaperUnits;
 		}
-
-		/// <summary>
-		/// Найти все блоки в текущем пространстве (модель/лист), представляющие интеллектуальный примитив указанного типа
-		/// </summary>
-		/// <typeparam name="T">Допустимый тип</typeparam>
-		/// <param name="entityType">Тип интеллектуального объекта для поиска</param>
-		//public static List<T> GetAllIntellectualEntitiesInCurrentSpace<T>(Type entityType)
-		//	where T : SmartEntity
-		//{
-		//	var list = new List<T>();
-		//	var appName = $"mp{entityType.Name}";
-		//	using (var tr = Database.TransactionManager.StartOpenCloseTransaction())
-		//	{
-		//		var blockTableRecord = (BlockTableRecord)tr.GetObject(Database.CurrentSpaceId, OpenMode.ForRead);
-		//		foreach (var objectId in blockTableRecord)
-		//		{
-		//			if (objectId == ObjectId.Null)
-		//			{
-		//				continue;
-		//			}
-
-		//			if (tr.GetObject(objectId, OpenMode.ForRead) is BlockReference blockReference)
-		//			{
-		//				var xData = blockReference.GetXDataForApplication(appName);
-		//				if (xData != null)
-		//				{
-		//					list.Add(EntityReaderService.Instance.GetFromEntity<T>(blockReference));
-		//				}
-		//			}
-		//		}
-
-		//		tr.Commit();
-		//	}
-
-		//	return list;
-		//}
 
 		/// <summary>
 		/// Парсинг аннотативного масштаба из строки

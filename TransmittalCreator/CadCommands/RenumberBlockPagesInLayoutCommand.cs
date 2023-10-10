@@ -19,43 +19,10 @@ namespace TransmittalCreator.CadCommands
 {
 	public class RenumberBlockPagesInLayoutCommand
 	{
-		public static void DeleteEmptyLayouts(Database db, Editor ed, List<string> notEmptyList)
-		{
-			var layoutManager = LayoutManager.Current;
-			var layoutNames = GetTabOrderedLayoutNames(db);
-			if (layoutNames.Count == notEmptyList.Count) return;
-			foreach (string layoutName in layoutNames)
-			{
-				if (layoutName != "Model" & !notEmptyList.Contains(layoutName))
-					layoutManager.DeleteLayout(layoutName);
-			}
-			ed.Regen();
-		}
-
-		public static List<string> GetTabOrderedLayoutNames(Database db)
-		{
-			if (db == null)
-				return null;
-
-			var tabOrderedLayouts = new Dictionary<int, string>();
-			using (Transaction tr = db.TransactionManager.StartTransaction())
-			{
-				DBDictionary layoutDict = (DBDictionary)tr.GetObject(db.LayoutDictionaryId, OpenMode.ForRead);
-				foreach (DBDictionaryEntry layoutEntry in layoutDict)
-				{
-					Layout layout = (Layout)tr.GetObject(layoutEntry.Value, OpenMode.ForRead);
-					if (!layout.ModelType)
-						tabOrderedLayouts[layout.TabOrder] = layout.LayoutName;
-				}
-				tr.Commit();
-			}
-			return tabOrderedLayouts.OrderBy(n => n.Key).Select(n => n.Value).ToList();
-		}
-
 		[CommandMethod("RenumberBlocksInLayout")]
 		public static void RenumberBlockPagesInLayout()
 		{
-			RenumberPagesViewModel renumberVm = new RenumberPagesViewModel();
+			var renumberVm = new RenumberPagesViewModel();
 
 			var renumberPagesView = new RenumberPagesInLayoutSpaceView(renumberVm);
 
@@ -67,20 +34,11 @@ namespace TransmittalCreator.CadCommands
 			Active.WriteMessageInDebug($"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, DeleteEmptyLayouts - {renumberVm.DeleteEmptyLayouts} ");
 
 			//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-//			var confFilePath = Path.Combine(Path.GetDirectoryName(
-//				Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
-			
-//#if DEBUG
-//			confFilePath = "D:\\data\\source\\repos\\TransmittalCreator\\TransmittalCreator\\conf.json";
-//#endif
-//			string jsonFile = File.ReadAllText(confFilePath);
-			//Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+
 			string[] blockNames = FileManager.GetBlockNames();
 			var dynamicBlocks = new DynamicBlockFinder(blockNames);
 			using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
 			{
-				
-				
 				var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
 				layoutModelCollection.ListLayouts("Model");
 				Active.UsingTransaction(layoutModelCollection.CreateCollectionFromBlockNames);
@@ -117,7 +75,7 @@ namespace TransmittalCreator.CadCommands
 					var notEmptyLayoutsList = layoutModelCollection.LayoutModels.Select(x => x.LayoutName).ToList();
 					var db = Active.Database;
 					var ed = Active.Editor;
-					DeleteEmptyLayouts(db, ed, notEmptyLayoutsList);
+					LayoutUtils.DeleteEmptyLayouts(db, ed, notEmptyLayoutsList);
 
 				}
 
@@ -140,8 +98,6 @@ namespace TransmittalCreator.CadCommands
 									layout.LayoutName = attributeValue;
 								}
 							}
-
-							//var blockRef = layoutModel.BlocksObjectId.GetObject(OpenMode.ForWrite) as BlockReference;
 						}
 					}
 					catch (Autodesk.AutoCAD.Runtime.Exception aex)

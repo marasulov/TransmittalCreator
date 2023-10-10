@@ -42,18 +42,13 @@ namespace TransmittalCreator.CadCommands
 					{
 						SelectionSet selSet = res.Value;
 						ObjectId[] idArrayTemp = selSet.GetObjectIds();
-						//ObjectIdCollection idArray = new ObjectIdCollection(idArrayTemp);
+						
 						//TODO printing X Y
-						//string selAttrName = attributeName.AttributeName;
-
-
+						
 						FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
 
-						//GetPrintParametersToPdf(Active.Editor, printModels, tr, objectIds, selAttrName);
-
 						fileNameCreator.GetPrintParametersToPdf(tr);
-
-
+						
 						PrintUtils.CreateJsonFile(dict);
 
 						foreach (var printModel in fileNameCreator.GetPrintModels())

@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.PlottingServices;
+using System;
+using System.Text.RegularExpressions;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Services;
 
 namespace TransmittalCreator.Models
 {
-    public class PrintModel
+	public class PrintModel
     {
 	    private double _scaleX { get; set; }
 

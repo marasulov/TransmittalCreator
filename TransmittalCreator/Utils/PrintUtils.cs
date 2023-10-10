@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.Models;
@@ -17,6 +18,7 @@ using TransmittalCreator.Services;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
 using iTextSharp.text.pdf;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 
 namespace TransmittalCreator.Utils
 {
@@ -193,11 +195,11 @@ namespace TransmittalCreator.Utils
                 // Do nothing if selection is unsuccessful
                 if (res.Status != PromptStatus.OK)
                 {
-                    throw new InvalidOperationException("block not selected");
+                    MessageBox.Show("block not selected");
                 }
                 if (res.Value.Count > 1)
                 {
-                    throw new InvalidOperationException("For selecting block attributes, please select only one block");
+                    MessageBox.Show("For selecting block attributes, please select only one block");
                 }
                 SelectionSet selSet = res.Value;
                 ObjectId[] idArray = selSet.GetObjectIds();

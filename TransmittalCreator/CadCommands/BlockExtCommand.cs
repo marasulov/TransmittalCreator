@@ -12,7 +12,7 @@ namespace TransmittalCreator.CadCommands
 	public static class BlockExtCommand
 	{
 		
-		[CommandMethod("BlockExt")]
+		//[CommandMethod("BlockExt")]
 		public static void BlockExt()
 		{
 			if (Active.Document == null) return;

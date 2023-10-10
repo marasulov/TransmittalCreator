@@ -9,6 +9,7 @@ using System.Reflection;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 
 namespace TransmittalCreator.CadCommands
@@ -53,15 +54,9 @@ namespace TransmittalCreator.CadCommands
 						BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
 						BlockTableRecord block =
 							tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-						string blockName = block.Name;
-
-						//if (blockName == "Формат") idArray.Add(objectId);
-						//else if (blockName == "ФорматM25") idArray.Add(objectId);
-						var assemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-						string jsonFile = File.ReadAllText(Path.Combine(assemblyLocation ?? string.Empty, "conf.json"));
-						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
+						string[] blockNames = FileManager.GetBlockNames();
+						
+						if (blockNames.Contains(block.Name)) idArray.Add(objectId);
 
 						//Active.Document.Editor.WriteMessage(blockName);
 					}

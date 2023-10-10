@@ -4,20 +4,24 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace TestWPF.ViewModel
 {
-	public class AttributeViewModel
+	[ObservableObject]
+	public partial class AttributeViewModel
 	{
-		public ObservableCollection<string> CmbContent { get; private set; }
 
 		public AttributeViewModel()
 		{
-			CmbContent = new ObservableCollection<string>
-			{
-				"test 1", 
-				"test 2"
-			};
 		}
+
+		public void Load()
+		{
+			
+		}
+
+		[ObservableProperty] 
+		private string firstname;
 	}
 }

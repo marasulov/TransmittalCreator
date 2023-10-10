@@ -2,12 +2,27 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace TestWPF
 {
-    class ApplicationViewModel : INotifyPropertyChanged
+    
+    [ObservableObject]
+    public partial class ApplicationViewModel 
     {
-        private bool? _isChecked = true;
+	    private bool? _isChecked = true;
         private ApplicationViewModel _parent;
+
+        [ObservableProperty]
+        private string firstname;
+
+
+
+        //public void Load()
+        //{
+        //    Firstname = null;
+        //}
+
 
         public List<ApplicationViewModel> Children { get; private set; }
 
@@ -22,15 +37,15 @@ namespace TestWPF
         }
 
 
-        private RelayCommand addCommand;
-        public RelayCommand AddCommand
-        {
-            get
-            {
-                return addCommand ??
-                  (addCommand = new RelayCommand(CreateCommand, OnCreateCommand));
-            }
-        }
+        //private RelayCommand addCommand;
+        //public RelayCommand AddCommand
+        //{
+        //    get
+        //    {
+        //        return addCommand ??
+        //          (addCommand = new RelayCommand(CreateCommand, OnCreateCommand));
+        //    }
+        //}
 
         private bool OnCreateCommand(object arg)
         {

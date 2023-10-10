@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfAppForTest.App"
+        
         mc:Ignorable="d"
         Title="MainWindow" Height="300" Width="500"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
@@ -14,7 +15,9 @@
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{materialDesign:MaterialDesignFont}">
-    
+    <Window.DataContext>
+        <local:AttributeViewModel></local:AttributeViewModel>
+    </Window.DataContext>
     <DockPanel x:Name="MainPanel">
         <Menu DockPanel.Dock="Top"/>
         <Grid VerticalAlignment="Stretch" Margin="8 15 0 0" >
@@ -68,8 +71,8 @@
                       Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}"
                       IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
             <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
-                     Text="{Binding Path=NumberingValue}" PreviewTextInput="NumberValidationTextBox"
-                     IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}">
+                     Text="{Binding Path=Name}" PreviewTextInput="NumberValidationTextBox"
+                     IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Cursor="">
             </TextBox>
 
             <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Prefix</TextBlock>
@@ -98,7 +101,7 @@
             <TextBox Grid.Column="2" Grid.Row="3" Name="suffixTextBox" Text="{Binding Path=Suffix}"></TextBox>
 
             <TextBlock Grid.Column="0" Grid.Row="4" Text="Filename"/>
-            <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName}"/>
+            <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding NumberingValue}"/>
             <TextBlock Name="TextBlock1" Visibility="Collapsed" ></TextBlock>
             <StackPanel Grid.Column="2" Grid.Row="5" Orientation="Horizontal" Margin="5" >
                 <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX"></RadioButton>

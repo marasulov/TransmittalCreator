@@ -10,6 +10,7 @@ using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 
 namespace TransmittalCreator.CadCommands
@@ -41,32 +42,23 @@ namespace TransmittalCreator.CadCommands
 				ObjectIdCollection idArray = new ObjectIdCollection();
 				foreach (var objectId in idArrayTemp)
 				{
-					BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-					BlockTableRecord block =
-						tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					if (!(block is null))
-					{
-						string blockName = block.Name;
-						string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
-						string jsonFile = File.ReadAllText(confFile);
-						Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+					var blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+					var block = tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+					if (block is null) continue;
+					
+					string[] blockNames = FileManager.GetBlockNames();
 
-						if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
-
-					}
+					if (blockNames.Contains(block.Name)) idArray.Add(objectId);
 				}
 
 				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-				string selAttrName = "НОМЕР_ЛИСТА";
+				var selAttrName = "НОМЕР_ЛИСТА";
 				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
 
-
-				//utils.CreateOnlyVed(dict);
 				PrintUtils.CreateJsonFile(dict);
 
 				foreach (var printModel in printModels)
 				{
-					//Active.Editor.WriteMessage("{0} печатаем ", printModel.DocNumber);
 					PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
 				}
 

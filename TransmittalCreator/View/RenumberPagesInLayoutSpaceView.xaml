@@ -29,8 +29,8 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
+    
     <DockPanel>
-
         <Grid VerticalAlignment="Stretch" Margin="8 2 8 2" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -123,7 +123,9 @@
 
             <Button Grid.Column="0" Name="createButton"  Grid.Row="7" Grid.ColumnSpan="2" VerticalAlignment="Center"
                     TabIndex="1" 
-                    Command="{Binding RenumberPagesCommand}" CommandParameter="Hai">Renumber / Перенумеровать</Button>
+                    Command="{Binding RenumberPagesCommand}" 
+                    CommandParameter="Hai">Renumber / Перенумеровать
+            </Button>
 
         </Grid>
     </DockPanel>

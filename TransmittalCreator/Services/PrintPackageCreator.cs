@@ -28,6 +28,7 @@ namespace TransmittalCreator.Services
             string mainPageDocNum = "";
             foreach (var layout in layoutModels)
             {
+	            
                 var printModel = layout.PrintModel;
 
                 if (printModel.StampViewName.Contains(MainPageName[0]) || printModel.StampViewName.Contains(MainPageName[1]))

@@ -231,6 +231,7 @@
     </Compile>
     <Compile Include="Utils\BlockUtils.cs" />
     <Compile Include="Utils\Controls\NumberOnly.cs" />
+    <Compile Include="Utils\LayoutUtils.cs" />
     <Compile Include="Utils\PrintUtils.cs" />
     <Compile Include="Utils\AcadUtils.cs" />
     <Compile Include="Utils\LayerUtils.cs" />
