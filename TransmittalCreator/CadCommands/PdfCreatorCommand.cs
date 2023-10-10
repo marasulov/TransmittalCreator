@@ -20,46 +20,42 @@ namespace TransmittalCreator.CadCommands
 			Dictionary<string, string> attrList = new Dictionary<string, string>();
 			Window1 window = new Window1(new BlockViewModel(attrList));
 			Application.ShowModalWindow(window);
-			if (window.isClicked)
+			if (!window.isClicked) return;
+			//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
+			List<Sheet> dict = new List<Sheet>();
+
+			using Transaction tr = Active.Database.TransactionManager.StartTransaction();
+			BlockSelector blockSelector = new BlockSelector();
+			blockSelector.GetFilterForSelectBlockId(window.BlockName);
+			bool isExec = true;
+			var res = blockSelector.SelectionResult;
+
+			if (res.Status != PromptStatus.OK)
 			{
-				//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
-				List<Sheet> dict = new List<Sheet>();
+				isExec = false;
+				Active.Editor.WriteMessage("Надо выбрать блок");
+			}
 
-				using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
+			if (isExec)
+			{
+				SelectionSet selSet = res.Value;
+				ObjectId[] idArrayTemp = selSet.GetObjectIds();
+						
+				//TODO printing X Y
+						
+				FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
+
+				fileNameCreator.GetPrintParametersToPdf(tr);
+						
+				PrintUtils.CreateJsonFile(dict);
+
+				foreach (var printModel in fileNameCreator.GetPrintModels())
 				{
-					BlockSelector blockSelector = new BlockSelector();
-					blockSelector.GetFilterForSelectBlockId(window.BlockName);
-					bool isExec = true;
-					var res = blockSelector.SelectionResult;
-
-					if (res.Status != PromptStatus.OK)
-					{
-						isExec = false;
-						Active.Editor.WriteMessage("Надо выбрать блок");
-					}
-
-					if (isExec)
-					{
-						SelectionSet selSet = res.Value;
-						ObjectId[] idArrayTemp = selSet.GetObjectIds();
-						
-						//TODO printing X Y
-						
-						FileNameCreator fileNameCreator = new FileNameCreator(window, idArrayTemp);
-
-						fileNameCreator.GetPrintParametersToPdf(tr);
-						
-						PrintUtils.CreateJsonFile(dict);
-
-						foreach (var printModel in fileNameCreator.GetPrintModels())
-						{
-							PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-						}
-					}
-
-					tr.Commit();
+					PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
 				}
 			}
+
+			tr.Commit();
 		}
 
 	}

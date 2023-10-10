@@ -57,9 +57,9 @@ namespace TransmittalCreator.Models
         {
             double blockWidth = 0, blockHeight = 0;
             
-            using (Transaction Tx = Active.Database.TransactionManager.StartTransaction())
+            using (Transaction tr = Active.Database.TransactionManager.StartTransaction())
             {
-                BlockReference bref = Tx.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
+                BlockReference bref = tr.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
                 this._scaleX = bref.ScaleFactors.X;
                 Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(bref.Position.X, bref.Position.Y,0), false);
                 MinPointX = blockPos3d.X;
@@ -85,10 +85,16 @@ namespace TransmittalCreator.Models
                     }
                 }
                 BlockDimensions = new Point2d(BlockPosition.X + blockWidth, BlockPosition.Y + blockHeight);
-                Tx.Commit();
+                tr.Commit();
             }
         }
 
+        public void GetBlockMinPositions(BlockReference bref)
+        {
+	        Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(bref.Position.X, bref.Position.Y,0), false);
+	        MinPointX = blockPos3d.X;
+	        MinPointY = blockPos3d.Y;
+        }
         public bool IsFormatHorizontal()
         {
             Width = BlockDimensions.X - BlockPosition.X;

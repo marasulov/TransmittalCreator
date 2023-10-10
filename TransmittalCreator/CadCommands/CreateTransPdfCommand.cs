@@ -37,23 +37,13 @@ namespace TransmittalCreator.CadCommands
 				}
 
 				SelectionSet selSet = res.Value;
-				ObjectId[] idArrayTemp = selSet.GetObjectIds();
+				ObjectId[] allSelectedBlocks = selSet.GetObjectIds();
 
-				ObjectIdCollection idArray = new ObjectIdCollection();
-				foreach (var objectId in idArrayTemp)
-				{
-					var blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-					var block = tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					if (block is null) continue;
-					
-					string[] blockNames = FileManager.GetBlockNames();
+				var blocksByName = BlockUtils.GetDynBlocksByName(allSelectedBlocks, tr);
 
-					if (blockNames.Contains(block.Name)) idArray.Add(objectId);
-				}
-
-				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
+				PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, blocksByName);
 				var selAttrName = "НОМЕР_ЛИСТА";
-				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
+				PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, blocksByName, selAttrName);
 
 				PrintUtils.CreateJsonFile(dict);
 

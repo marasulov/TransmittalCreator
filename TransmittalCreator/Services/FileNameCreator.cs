@@ -132,17 +132,6 @@ namespace TransmittalCreator.Services
             {
                 _printModels = _printModels.OrderByDescending(x => x.MinPointY).ToList();
             }
-
-            if (_isXYChecked)
-            {
-
-            }
-
-            if (_isYXChecked)
-            {
-
-            }
-
         }
 
         public List<PrintModel> GetPrintModels()

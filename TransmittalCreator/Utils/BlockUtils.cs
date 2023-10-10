@@ -2,16 +2,27 @@
 using Gile.AutoCAD.Extension;
 using System;
 using System.Collections.Generic;
+using TransmittalCreator.Services.Files;
+using System.Linq;
 
 namespace TransmittalCreator.Utils
 {
 	public static class BlockUtils
 	{
-		public static void BlockAttributeEnumerator(List<BlockReference> blocks, string[] attributeNames, int startFrom = 1, int allPages = 0, string prefix = "", string suffix = "" )
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="blocks"></param>
+		/// <param name="attributeNames"></param>
+		/// <param name="startFrom"></param>
+		/// <param name="allPages"></param>
+		/// <param name="prefix"></param>
+		/// <param name="suffix"></param>
+		public static void BlockAttributeEnumerator(List<BlockReference> blocks, string[] attributeNames, int startFrom = 1, int allPages = 0, string prefix = "", string suffix = "")
 		{
 			foreach (var block in blocks)
 			{
-				
+
 				var attributeReferences = block.AttributeCollection.GetObjects();
 
 				foreach (var attribute in attributeReferences)
@@ -30,7 +41,7 @@ namespace TransmittalCreator.Utils
 					foreach (var allPage in allPagesAttributes)
 					{
 						if (attribute.Tag.Equals(allPage, StringComparison.InvariantCultureIgnoreCase))
-							attribute.TextString =  allPages.ToString();
+							attribute.TextString = allPages.ToString();
 					}
 				}
 
@@ -58,6 +69,30 @@ namespace TransmittalCreator.Utils
 				//}
 				startFrom++;
 			}
+		}
+
+
+
+		/// <summary>
+		/// Возвращает блоки по имени из выбранного списка блоков 
+		/// </summary>
+		/// <param name="allSelectedBlocks"></param>
+		/// <param name="tr"></param>
+		/// <returns></returns>
+		public static ObjectIdCollection GetDynBlocksByName(ObjectId[] allSelectedBlocks, Transaction tr)
+		{
+			ObjectIdCollection blocksByName = new ObjectIdCollection();
+			foreach (var objectId in allSelectedBlocks)
+			{
+				var blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+				var block = tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+				if (block is null) continue;
+
+				string[] blockNames = FileManager.GetBlockNames();
+
+				if (blockNames.Contains(block.Name)) blocksByName.Add(objectId);
+			}
+			return blocksByName;
 		}
 	}
 }

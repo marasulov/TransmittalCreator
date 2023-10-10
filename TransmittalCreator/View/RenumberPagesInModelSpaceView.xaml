@@ -105,10 +105,13 @@
                 Numbering order 
             </TextBlock>
             <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Horizontal" Margin="5" >
-                <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX"/>
-                <RadioButton Content="Y" Margin="2 0 5 0" Name="RadioButtonY"/>
+                <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX" 
+                             IsChecked="{Binding IsX}"/>
+                <RadioButton Content="Y" Margin="2 0 5 0" Name="RadioButtonY" 
+                             IsChecked="{Binding IsY}"/>
                 <RadioButton Content="Select order" Margin="2 0 5 0" 
-                             x:Name="RadioButtonSelOrder" IsChecked="True"/>
+                             IsChecked="{Binding IsSelectedOrder}" 
+                             x:Name="RadioButtonSelOrder"/>
             </StackPanel>
             
             <Button Grid.Column="0" Name="createButton"  Grid.Row="6" Grid.ColumnSpan="2" VerticalAlignment="Center"

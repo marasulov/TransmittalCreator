@@ -14,6 +14,50 @@ namespace TransmittalCreator.ViewModels.ViewModels
 		private string _suffix;
 		private string _prefix;
 
+		private Ordering _ordering = Ordering.IsSelectedOrder;
+
+		public Ordering Ordering
+		{
+			get => _ordering;
+			set
+			{
+				if (_ordering == value)
+					return;
+				_ordering = value;
+				OnPropertyChanged("Ordering");
+				OnPropertyChanged("IsX");
+				OnPropertyChanged("IsY");
+				OnPropertyChanged("IsSelectedOrder");
+			}
+		}
+
+		public bool IsX
+		{
+			get => Ordering == Ordering.IsX;
+			set
+			{
+				Ordering = value ? Ordering.IsX : Ordering;
+			}
+		}
+
+		public bool IsY
+		{
+			get => Ordering == Ordering.IsY;
+			set
+			{
+				Ordering = value ? Ordering.IsY : Ordering;
+			}
+		}
+
+		public bool IsSelectedOrder
+		{
+			get => Ordering == Ordering.IsSelectedOrder;
+			set
+			{
+				Ordering = value ? Ordering.IsSelectedOrder : Ordering;
+			}
+		}
+
 		/// <summary>
 		/// Нумерация листов с
 		/// </summary>
@@ -93,5 +137,12 @@ namespace TransmittalCreator.ViewModels.ViewModels
 		}
 
 		public event EventHandler OnRequestClose;
+	}
+
+	public enum Ordering
+	{
+		IsX,
+		IsY,
+		IsSelectedOrder
 	}
 }
