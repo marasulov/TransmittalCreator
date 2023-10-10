@@ -95,7 +95,7 @@ namespace TransmittalCreator.Services
             string attributeValue = printModel.DocNumber;
             if(_isNumberingChecked)
                 _numberingValue = NumberingValue + 1 ;
-            return _prefix + attributeValue + NumberingValue + _sufix+".pdf";
+            return _prefix + attributeValue + NumberingValue + _sufix;
         }
 
         private string GetBlockAttributeValue(BlockReference blkRef)

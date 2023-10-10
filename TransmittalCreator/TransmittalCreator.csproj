@@ -51,7 +51,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>\\uz-fs\Uzle\Work\Отдел BIM\Скрипты\Transmittal\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -149,6 +149,11 @@
     <Folder Include="Models\Blocks\" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="conf.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="CadCommands\BlockExtCommand.cs" />
     <Compile Include="CadCommands\CreateCombinedPdfCommand.cs" />
     <Compile Include="CadCommands\CreateDwgCommand.cs" />
@@ -161,12 +166,17 @@
     <Compile Include="CadCommands\RenumberBlockPagesInLayoutCommand.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesCommand.cs" />
     <Compile Include="CommandsWatcher.cs" />
-    <Compile Include="CadCommands\PdfCreatorCommand.cs" />
+    <Compile Include="CadCommands\CreatePdfCommand.cs" />
     <Compile Include="Converters\RatioConverter.cs" />
     <Compile Include="DBCad\Active.cs" />
     <Compile Include="CircleDrawJig.cs" />
     <Compile Include="DocumentWatcher.cs" />
     <Compile Include="LeaderJig.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Resources\WindowResources.xaml.cs">
       <DependentUpon>WindowResources.xaml</DependentUpon>
     </Compile>
@@ -267,6 +277,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>myCommands.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -342,7 +356,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="conf.json" />
+    <EmbeddedResource Include="conf.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

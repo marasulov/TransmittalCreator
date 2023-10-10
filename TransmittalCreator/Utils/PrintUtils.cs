@@ -643,7 +643,7 @@ namespace TransmittalCreator.Utils
         }
 
 
-        [CommandMethod("SetDynamicBlkProperty")]
+        //[CommandMethod("SetDynamicBlkProperty")]
         static public void SetDynamicBlkProperty()
         {
             Document doc = Application.DocumentManager.MdiActiveDocument;
@@ -701,7 +701,7 @@ namespace TransmittalCreator.Utils
         /// </summary>
         /// <param name="blockName"></param>
         /// <returns></returns>
-        [CommandMethod("selb")]
+        //[CommandMethod("selb")]
         public static ObjectIdCollection SelectDynamicBlockReferences(ObjectId mSpaceId, string blockName = "ФорматM25")
         {
 
@@ -786,7 +786,7 @@ namespace TransmittalCreator.Utils
             }
         }
 
-        [CommandMethod("blockName")]
+        //[CommandMethod("blockName")]
         static public void GetBlockName()
         {
             Document doc = Active.Document;

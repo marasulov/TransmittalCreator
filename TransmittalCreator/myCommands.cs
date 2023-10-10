@@ -861,9 +861,10 @@ namespace TransmittalCreator
 			}
 		}
 
-		#region HvacTable
+		#region 
 
-		[CommandMethod("JigLine")]
+
+		//[CommandMethod("JigLine")]
 		public static void JigLine()
 		{
 			Document doc = Application.DocumentManager.MdiActiveDocument;
@@ -878,7 +879,7 @@ namespace TransmittalCreator
 		}
 
 		// Modal Command with pickfirst selection
-		[CommandMethod("hvacTable")]
+		//[CommandMethod("hvacTable")]
 		public static void CreateHvac()
 		{
 			Document doc = Application.DocumentManager.MdiActiveDocument;

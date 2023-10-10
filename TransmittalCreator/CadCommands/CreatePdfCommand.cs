@@ -11,7 +11,7 @@ using TransmittalCreator.ViewModel;
 
 namespace TransmittalCreator.CadCommands
 {
-	public static class PdfCreatorCommand
+	public static class CreatePdfCommand
 	{
 		[CommandMethod("CreatePdf")]
 		public static void CreatePdfName()
