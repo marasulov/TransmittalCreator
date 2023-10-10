@@ -69,33 +69,25 @@ namespace TransmittalCreator.CadCommands
 			List<BlockReference> blockReferences = new List<BlockReference>();
 			blockReferences.AddRange(selectedBlocksId.Select(blockRefId => blockRefId.GetObject(OpenMode.ForRead)).OfType<BlockReference>());
 
-
-			//if (renumberVm.IsSelectedOrder)
-			//{
-			//	MessageBox.Show("sel");
-			//}
 			if (renumberVm.IsX)
 			{
-				blockReferences.Sort((x,y) =>
-				{
-					var first = AcadUtils.UcsToDisplay(new Point3d(x.Position.X, x.Position.Y,0), false); 
-					var second = AcadUtils.UcsToDisplay(new Point3d(y.Position.X, y.Position.Y,0), false); 
-					return first.X.CompareTo(second.X);
-				});
+				blockReferences.Sort((x,y) => GetUcsPoint3d(x).X.CompareTo(GetUcsPoint3d(y).X));
 			}
+
 			if (renumberVm.IsY)
 			{
-				blockReferences.Sort((x,y) =>
-				{
-					var first = AcadUtils.UcsToDisplay(new Point3d(x.Position.X, x.Position.Y, 0), false);
-					var second = AcadUtils.UcsToDisplay(new Point3d(y.Position.X, y.Position.Y, 0), false);
-					return second.Y.CompareTo(first.Y);
-				});
+				blockReferences.Sort((x,y) => GetUcsPoint3d(x).Y.CompareTo(GetUcsPoint3d(y).Y));
 			}
 			
 			BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "page", "лист", "ЛИСТ2_СПЕЦ" }, pageStartNumber, totalPages, renumberVm.Prefix, renumberVm.Suffix);
 
 			tr.Commit();
 		}
+
+		private static Point3d GetUcsPoint3d(BlockReference blockReference)
+		{
+			return AcadUtils.UcsToDisplay(new Point3d(blockReference.Position.X, blockReference.Position.Y, 0), false);
+		}
+
 	}
 }
