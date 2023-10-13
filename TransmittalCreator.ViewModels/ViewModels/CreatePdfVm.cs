@@ -25,12 +25,12 @@ namespace TransmittalCreator.ViewModels
 
 		public CreatePdfVm()
 		{
-			PrintPagesCommand = new RelayCommand(CloseWindow, param => _canExecute);
+			PrintPagesCommand = new RelayCommand(CloseWindow, canExecute=>CanClose());
 		}
 
 		public bool CanClose()
 		{
-			if (SelectedAttr != null | IsCheckedNumbering)
+			if ( (IsAttributeChecked & SelectedAttr != null) | IsCheckedNumbering)
 			{
 				_canExecute = true;
 				return true;

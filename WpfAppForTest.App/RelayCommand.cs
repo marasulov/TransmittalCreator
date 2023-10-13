@@ -13,13 +13,7 @@ namespace WpfAppForTest.App
         #region Fields
 
         readonly Action<object> _execute;
-        readonly Func<object, bool> _canExecute;        
-
-        public event EventHandler CanExecuteChanged
-        {
-	        add { CommandManager.RequerySuggested += value; }
-	        remove { CommandManager.RequerySuggested -= value; }
-        }
+        readonly Predicate<object> _canExecute;        
 
         #endregion // Fields
 
@@ -39,10 +33,10 @@ namespace WpfAppForTest.App
         /// </summary>
         /// <param name="execute">The execution logic.</param>
         /// <param name="canExecute">The execution status logic.</param>
-        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+        public RelayCommand(Action<object> execute, Predicate<object> canExecute)
         {
-            //if (execute == null)
-            //    throw new ArgumentNullException("execute");
+            if (execute == null)
+                throw new ArgumentNullException("execute");
 
             _execute = execute;
             _canExecute = canExecute;           
@@ -55,10 +49,14 @@ namespace WpfAppForTest.App
         [DebuggerStepThrough]
         public bool CanExecute(object parameters)
         {
-            return _canExecute == null || _canExecute(parameters);
+            return _canExecute == null ? true : _canExecute(parameters);
         }
 
-        
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
 
         public void Execute(object parameters)
         {

@@ -56,7 +56,7 @@
                       VerticalAlignment="Center" Name="comboAttributes" Height="40"
                       ItemsSource="{Binding Attributes}"
                       SelectedItem="{Binding SelectedAttr}"
-                      SelectedIndex="0"
+                      SelectedIndex="-1"
                       FontSize="12" Margin="8 0 8 0" 
                       VerticalContentAlignment="Center">
                 <materialDesign:HintAssist.Hint>
@@ -147,7 +147,6 @@
             </StackPanel>
             <StackPanel Grid.Row="6" Grid.ColumnSpan="3">
                 <Button Name="createButton" 
-                        IsEnabled="{Binding CanClose}"
                         TabIndex="3" 
                         Command="{Binding PrintPagesCommand}"
                         CommandParameter="Clicked" Cursor="Hand">
