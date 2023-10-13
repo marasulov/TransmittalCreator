@@ -8,7 +8,7 @@ namespace TransmittalCreator.View
 	/// </summary>
 	public partial class RenumberPagesInModelSpaceView : Window
 	{
-		public RenumberPagesInModelSpaceView(RenumberPagesInModelSpaceViewModel renumberPages)
+		public RenumberPagesInModelSpaceView(RenumberPagesInModelSpaceVM renumberPages)
 		{
 			InitializeComponent();
 

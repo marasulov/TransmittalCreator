@@ -17,14 +17,14 @@ namespace TransmittalCreator
     public partial class MainWindow : Window
     {
         public bool isClicked = false;
-        BlockViewModel _data;
+        //BlockViewModel _data;
         public string _blockName;
-        public MainWindow(BlockViewModel data)
+        public MainWindow(/*BlockViewModel data*/)
         {
             InitializeComponent();
 
-            _data = data;
-            this.DataContext = data;
+            //_data = data;
+            //this.DataContext = data;
             List<BlockAttribute> combolist = new List<BlockAttribute>();
 
             Dictionary<string, string> attrList = new Dictionary<string, string>();

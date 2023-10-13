@@ -15,14 +15,14 @@ namespace TransmittalCreator
 	public partial class PdfCreator : Window
     {
         public bool isClicked = false;
-        BlockViewModel _data;
+        //BlockViewModel _data;
         public string _blockName;
-        public PdfCreator(BlockViewModel data)
+        public PdfCreator(/*BlockViewModel data*/)
         {
             InitializeComponent();
 
-            _data = data;
-            this.DataContext = data;
+            //_data = data;
+            //this.DataContext = data;
             List<BlockAttribute> combolist = new List<BlockAttribute>();
 
             Dictionary<string, string> attrList = new Dictionary<string, string>();

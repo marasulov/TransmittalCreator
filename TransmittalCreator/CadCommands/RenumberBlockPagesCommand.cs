@@ -19,7 +19,7 @@ namespace TransmittalCreator.CadCommands
 		[CommandMethod("RenumberBlocksInModel")]
 		public static void RenumberBlockPagesInModel()
 		{
-			var renumberVm = new RenumberPagesInModelSpaceViewModel();
+			var renumberVm = new RenumberPagesInModelSpaceVM();
 			var renumberPagesView = new RenumberPagesInModelSpaceView(renumberVm);
 			renumberVm.OnRequestClose += (s, e) => renumberPagesView.Close();
 			renumberPagesView.ShowDialog();
@@ -27,28 +27,33 @@ namespace TransmittalCreator.CadCommands
 			if (!renumberVm.ButtonClicked) return;
 			using Transaction tr = Active.Database.TransactionManager.StartTransaction();
 
-			SelectionFilter sFilter = new SelectionFilter(
-				new TypedValue[2]
-				{
-					new TypedValue(0, "INSERT"),
-					new TypedValue(66,1)
-				}
-			);
+			//SelectionFilter sFilter = new SelectionFilter(
+			//	new TypedValue[2]
+			//	{
+			//		new TypedValue(0, "INSERT"),
+			//		new TypedValue(66,1)
+			//	}
+			//);
 
-			PromptSelectionOptions psOptions = new PromptSelectionOptions();
-			psOptions.MessageForAdding = "\nSelect stamp block : ";
-			psOptions.MessageForRemoval = "\nRemove from selection : ";
+			//PromptSelectionOptions psOptions = new PromptSelectionOptions();
+			//psOptions.MessageForAdding = "\nSelect stamp block : ";
+			//psOptions.MessageForRemoval = "\nRemove from selection : ";
 
-			var selResult = Active.Editor.GetSelection(psOptions, sFilter);
+			//var selResult = Active.Editor.GetSelection(psOptions, sFilter);
 
-			if (selResult.Status != PromptStatus.OK)
+			//if (selResult.Status != PromptStatus.OK)
+			//{
+			//	return;
+			//}
+
+			//SelectionSet selSet = selResult.Value;
+			//ObjectId[] allSelectedBlocks = selSet.GetObjectIds();
+			var allSelectedBlocks = BlockUtils.SelectBlocksWithFilter();
+
+			if (allSelectedBlocks == null)
 			{
 				return;
 			}
-
-			SelectionSet selSet = selResult.Value;
-			ObjectId[] allSelectedBlocks = selSet.GetObjectIds();
-			
 			var blocksByName = BlockUtils.GetDynBlocksByName(allSelectedBlocks, tr);
 			ObjectId[] selectedBlocksId = new ObjectId[blocksByName.Count];
 
@@ -71,14 +76,14 @@ namespace TransmittalCreator.CadCommands
 
 			if (renumberVm.IsX)
 			{
-				blockReferences.Sort((x,y) => GetUcsPoint3d(x).X.CompareTo(GetUcsPoint3d(y).X));
+				blockReferences.Sort((x, y) => GetUcsPoint3d(x).X.CompareTo(GetUcsPoint3d(y).X));
 			}
 
 			if (renumberVm.IsY)
 			{
-				blockReferences.Sort((x,y) => GetUcsPoint3d(x).Y.CompareTo(GetUcsPoint3d(y).Y));
+				blockReferences.Sort((x, y) => GetUcsPoint3d(x).Y.CompareTo(GetUcsPoint3d(y).Y));
 			}
-			
+
 			BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "page", "лист", "ЛИСТ2_СПЕЦ" }, pageStartNumber, totalPages, renumberVm.Prefix, renumberVm.Suffix);
 
 			tr.Commit();
@@ -89,5 +94,6 @@ namespace TransmittalCreator.CadCommands
 			return AcadUtils.UcsToDisplay(new Point3d(blockReference.Position.X, blockReference.Position.Y, 0), false);
 		}
 
+		
 	}
 }

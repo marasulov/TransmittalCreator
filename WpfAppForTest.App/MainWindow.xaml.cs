@@ -22,7 +22,7 @@ namespace WpfAppForTest.App
             
             DataContext = filenameModel;
 
-			Loaded += MainWindow_Loaded;
+			//Loaded += MainWindow_Loaded;
 
             //fileNameTextblock.DataContext = FullName();
 

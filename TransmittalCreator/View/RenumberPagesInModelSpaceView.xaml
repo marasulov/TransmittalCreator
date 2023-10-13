@@ -15,7 +15,7 @@
         WindowStartupLocation="CenterScreen"
         >
     <Window.DataContext>
-        <viewModels:RenumberPagesInModelSpaceViewModel></viewModels:RenumberPagesInModelSpaceViewModel>
+        <viewModels:RenumberPagesInModelSpaceVM></viewModels:RenumberPagesInModelSpaceVM>
     </Window.DataContext>
     <Window.Resources>
         <ResourceDictionary>
@@ -117,7 +117,7 @@
             <Button Grid.Column="0" Name="createButton"  Grid.Row="6" Grid.ColumnSpan="2" VerticalAlignment="Center"
                     TabIndex="1" 
                     Command="{Binding RenumberPagesCommand}" 
-                    CommandParameter="Hai">Renumber
+                    CommandParameter="Clicked">Renumber
             </Button>
             
         </Grid>

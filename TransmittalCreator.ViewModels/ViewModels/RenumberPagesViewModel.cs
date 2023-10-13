@@ -120,7 +120,7 @@ namespace TransmittalCreator.ViewModels
 		public void CloseWindow(object parameter)
 		{
 			string clicked = parameter as string;
-			if (clicked == "Hai")
+			if (clicked == "Clicked")
 			{
 				_buttonClicked = true;
 				OnRequestClose(this, new EventArgs());

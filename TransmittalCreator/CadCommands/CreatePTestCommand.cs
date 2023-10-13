@@ -4,15 +4,17 @@ using Autodesk.AutoCAD.Runtime;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using TransmittalCreator.DBCad;
-using TransmittalCreator.Models;
+using TransmittalCreator.Services;
+using TransmittalCreator.Utils;
 using TransmittalCreator.View;
-using TransmittalCreator.ViewModel;
+using TransmittalCreator.ViewModels;
+using BlockAttribute = TransmittalCreator.ViewModels.BlockAttribute;
 
 namespace TransmittalCreator.CadCommands
 {
 	public class CreatePTestCommand
 	{
-		//[CommandMethod("CreateP")]
+		[CommandMethod("CreateP")]
 		public void CreatePdfNameTest()
 		{
 			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
@@ -30,24 +32,48 @@ namespace TransmittalCreator.CadCommands
 
 					BlockTableRecord btr =
 						tr.GetObject(blockRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
-					string blockName = btr.Name;
-					btr.Dispose();
-					AttributeCollection attributeCollection = blockRef.AttributeCollection;
+					
+					btr?.Dispose();
+					var attributeCollection = blockRef.AttributeCollection;
 
-					Dictionary<string, string> attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
+					var attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
 
-					ObservableCollection<BlockAttribute> blockAttributes = new ObservableCollection<BlockAttribute>();
+					var blockAttributes = new ObservableCollection<BlockAttribute>();
 
 					foreach (KeyValuePair<string, string> entry in attrList)
 					{
 						blockAttributes.Add(new BlockAttribute(entry.Key, entry.Value));
 					}
-					//var filenameModel = new FilenameModel(blockAttributes);
 
-					var pdfCreatorViewModel = new PdfCreatorViewModel(blockAttributes);
+					var pdfCreatorVm = new CreatePdfVm();
+					pdfCreatorVm.Attributes = blockAttributes;
 
-					var pdfCreatorView = new PdfCreatorView(pdfCreatorViewModel);
-					pdfCreatorView.Show();
+					var pdfCreatorView = new CreatePdfView(pdfCreatorVm);
+					pdfCreatorVm.OnRequestClose += (s, e) => pdfCreatorView.Close();
+					pdfCreatorView.ShowDialog();
+					if (!pdfCreatorVm.ButtonClicked) return;
+
+					Active.WriteMessageInDebug($"{pdfCreatorVm.Prefix}");
+
+					var allSelectedBlocks = BlockUtils.SelectBlocksWithFilter();
+					var fileNameCreator = new FileNameCreator(pdfCreatorVm, allSelectedBlocks);
+
+					fileNameCreator.GetPrintParametersToPdf(tr);
+					
+					foreach (var printModel in fileNameCreator.GetPrintModels())
+					{
+						PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+					}
+
+					if (allSelectedBlocks == null)
+					{
+						return;
+					}
+
+					if (pdfCreatorVm.IsSelectedOrder)
+					{
+						Active.WriteMessageInDebug($"{pdfCreatorVm.SelectedAttr.AttributeName}");
+					}
 
 					tr.Commit();
 				}

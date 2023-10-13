@@ -1,5 +1,4 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Windows;
 using System;
@@ -35,7 +34,7 @@ namespace TransmittalCreator.CadCommands
 
 			//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
 
-			string[] blockNames = FileManager.GetBlockNames();
+			var blockNames = FileManager.GetBlockNames();
 			var dynamicBlocks = new DynamicBlockFinder(blockNames);
 			using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
 			{

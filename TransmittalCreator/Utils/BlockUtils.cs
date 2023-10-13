@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using TransmittalCreator.Services.Files;
 using System.Linq;
+using Autodesk.AutoCAD.EditorInput;
+using TransmittalCreator.Models;
+using TransmittalCreator.Services;
 
 namespace TransmittalCreator.Utils
 {
@@ -20,11 +23,8 @@ namespace TransmittalCreator.Utils
 		/// <param name="suffix"></param>
 		public static void BlockAttributeEnumerator(List<BlockReference> blocks, string[] attributeNames, int startFrom = 1, int allPages = 0, string prefix = "", string suffix = "")
 		{
-			foreach (var block in blocks)
+			foreach (var attributeReferences in blocks.Select(block => block.AttributeCollection.GetObjects()))
 			{
-
-				var attributeReferences = block.AttributeCollection.GetObjects();
-
 				foreach (var attribute in attributeReferences)
 				{
 					foreach (var attributeName in attributeNames)
@@ -93,6 +93,31 @@ namespace TransmittalCreator.Utils
 				if (blockNames.Contains(block.Name)) blocksByName.Add(objectId);
 			}
 			return blocksByName;
+		}
+
+		public static ObjectId[] SelectBlocksWithFilter()
+		{
+			SelectionFilter sFilter = new SelectionFilter(
+				new TypedValue[2]
+				{
+					new TypedValue(0, "INSERT"),
+					new TypedValue(66,1)
+				}
+			);
+
+			PromptSelectionOptions psOptions = new PromptSelectionOptions();
+			psOptions.MessageForAdding = "\nSelect stamp block : ";
+			psOptions.MessageForRemoval = "\nRemove from selection : ";
+
+			var selResult = Active.Editor.GetSelection(psOptions, sFilter);
+
+			if (selResult.Status != PromptStatus.OK)
+			{
+				return null;
+			}
+
+			SelectionSet selSet = selResult.Value;
+			return selSet.GetObjectIds();
 		}
 	}
 }

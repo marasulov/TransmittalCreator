@@ -15,7 +15,7 @@ namespace TransmittalCreator.View
     public partial class LayoutTreeView : Window
     {
         public bool isClicked = false;
-        BlockViewModel _data;
+        //BlockViewModel _data;
         public string _blockName;
         public List<PrintPackageModel> _printPackages;
         private LayoutTreeViewModel _unchekedTree;

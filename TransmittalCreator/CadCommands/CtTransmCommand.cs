@@ -20,7 +20,7 @@ namespace TransmittalCreator.CadCommands
 		{
 			Dictionary<string, string> attrList = new Dictionary<string, string>();
 
-			MainWindow window = new MainWindow(new BlockViewModel(attrList));
+			MainWindow window = new MainWindow(/*new BlockViewModel(attrList)*/);
 
 			Application.ShowModalWindow(window);
 

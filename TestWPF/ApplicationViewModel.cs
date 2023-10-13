@@ -7,23 +7,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace TestWPF
 {
     
-    [ObservableObject]
+    
     public partial class ApplicationViewModel 
     {
 	    private bool? _isChecked = true;
         private ApplicationViewModel _parent;
 
-        [ObservableProperty]
-        private string firstname;
-
-
-
-        //public void Load()
-        //{
-        //    Firstname = null;
-        //}
-
-
+    
         public List<ApplicationViewModel> Children { get; private set; }
 
         public bool IsInitiallySelected { get; private set; }

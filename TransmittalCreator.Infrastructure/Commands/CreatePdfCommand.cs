@@ -10,7 +10,7 @@ namespace TransmittalCreator.Infrastructure.Commands
 {
 	public class CreatePdfCommand : BaseCommand
 	{
-		
+		//private readonly 
 		public override void Execute(object? parameter)
 		{
 			throw new NotImplementedException();

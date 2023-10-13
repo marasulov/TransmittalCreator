@@ -2,14 +2,15 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Prism.Commands;
 
 
 namespace WpfAppForTest.App
 {
-	[ObservableObject]
-	public partial class AttributeViewModel :  ICloseWindow
+
+	public class AttributeViewModel : ICloseWindow, INotifyPropertyChanged
 	{
 		private BlockAttribute _selectedAttr;
 		public ObservableCollection<BlockAttribute> Attributes { get; set; }
@@ -19,23 +20,64 @@ namespace WpfAppForTest.App
 			set
 			{
 				_selectedAttr = value;
-				OnPropertyChanged("SelectedAttr");
+				OnPropertyChanged();
 			}
 		}
 
 
 		private RelayCommand addCommand;
-		public RelayCommand AddCommand
+
+		public RelayCommand AddCommand => new RelayCommand(execute => AddItem(), canExecute => IsEmptyPrefix());
+
+		private void AddItem()
 		{
-			get
+			MessageBox.Show("Add item");
+		}
+
+		public string Prefix
+		{
+			get => _prefix;
+			set
 			{
-				return addCommand ??
-					   (addCommand = new RelayCommand(obj =>
-					   {
-						   _selectedAttr = SelectedAttr;
-					   }));
+				_prefix = value;
+				OnPropertyChanged();
+				//Set(ref _prefix, value);
+
 			}
 		}
+
+		public string Suffix
+		{
+			get => _suffix;
+			set
+			{
+				_suffix = value;
+				OnPropertyChanged();
+				//Set(ref _prefix, value);
+
+			}
+		}
+
+		private bool IsEmptyPrefix()
+		{
+			if (string.IsNullOrEmpty(Prefix) | string.IsNullOrEmpty(Suffix) | SelectedAttr == null)
+				return false;
+			return true;
+		}
+
+
+
+		//public RelayCommand AddCommand
+		//{
+		//	get
+		//	{
+		//		return addCommand ??
+		//			   (addCommand = new RelayCommand(obj =>
+		//			   {
+		//				   _selectedAttr = SelectedAttr;
+		//			   }));
+		//	}
+		//}
 
 		public AttributeViewModel()
 		{
@@ -73,6 +115,8 @@ namespace WpfAppForTest.App
 		//IDialogService _closeCommand = new DialogService();
 
 		private DelegateCommand _closeWindow;
+		private string _prefix;
+		private string _suffix;
 
 		public DelegateCommand CloseWindow =>
 			_closeWindow ?? (_closeWindow = new DelegateCommand(ExecuteShowDialog));
@@ -85,10 +129,10 @@ namespace WpfAppForTest.App
 		public Action Close { get; set; }
 		public void Load()
 		{
-			
+
 		}
 	}
-	
+
 	interface ICloseWindow
 	{
 		Action Close { get; set; }

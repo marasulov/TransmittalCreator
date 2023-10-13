@@ -1,12 +1,8 @@
-﻿using System;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
-using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
@@ -28,7 +24,7 @@ namespace TransmittalCreator.CadCommands
 				using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
 				{
 					string allPath = FileManager.GetFilePath();
-					Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
+					//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
 					string[] blockNames = FileManager.GetBlockNames();
 					DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
 					var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);

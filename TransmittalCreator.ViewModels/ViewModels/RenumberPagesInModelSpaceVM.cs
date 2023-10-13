@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Windows.Input;
+using TransmittalCreator.ViewModels.Enums;
 
 namespace TransmittalCreator.ViewModels.ViewModels
 {
-	public class RenumberPagesInModelSpaceViewModel : ViewModel
+	public class RenumberPagesInModelSpaceVM : ViewModel
 	{
-		private int _enumerationStartValue = 1;
+		private int _renumberStartValue = 1;
 		private bool _insertTotalPages;
 		private bool _canExecute = true;
 		private ICommand _renumberPagesCommand;
@@ -15,6 +16,11 @@ namespace TransmittalCreator.ViewModels.ViewModels
 		private string _prefix;
 
 		private Ordering _ordering = Ordering.IsSelectedOrder;
+
+		public RenumberPagesInModelSpaceVM()
+		{
+			RenumberPagesCommand = new RelayCommand(CloseWindow, param => this._canExecute);
+		}
 
 		public Ordering Ordering
 		{
@@ -34,28 +40,19 @@ namespace TransmittalCreator.ViewModels.ViewModels
 		public bool IsX
 		{
 			get => Ordering == Ordering.IsX;
-			set
-			{
-				Ordering = value ? Ordering.IsX : Ordering;
-			}
+			set => Ordering = value ? Ordering.IsX : Ordering;
 		}
 
 		public bool IsY
 		{
 			get => Ordering == Ordering.IsY;
-			set
-			{
-				Ordering = value ? Ordering.IsY : Ordering;
-			}
+			set => Ordering = value ? Ordering.IsY : Ordering;
 		}
 
 		public bool IsSelectedOrder
 		{
 			get => Ordering == Ordering.IsSelectedOrder;
-			set
-			{
-				Ordering = value ? Ordering.IsSelectedOrder : Ordering;
-			}
+			set => Ordering = value ? Ordering.IsSelectedOrder : Ordering;
 		}
 
 		/// <summary>
@@ -63,10 +60,10 @@ namespace TransmittalCreator.ViewModels.ViewModels
 		/// </summary>
 		public int RenumberStartValue
 		{
-			get => _enumerationStartValue;
+			get => _renumberStartValue;
 			set
 			{
-				Set(ref _enumerationStartValue, value);
+				Set(ref _renumberStartValue, value);
 				PageName = Prefix + value + Suffix;
 			}
 		}
@@ -121,15 +118,10 @@ namespace TransmittalCreator.ViewModels.ViewModels
 			set => Set(ref _buttonClicked, value);
 		}
 
-		public RenumberPagesInModelSpaceViewModel()
-		{
-			RenumberPagesCommand = new RelayCommand(CloseWindow, param => this._canExecute);
-		}
-
 		public void CloseWindow(object parameter)
 		{
 			string clicked = parameter as string;
-			if (clicked == "Hai")
+			if (clicked == "Clicked")
 			{
 				_buttonClicked = true;
 				OnRequestClose(this, new EventArgs());
@@ -137,12 +129,5 @@ namespace TransmittalCreator.ViewModels.ViewModels
 		}
 
 		public event EventHandler OnRequestClose;
-	}
-
-	public enum Ordering
-	{
-		IsX,
-		IsY,
-		IsSelectedOrder
 	}
 }

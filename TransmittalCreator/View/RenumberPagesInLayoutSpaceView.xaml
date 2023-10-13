@@ -47,7 +47,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Grid.Row="0">Numbering start: <LineBreak/>Нумеровать с:</TextBlock>
+            <TextBlock Grid.Column="0" Grid.Row="0">Numbering start: </TextBlock>
             <TextBox Grid.Column="1" Grid.Row="0" Name="numberingStartTextbox" 
                      Text="{Binding Path=RenumberStartValue}" 
                      controls:NumberOnly.IsEnabled="True" 
@@ -66,42 +66,38 @@
             </TextBox>
             <!--<CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>-->
 
-            <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Insert total pages <LineBreak/> Вставить кол-во Листов</TextBlock>
+            <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Insert total pages </TextBlock>
             <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" 
-                      Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}"
-                      IsChecked="{Binding InsertTotalPages, UpdateSourceTrigger=PropertyChanged}"/>
-            <!--<TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
-                     Text="{Binding Path=NumberingValue}" controls:NumberOnly.IsEnabled="True"
-                     IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0"/>-->
+                      Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}"/>
 
-            <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Renumber Layouts <LineBreak/>Перенумеровать Листы</TextBlock>
+            <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Renumber Layouts </TextBlock>
             <CheckBox Grid.Column="1" Grid.Row="2" Name="numberingLayCheckbox" 
                       Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}"
                       IsChecked="{Binding RenumberLayouts}"/>
 
-            <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center">Delete empty Layouts<LineBreak/>Удалить пустые Листы</TextBlock>
+            <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center">Delete empty Layouts</TextBlock>
             <CheckBox Grid.Column="1" Grid.Row="3" Name="deleteLayCheckbox" 
                       Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}"
                       IsChecked="{Binding DeleteEmptyLayouts}"/>
 
-            <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Text="Prefix / Префикс" />
+            <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Text="Prefix" />
             <!--<CheckBox Grid.Column="1" Grid.Row="2" ></CheckBox>-->
             <TextBox Grid.Column="1" Grid.Row="4" Name="prefixTextBox" 
                      Text="{Binding Path=Prefix}"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                      materialDesign:TextFieldAssist.HasClearButton="True"
-                     materialDesign:TextFieldAssist.PrefixText="">
+                     >
                 <materialDesign:HintAssist.Hint>
                     <StackPanel
                         Orientation="Horizontal"
                         Margin="-2 0 0 0">
                         <TextBlock
-                            Text="Enter prefix / Введите префикс" />
+                            Text="Enter prefix" />
                     </StackPanel>
                 </materialDesign:HintAssist.Hint>
             </TextBox>
 
-            <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Text="Suffix / Суффикс"/>
+            <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Text="Suffix "/>
             <TextBox Grid.Column="1" Grid.Row="5" Name="suffixTextBox" 
                      Text="{Binding Path=Suffix}"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
@@ -112,19 +108,24 @@
                         Orientation="Horizontal"
                         Margin="-2 0 0 0">
                         <TextBlock
-                            Text="Enter suffix / Введите суффикс" />
+                            Text="Enter suffix " />
                     </StackPanel>
                 </materialDesign:HintAssist.Hint>
             </TextBox>
 
             <!-- sample-->
-            <TextBlock Grid.Column="0" Grid.Row="6" >Sample / Образец</TextBlock>
-            <TextBlock Grid.Column="1" Grid.Row="6" x:Name="fileNameTextblock" Text="{Binding PageName}"/>
+            <TextBlock Grid.Column="0" Grid.Row="6" >Sample </TextBlock>
+            <TextBlock Grid.Column="1" Grid.Row="6" x:Name="fileNameTextblock" 
+                       Text="{Binding PageName}"
+                       materialDesign:TextBlockAssist.AutoToolTip="True">
+
+            </TextBlock>
 
             <Button Grid.Column="0" Name="createButton"  Grid.Row="7" Grid.ColumnSpan="2" VerticalAlignment="Center"
                     TabIndex="1" 
                     Command="{Binding RenumberPagesCommand}" 
-                    CommandParameter="Hai">Renumber / Перенумеровать
+                    CommandParameter="Clicked">
+                Renumber 
             </Button>
 
         </Grid>

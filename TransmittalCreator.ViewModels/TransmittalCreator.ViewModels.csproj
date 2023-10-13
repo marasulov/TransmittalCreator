@@ -81,7 +81,10 @@
   <ItemGroup>
     <Compile Include="Base\ViewModel.cs" />
     <Compile Include="CommandHandler.cs" />
+    <Compile Include="Enums\Ordering.cs" />
     <Compile Include="Models\BlockAttribute.cs" />
+    <Compile Include="ViewModels\CreatePdfVm.cs" />
+    <Compile Include="ViewModels\ICreatePdfVm.cs" />
     <Compile Include="ViewModels\IRenumberPagesViewModel.cs" />
     <Compile Include="ViewModels\PdfCreatorViewModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
@@ -99,7 +102,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="ViewModels\RelayCommand.cs" />
-    <Compile Include="ViewModels\RenumberPagesInModelSpaceViewModel.cs" />
+    <Compile Include="ViewModels\RenumberPagesInModelSpaceVM.cs" />
     <Compile Include="ViewModels\RenumberPagesViewModel.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
