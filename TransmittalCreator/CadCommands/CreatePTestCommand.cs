@@ -14,7 +14,7 @@ namespace TransmittalCreator.CadCommands
 {
 	public class CreatePTestCommand
 	{
-		[CommandMethod("CreateP")]
+		//[CommandMethod("CreateP")]
 		public void CreatePdfNameTest()
 		{
 			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
