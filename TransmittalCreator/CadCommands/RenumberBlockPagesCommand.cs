@@ -45,7 +45,7 @@ namespace TransmittalCreator.CadCommands
 
 			//SelectionSet selSet = selResult.Value;
 			//ObjectId[] allSelectedBlocks = selSet.GetObjectIds();
-			var allSelectedBlocks = BlockUtils.SelectBlocksWithFilter();
+			var allSelectedBlocks = BlockUtils.SelectBlocksWithFilter(true);
 
 			if (allSelectedBlocks == null)
 			{

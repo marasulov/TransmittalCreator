@@ -2,17 +2,14 @@
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
-using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services;
+using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Utils;
 
 namespace TransmittalCreator.CadCommands

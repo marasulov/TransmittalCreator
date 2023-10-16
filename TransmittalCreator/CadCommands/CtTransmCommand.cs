@@ -15,7 +15,7 @@ namespace TransmittalCreator.CadCommands
 {
 	public class CtTransmCommand
 	{
-		[CommandMethod("CtTransm")]
+		//[CommandMethod("CtTransm")]
 		public void ListAttributes()
 		{
 			Dictionary<string, string> attrList = new Dictionary<string, string>();
