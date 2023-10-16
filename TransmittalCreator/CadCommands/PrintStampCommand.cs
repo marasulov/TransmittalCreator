@@ -12,69 +12,69 @@ namespace TransmittalCreator.CadCommands
 {
 	public class PrintStampCommand
 	{
-		[CommandMethod("CreatePdf")]
-		public void PrintStamp()
-		{
-			Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-			using var tr = Active.Database.TransactionManager.StartTransaction();
-			var selectAllBlocks = BlockUtils.SelectBlocksWithFilter();
+		//[CommandMethod("CreatePdf")]
+		//public void PrintStamp()
+		//{
+		//	Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+		//	using var tr = Active.Database.TransactionManager.StartTransaction();
+		//	var selectAllBlocks = BlockUtils.SelectBlocksWithFilter();
 			
-			var selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
+		//	var selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
 
-			var blockRef = (BlockReference)tr.GetObject(selectedBlocksByName[0], OpenMode.ForWrite);
+		//	var blockRef = (BlockReference)tr.GetObject(selectedBlocksByName[0], OpenMode.ForWrite);
 
-			var attributeCollection =  blockRef.AttributeCollection;
+		//	var attributeCollection =  blockRef.AttributeCollection;
 
-			var attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
+		//	var attrList = GetDictionaryFromAttributeCollection(attributeCollection, tr);
 
-			var blockAttributes = new ObservableCollection<BlockAttribute>();
+		//	var blockAttributes = new ObservableCollection<BlockAttribute>();
 
-			foreach (KeyValuePair<string, string> entry in attrList)
-			{
-				blockAttributes.Add(new BlockAttribute(entry.Key, entry.Value));
-			}
+		//	foreach (KeyValuePair<string, string> entry in attrList)
+		//	{
+		//		blockAttributes.Add(new BlockAttribute(entry.Key, entry.Value));
+		//	}
 
-			var pdfCreatorVm = new CreatePdfVm();
-			pdfCreatorVm.Attributes = blockAttributes;
+		//	var pdfCreatorVm = new CreatePdfVm();
+		//	pdfCreatorVm.Attributes = blockAttributes;
 
-			var pdfCreatorView = new CreatePdfView(pdfCreatorVm);
-			pdfCreatorVm.OnRequestClose += (s, e) => pdfCreatorView.Close();
-			pdfCreatorView.ShowDialog();
-			if (!pdfCreatorVm.ButtonClicked) return;
+		//	var pdfCreatorView = new CreatePdfView(pdfCreatorVm);
+		//	pdfCreatorVm.OnRequestClose += (s, e) => pdfCreatorView.Close();
+		//	pdfCreatorView.ShowDialog();
+		//	if (!pdfCreatorVm.ButtonClicked) return;
 
-			Active.WriteMessageInDebug($"{pdfCreatorVm.Prefix}");
+		//	Active.WriteMessageInDebug($"{pdfCreatorVm.Prefix}");
 
-			if (!pdfCreatorVm.IsPrintAll)
-			{
-				selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
-				selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
-			}
+		//	if (!pdfCreatorVm.IsPrintAll)
+		//	{
+		//		selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
+		//		selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
+		//	}
 
-			var fileNameCreator = new FileNameCreator(pdfCreatorVm, selectedBlocksByName);
+		//	var fileNameCreator = new FileNameCreator(pdfCreatorVm, selectedBlocksByName);
 
 			
-			fileNameCreator.GetPrintParametersToPdf(tr);
+		//	fileNameCreator.GetPrintParametersToPdf(tr);
 
-			var printModels = fileNameCreator.GetPrintModels();
-			if (pdfCreatorVm.IsX)
-			{
-				printModels.Sort((x, y) =>x.MinPointX.CompareTo(y.MinPointX));
-			}
+		//	var printModels = fileNameCreator.GetPrintModels();
+		//	if (pdfCreatorVm.IsX)
+		//	{
+		//		printModels.Sort((x, y) =>x.MinPointX.CompareTo(y.MinPointX));
+		//	}
 
-			if (pdfCreatorVm.IsY)
-			{
-				printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
-			}
+		//	if (pdfCreatorVm.IsY)
+		//	{
+		//		printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
+		//	}
 
 
-			foreach (var printModel in printModels)
-			{
-				PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-			}
+		//	foreach (var printModel in printModels)
+		//	{
+		//		PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+		//	}
 
-			tr.Commit();
+		//	tr.Commit();
 
-		}
+		//}
 
 		private Dictionary<string, string> GetDictionaryFromAttributeCollection(AttributeCollection attributeCollection, Transaction tr)
 		{

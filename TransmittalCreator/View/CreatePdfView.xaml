@@ -17,6 +17,7 @@
         Topmost="True"
         Style="{DynamicResource WindowElementStyle}"
         >
+
     <Window.DataContext>
         <vm:CreatePdfVm />
     </Window.DataContext>
@@ -26,6 +27,7 @@
                 <Setter Property="VerticalAlignment" Value="Center"/>
                 <Setter Property="Margin" Value="2"/>
             </Style>
+          
 
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="../Resources/WindowResourceDictionary.xaml" />
