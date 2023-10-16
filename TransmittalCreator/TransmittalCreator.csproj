@@ -162,6 +162,7 @@
     <Compile Include="CadCommands\CreatePTestCommand.cs" />
     <Compile Include="CadCommands\CreateTransPdfCommand.cs" />
     <Compile Include="CadCommands\CreateVedCommand.cs" />
+    <Compile Include="CadCommands\CreateVedFromLayoutPages.cs" />
     <Compile Include="CadCommands\CtTransmCommand.cs" />
     <Compile Include="CadCommands\PrintStampCommand.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesInLayoutCommand.cs" />

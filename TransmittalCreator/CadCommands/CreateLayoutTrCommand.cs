@@ -24,7 +24,7 @@ namespace TransmittalCreator.CadCommands
 				using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
 				{
 					string allPath = FileManager.GetFilePath();
-					//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
+					Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
 					string[] blockNames = FileManager.GetBlockNames();
 					DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
 					var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
