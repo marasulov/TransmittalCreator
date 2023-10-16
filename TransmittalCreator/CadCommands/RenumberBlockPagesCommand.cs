@@ -1,11 +1,8 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
-using Autodesk.AutoCAD.Geometry;
-using DocumentFormat.OpenXml.Spreadsheet;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
@@ -55,6 +52,9 @@ namespace TransmittalCreator.CadCommands
 				return;
 			}
 			var blocksByName = BlockUtils.GetDynBlocksByName(allSelectedBlocks, tr);
+			
+			if(blocksByName.Count<=0) return;
+
 			ObjectId[] selectedBlocksId = new ObjectId[blocksByName.Count];
 
 			blocksByName.CopyTo(selectedBlocksId, 0);

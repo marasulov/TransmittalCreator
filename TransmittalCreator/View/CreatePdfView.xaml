@@ -8,7 +8,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="CreatePdf" 
-        Height="300" 
+        Height="310" 
         Width="400"
         ShowInTaskbar="False" 
         WindowStartupLocation="CenterScreen" 
@@ -40,6 +40,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*" />
                 <RowDefinition />
@@ -87,7 +88,7 @@
             <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Numbering start with:</TextBlock>
             <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
             <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
-                     Text="{Binding Path=RenumberStartValue}" no:NumberOnly.IsEnabled="True"
+                     Text="{Binding Path=RenumberStartValue, UpdateSourceTrigger=PropertyChanged}" no:NumberOnly.IsEnabled="True"
                      IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0">
                 <materialDesign:HintAssist.Hint>
                     <StackPanel
@@ -100,7 +101,6 @@
             </TextBox>
 
             <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Prefix</TextBlock>
-            
             <TextBox Grid.Column="2" Grid.Row="2" Name="prefixTextBox" 
                      Text="{Binding Path=Prefix}" 
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
@@ -133,10 +133,13 @@
                 </materialDesign:HintAssist.Hint>
             </TextBox>
             <TextBlock Grid.Column="0" Grid.Row="4" Text="Filename"/>
-            <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName}"/>
+            <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBlock Name="TextBlock1" Visibility="Collapsed"></TextBlock>
-            <TextBox Grid.Column="0" Grid.Row="5" Text="Printing numbering order" Margin="2 3 5 0"></TextBox>
-            <StackPanel Grid.Column="2" Grid.Row="5" Orientation="Horizontal" Margin="5" >
+            <TextBlock Grid.Column="0" Grid.Row="5" Text="Print all pages in drawing" Margin="2 3 5 0"/>
+            <CheckBox Grid.Column="1" Grid.Row="5" IsChecked="{Binding IsPrintAll, UpdateSourceTrigger=PropertyChanged}" Name="allpagesPrintCheckBox"/>
+
+            <TextBox Grid.Column="0" Grid.Row="6" Text="Printing numbering order" Margin="2 3 5 0"/>
+            <StackPanel Grid.Column="2" Grid.Row="6" Orientation="Horizontal" Margin="5" >
                 <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX" 
                              IsChecked="{Binding IsX}"/>
                 <RadioButton Content="Y" Margin="2 0 5 0" Name="RadioButtonY" 
@@ -145,7 +148,7 @@
                              IsChecked="{Binding IsSelectedOrder}" 
                              x:Name="RadioButtonSelOrder"/>
             </StackPanel>
-            <StackPanel Grid.Row="6" Grid.ColumnSpan="3">
+            <StackPanel Grid.Row="7" Grid.ColumnSpan="3">
                 <Button Name="createButton" 
                         TabIndex="3" 
                         Command="{Binding PrintPagesCommand}"

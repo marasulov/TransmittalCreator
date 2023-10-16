@@ -1,17 +1,30 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows.Input;
 using TransmittalCreator.Infrastructure.Commands.Base;
-using TransmittalCreator.ViewModels;
+using TransmittalCreator.ViewModels.ViewModels;
 
 namespace TransmittalCreator.Infrastructure.Commands
 {
 	public class CreatePdfCommand : BaseCommand
 	{
-		private readonly CreatePdfVm _viewModel;
+		private readonly ICreatePdfVm _viewModel;
+
+		public CreatePdfCommand(ICreatePdfVm viewModel)
+		{
+			_viewModel = viewModel;
+			
+			_viewModel.PropertyChanged += ViewModel_PropertyChanged;
+		}
+
+		public virtual bool CanExecute(object parameter)
+		{
+			return true; // _viewModel.IsValidPrinting;
+		}
 
 		public override void Execute(object? parameter)
 		{
-			throw new NotImplementedException();
+			
 		}
 
 		//public override void Execute(object? parameter) => 
@@ -19,9 +32,9 @@ namespace TransmittalCreator.Infrastructure.Commands
 		private ICommand _clickCommand;
 		
 
-		private void GetFileName()
+		private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			throw new NotImplementedException();
+			OnCanExecuteChanged();
 		}
 	}
 }

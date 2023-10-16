@@ -22,23 +22,23 @@ namespace WpfAppTest
 		public Window1()
 		{
 			InitializeComponent(); 
-			 Loaded += MainWindow_Loaded;
+			 //Loaded += MainWindow_Loaded;
 		}
 
-		private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-		{
-			if (DataContext is ICloseWindow vm)
-			{
-				vm.Close += () =>
-				{
-					this.Close();
-				};
+		//private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+		//{
+		//	if (DataContext is ICloseWindow vm)
+		//	{
+		//		vm.Close += () =>
+		//		{
+		//			this.Close();
+		//		};
 
-				Closing += (s, e) =>
-				{
-					e.Cancel = !vm.CanClose();
-				};
-			}
-		}
+		//		Closing += (s, e) =>
+		//		{
+		//			e.Cancel = !vm.CanClose();
+		//		};
+		//	}
+		//}
 	}
 }

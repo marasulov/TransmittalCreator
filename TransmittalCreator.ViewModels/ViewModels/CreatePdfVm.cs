@@ -13,7 +13,7 @@ namespace TransmittalCreator.ViewModels
 	public class CreatePdfVm : ViewModel, ICreatePdfVm
 	{
 		private BlockAttribute _selectedAttr;
-		private bool _canExecute;
+		
 		private ICommand _printPagesCommand;
 		private bool _buttonClicked;
 		private string _fileName;
@@ -21,26 +21,34 @@ namespace TransmittalCreator.ViewModels
 		private string _prefix;
 		private int _renumberStartValue;
 		private bool _isCheckedNumbering;
+		private bool _insertTotalPages;
 		private Ordering _ordering = Ordering.IsSelectedOrder;
+		private bool _isPrintingAll;
 
 		public CreatePdfVm()
 		{
 			PrintPagesCommand = new RelayCommand(CloseWindow, canExecute=>CanClose());
 		}
 
-		public bool CanClose()
+		public bool IsPrintAll
 		{
-			if ( (IsAttributeChecked & SelectedAttr != null) | IsCheckedNumbering)
-			{
-				_canExecute = true;
-				return true;
-			}
-
-			_canExecute = false;
-			return false;
+			get => _isPrintingAll;
+			set => Set(ref _isPrintingAll, value);
 		}
 
 
+		/// <summary>
+		///
+		/// </summary>
+		/// <returns></returns>
+		public bool CanClose()
+		{
+			return (IsAttributeChecked & SelectedAttr != null) | IsCheckedNumbering;
+		}
+
+		/// <summary>
+		/// Очередь печати 
+		/// </summary>
 		public Ordering Ordering
 		{
 			get => _ordering;
@@ -56,26 +64,41 @@ namespace TransmittalCreator.ViewModels
 			}
 		}
 
+		/// <summary>
+		/// Очередь печати по расположение X
+		/// </summary>
 		public bool IsX
 		{
 			get => Ordering == Ordering.IsX;
 			set => Ordering = value ? Ordering.IsX : Ordering;
 		}
 
+		/// <summary>
+		/// Очередь печати по расположение Y
+		/// </summary>
 		public bool IsY
 		{
 			get => Ordering == Ordering.IsY;
 			set => Ordering = value ? Ordering.IsY : Ordering;
 		}
 
+		/// <summary>
+		/// Очередь печати по выбору
+		/// </summary>
 		public bool IsSelectedOrder
 		{
 			get => Ordering == Ordering.IsSelectedOrder;
 			set => Ordering = value ? Ordering.IsSelectedOrder : Ordering;
 		}
 
+		/// <summary>
+		/// Все атрибуты
+		/// </summary>
 		public ObservableCollection<BlockAttribute> Attributes { get; set; }
 
+		/// <summary>
+		/// Выбранный атрибут
+		/// </summary>
 		public BlockAttribute SelectedAttr
 		{
 			get => _selectedAttr;
@@ -91,9 +114,38 @@ namespace TransmittalCreator.ViewModels
 			set
 			{
 				Set(ref _renumberStartValue, value);
-				FileName = Prefix + value + Suffix;
+				//FileName = Prefix + value + Suffix;
+				//OnPropertyChanged("FileName");
+
+				if (IsCheckedNumbering)
+				{
+					if (IsAttributeChecked & SelectedAttr != null)
+					{
+						FileName = Prefix + SelectedAttr.AttributeValue +  value + Suffix;
+					}
+					else
+					{
+						FileName = Prefix + value + Suffix;
+					}
+					
+				}
+				else
+				{
+					if (IsAttributeChecked & SelectedAttr != null)
+					{
+						FileName = Prefix + SelectedAttr.AttributeValue + Suffix;
+					}
+					else
+					{
+						FileName = Prefix + Suffix;	
+					}
+					
+				}
+				OnPropertyChanged("FileName");
+
 			}
 		}
+
 
 		public bool RenumberLayouts { get; set; }
 
@@ -101,24 +153,6 @@ namespace TransmittalCreator.ViewModels
 		{
 			get => _insertTotalPages;
 			set => Set(ref _insertTotalPages, value);
-		}
-
-		/// <summary>
-		/// Команда для печати
-		/// </summary>
-		public ICommand PrintPagesCommand
-		{
-			get
-			{
-				if (_printPagesCommand == null)
-				{
-					_printPagesCommand = new RelayCommand(
-						p => this.CanClose());
-				}
-
-				return _printPagesCommand;
-			}
-			set => Set(ref _printPagesCommand, value);
 		}
 
 		public string FileName
@@ -133,7 +167,15 @@ namespace TransmittalCreator.ViewModels
 			set
 			{
 				Set(ref _prefix, value);
-				FileName = value + RenumberStartValue + Suffix;
+				if (IsCheckedNumbering)
+				{
+					FileName = value + RenumberStartValue + Suffix;
+				}
+				else
+				{
+					FileName = value + Suffix;
+				}
+				OnPropertyChanged("FileName");
 			}
 		}
 
@@ -143,7 +185,16 @@ namespace TransmittalCreator.ViewModels
 			set
 			{
 				Set(ref _suffix, value);
-				FileName = Prefix + RenumberStartValue + value;
+				if (IsCheckedNumbering)
+				{
+					FileName = Prefix + RenumberStartValue + value;
+				}
+				
+				else
+				{
+					FileName = Prefix + value;
+				}
+				OnPropertyChanged("FileName");
 			}
 		}
 
@@ -164,13 +215,28 @@ namespace TransmittalCreator.ViewModels
 		public event PropertyChangedEventHandler PropertyChanged;
 
 
+		/// <summary>
+		/// Команда для печати
+		/// </summary>
+		public ICommand PrintPagesCommand
+		{
+			get
+			{
+				if (_printPagesCommand == null)
+				{
+					_printPagesCommand = new RelayCommand(
+						p => this.CanClose());
+				}
+
+				return _printPagesCommand;
+			}
+			set => Set(ref _printPagesCommand, value);
+		}
+
 		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
 		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-
-		private bool _insertTotalPages;
-		
 
 		public void CloseWindow(object parameter)
 		{

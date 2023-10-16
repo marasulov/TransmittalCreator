@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TransmittalCreator.ViewModels.ViewModels
 {
-	public interface ICreatePdfVm
+	public interface ICreatePdfVm : INotifyPropertyChanged
 	{
 		bool IsX { get; set; }
 		bool IsY { get; set; }
@@ -21,5 +22,6 @@ namespace TransmittalCreator.ViewModels.ViewModels
 		string Suffix { get; set; }
 		bool IsCheckedNumbering { get; set; }
 		bool IsAttributeChecked { get; set; }
+		//bool IsValidPrinting { get; }
 	}
 }

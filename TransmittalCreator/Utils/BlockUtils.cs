@@ -90,12 +90,17 @@ namespace TransmittalCreator.Utils
 
 				string[] blockNames = FileManager.GetBlockNames();
 
-				if (blockNames.Contains(block.Name)) blocksByName.Add(objectId);
+				if (blockNames.Contains(block.Name))
+				{
+
+					blocksByName.Add(objectId);
+				}
 			}
 			return blocksByName;
 		}
 
-		public static ObjectId[] SelectBlocksWithFilter()
+		public static ObjectId[] SelectBlocksWithFilter(bool onlySelectedPages
+			= false)
 		{
 			SelectionFilter sFilter = new SelectionFilter(
 				new TypedValue[2]
@@ -104,12 +109,18 @@ namespace TransmittalCreator.Utils
 					new TypedValue(66,1)
 				}
 			);
+			var selResult = Active.Editor.SelectAll(sFilter);
+			
 
-			PromptSelectionOptions psOptions = new PromptSelectionOptions();
-			psOptions.MessageForAdding = "\nSelect stamp block : ";
-			psOptions.MessageForRemoval = "\nRemove from selection : ";
+			if (onlySelectedPages)
+			{
+				PromptSelectionOptions psOptions = new PromptSelectionOptions();
+				psOptions.MessageForAdding = "\nSelect stamp block : ";
+				psOptions.MessageForRemoval = "\nRemove from selection : ";
 
-			var selResult = Active.Editor.GetSelection(psOptions, sFilter);
+				 selResult = Active.Editor.GetSelection(psOptions, sFilter);
+			}
+			
 
 			if (selResult.Status != PromptStatus.OK)
 			{
@@ -119,5 +130,26 @@ namespace TransmittalCreator.Utils
 			SelectionSet selSet = selResult.Value;
 			return selSet.GetObjectIds();
 		}
+
+		//public static ObjectId[] SelectAllBlocksWithFilter()
+		//{
+		//	SelectionFilter sFilter = new SelectionFilter(
+		//		new TypedValue[2]
+		//		{
+		//			new TypedValue(0, "INSERT"),
+		//			new TypedValue(66,1)
+		//		}
+		//	);
+
+			
+
+		//	if (selResult.Status != PromptStatus.OK)
+		//	{
+		//		return null;
+		//	}
+
+		//	SelectionSet selSet = selResult.Value;
+		//	return selSet.GetObjectIds();
+		//}
 	}
 }

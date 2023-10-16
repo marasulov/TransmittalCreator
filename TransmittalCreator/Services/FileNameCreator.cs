@@ -36,7 +36,7 @@ namespace TransmittalCreator.Services
 			set => _numberingValue = value;
 		}
 
-		public FileNameCreator(ICreatePdfVm createPdf, ObjectId[] ids)
+		public FileNameCreator(ICreatePdfVm createPdf, ObjectIdCollection ids)
 		{
 			_isNumberingChecked = createPdf.IsCheckedNumbering;
 			_prefix = createPdf.Prefix;
@@ -44,10 +44,10 @@ namespace TransmittalCreator.Services
 			_isAttrChecked = createPdf.IsAttributeChecked;
 			_isXChecked = createPdf.IsX;
 			_isYChecked = createPdf.IsY;
-			_attributeName = createPdf.SelectedAttr.AttributeName;
+			_attributeName = createPdf?.SelectedAttr?.AttributeName;
 			_numberingValue = createPdf.RenumberStartValue;
 
-			_objectIdCollection = new ObjectIdCollection(ids);
+			_objectIdCollection = ids;
 		}
 
 		public void GetPrintParametersToPdf(Transaction tr)

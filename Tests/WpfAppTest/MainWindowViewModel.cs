@@ -90,21 +90,21 @@ namespace WpfAppTest
 		{
 			if (d is Window window)
 			{
-				window.Loaded += (s, e) =>
-				{
-					if (window.DataContext is ICloseWindow vm)
-					{
-						vm.Close += () =>
-						{
-							window.Close();
-						};
+				//window.Loaded += (s, e) =>
+				//{
+				//	if (window.DataContext is ICloseWindow vm)
+				//	{
+				//		vm.Close += () =>
+				//		{
+				//			window.Close();
+				//		};
 
-						window.Closing += (s, e) =>
-						{
-							e.Cancel = !vm.CanClose();
-						};
-					}
-				};
+				//		//window.Closing += (s, e) =>
+				//		//{
+				//		//	e.Cancel = !vm.CanClose();
+				//		//};
+				//	}
+				//};
 			}
 		}
 

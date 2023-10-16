@@ -163,6 +163,7 @@
     <Compile Include="CadCommands\CreateTransPdfCommand.cs" />
     <Compile Include="CadCommands\CreateVedCommand.cs" />
     <Compile Include="CadCommands\CtTransmCommand.cs" />
+    <Compile Include="CadCommands\PrintStampCommand.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesInLayoutCommand.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesCommand.cs" />
     <Compile Include="CommandsWatcher.cs" />
