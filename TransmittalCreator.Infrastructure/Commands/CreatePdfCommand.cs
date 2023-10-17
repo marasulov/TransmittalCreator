@@ -14,7 +14,7 @@ namespace TransmittalCreator.Infrastructure.Commands
 		{
 			_viewModel = viewModel;
 			
-			_viewModel.PropertyChanged += ViewModel_PropertyChanged;
+			
 		}
 
 		public virtual bool CanExecute(object parameter)

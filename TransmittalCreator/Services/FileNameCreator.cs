@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Autodesk.AutoCAD.DatabaseServices;
 using TransmittalCreator.Models;
@@ -28,7 +29,7 @@ public class FileNameCreator
 		_isXChecked = createPdf.IsX;
 		_isYChecked = createPdf.IsY;
 		_attributeName = createPdf?.SelectedAttr?.AttributeName;
-		NumberingValue = createPdf.RenumberStartValue;
+		NumberingValue = Int32.Parse(createPdf.RenumberStartValue);
 
 		_objectIdCollection = ids;
 	}
@@ -57,8 +58,11 @@ public class FileNameCreator
 
 	private string GetFileName(PrintModel printModel)
 	{
-		if (_isNumberingChecked) NumberingValue = NumberingValue + 1;
-		return _prefix + printModel.DocNumber + NumberingValue + _sufix;
+		var filename = _prefix + printModel.DocNumber + NumberingValue + _sufix;
+		if (_isNumberingChecked) NumberingValue++;
+
+		return filename;
+
 	}
 
 	//TOdo delete if success on blockutils

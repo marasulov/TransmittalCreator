@@ -34,11 +34,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontWeight="Thin" xml:space="preserve" 
                                        Text="Attribute Name: "/>
-                            <TextBlock FontWeight="Medium" Name="AttrNameTextBlock"  Text="{Binding Path=AttributeName}" />
+                            <TextBlock FontWeight="Medium" Name="AttrNameTextBlock"  
+                                       Text="{Binding Path=AttributeName}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock FontWeight="Thin" xml:space="preserve" Text="Attribute Value: "/>
-                            <TextBlock FontWeight="DemiBold" Name="attrValueTextBox"  Text="{Binding Path = AttributeValue}" />
+                            <TextBlock FontWeight="DemiBold" Name="attrValueTextBox"  
+                                       Text="{Binding Path = AttributeValue}" />
                         </StackPanel>
                     </StackPanel>
                 </DataTemplate>

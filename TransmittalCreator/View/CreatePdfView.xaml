@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:no="clr-namespace:TransmittalCreator.Utils.Controls"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:viewModel="clr-namespace:TestWPF.ViewModel;assembly=TestWPF"
+        
+        xmlns:viewModels="clr-namespace:TransmittalCreator.ViewModels;assembly=TransmittalCreator.ViewModels"
         mc:Ignorable="d"
         Title="CreatePdf"
         Height="310"
@@ -18,8 +19,8 @@
         Style="{DynamicResource WindowElementStyle}">
 
     <Window.DataContext>
-        <!--<vm:CreatePdfVm />-->
-        <viewModel:MainViewModel />
+        <viewModels:CreatePdfVm />
+        
     </Window.DataContext>
     <Window.Resources>
         <ResourceDictionary>
@@ -96,8 +97,9 @@
                       IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}" />
             <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox"
                      no:NumberOnly.IsEnabled="True"
+                     Text="{Binding RenumberStartValue ,UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                      IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0">
-                <TextBox.Style>
+                <!--<TextBox.Style>
                     <Style TargetType="TextBox">
                         <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
                         <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}" />
@@ -112,7 +114,7 @@
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </TextBox.Style>
+                </TextBox.Style>-->
                 <materialDesign:HintAssist.Hint>
                     <StackPanel
                         Orientation="Horizontal"

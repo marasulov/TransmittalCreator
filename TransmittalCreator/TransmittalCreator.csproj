@@ -365,10 +365,6 @@
     <Resource Include="0012.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TestWPF\TestWPF.csproj">
-      <Project>{849D25A1-F4E7-4D21-848C-670AB328898D}</Project>
-      <Name>TestWPF</Name>
-    </ProjectReference>
     <ProjectReference Include="..\TransmittalCreator.ViewModels\TransmittalCreator.ViewModels.csproj">
       <Project>{76e8cb8c-9509-4721-bfaa-34fb1fdfa092}</Project>
       <Name>TransmittalCreator.ViewModels</Name>

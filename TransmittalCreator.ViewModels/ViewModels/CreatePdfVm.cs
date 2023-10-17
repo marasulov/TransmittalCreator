@@ -21,12 +21,10 @@ namespace TransmittalCreator.ViewModels
 		private string _fileName;
 		private string _suffix;
 		private string _prefix;
-		private int _renumberStartValue;
+		private string _renumberStartValue;
 		private bool _isCheckedNumbering;
 		private bool _insertTotalPages;
 		private Ordering _ordering = Ordering.IsSelectedOrder;
-		private bool _isPrintingAll;
-		private int _comboboxSelectedIndex = -1;
 		private bool _isAttributeChecked;
 		private string _selectedItem;
 		private bool _isChecked;
@@ -34,44 +32,8 @@ namespace TransmittalCreator.ViewModels
 
 		public CreatePdfVm()
 		{
-			//PrintPagesCommand = new RelayCommand(CloseWindow, canExecute => CanClose());
-			Attributes = new List<BlockAttribute>
-			{
-				new BlockAttribute("Attrname1", "Attrvalue1"),
-				new BlockAttribute("Attrname2", "Attrvalue2"),
-				new BlockAttribute("Attrname3", "Attrvalue3"),
-				new BlockAttribute("Attrname4", "Attrvalue4"),
-				new BlockAttribute("Attrname5", "Attrvalue5")
-			};
+			PrintPagesCommand = new RelayCommand(CloseWindow, canExecute => CanClose());
 		}
-
-		//public bool IsChecked
-		//{
-		//	get => _isChecked;
-		//	set
-		//	{
-		//		if (_isChecked == value) return;
-		//		_isChecked = value;
-		//		OnPropertyChanged();
-
-		//		if (!value) SelectedBlockAttribute = null;
-		//	}
-		//}
-
-
-		//public BlockAttribute SelectedBlockAttribute
-		//{
-		//	get => _selectedBlockAttribute;
-		//	set
-		//	{
-		//		if (_selectedBlockAttribute == value)
-		//		{
-		//			return;
-		//		}
-		//		_selectedBlockAttribute = value;
-		//		OnPropertyChanged();
-		//	}
-		//}
 
 		/// <summary>
 		/// Все атрибуты
@@ -83,20 +45,13 @@ namespace TransmittalCreator.ViewModels
 			get => _isAttributeChecked;
 			set
 			{
-				if(_isAttributeChecked == value) 
-					return;
-				_isAttributeChecked = value;
-				OnPropertyChanged();
-
-				if (!value) SelectedAttr = null;
-				//if (Set(ref _isAttributeChecked, value))
-				//{
-				//	if (!_isAttributeChecked)
-				//	{
-				//		SelectedAttr = null;
-				//	}
-				//}
-
+				if (Set(ref _isAttributeChecked, value))
+				{
+					if (!_isAttributeChecked)
+					{
+						SelectedAttr = null;
+					}
+				}
 			}
 		}
 
@@ -109,31 +64,27 @@ namespace TransmittalCreator.ViewModels
 			//set => Set(ref _selectedAttr, value);
 			set
 			{
-				if(_selectedAttr == value) return;
-				_selectedAttr = value; OnPropertyChanged();
-				//var oldItem = _selectedAttr;
-				//_selectedAttr = value;
-				//OnPropertyChanged();
-
-				//if (!IsAttributeChecked) //If does not satisfy condition, set item back to old item
-				//	Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => SelectedAttr = oldItem),
-				//		DispatcherPriority.ApplicationIdle);
+				Set(ref _selectedAttr, value);
+				FileName = Prefix + value?.AttributeValue + RenumberStartValue + Suffix;
+				OnPropertyChanged(nameof(FileName));
+				//if(_selectedAttr == value) return;
+				//_selectedAttr = value; OnPropertyChanged();
 			}
 		}
-
 
 		public bool IsCheckedNumbering
 		{
 			get => _isCheckedNumbering;
 			set
 			{
-				Set(ref _isCheckedNumbering, value);
-				//{
-				//	if (!_isCheckedNumbering)
-				//	{
-				//		RenumberStartValue = 0;
-				//	}
-				//}
+
+				if (Set(ref _isCheckedNumbering, value))
+				{
+					if (!_isCheckedNumbering)
+					{
+						RenumberStartValue = null;
+					}
+				}
 
 
 			}
@@ -142,41 +93,14 @@ namespace TransmittalCreator.ViewModels
 		/// <summary>
 		/// Нумерация листов с
 		/// </summary>
-		public int RenumberStartValue
+		public string RenumberStartValue
 		{
 			get => _renumberStartValue;
 			set
 			{
 				Set(ref _renumberStartValue, value);
-				//FileName = Prefix + value + Suffix;
-				//OnPropertyChanged("FileName");
-
-				if (IsCheckedNumbering)
-				{
-					if (IsAttributeChecked & SelectedAttr != null)
-					{
-						FileName = Prefix + SelectedAttr.AttributeValue + value + Suffix;
-					}
-					else
-					{
-						FileName = Prefix + value + Suffix;
-					}
-
-				}
-				else
-				{
-					if (IsAttributeChecked & SelectedAttr != null)
-					{
-						FileName = Prefix + SelectedAttr.AttributeValue + Suffix;
-					}
-					else
-					{
-						FileName = Prefix + Suffix;
-					}
-
-				}
-				OnPropertyChanged("FileName");
-
+				FileName = Prefix + SelectedAttr?.AttributeValue + value + Suffix;
+				OnPropertyChanged(nameof(FileName));
 			}
 		}
 
@@ -197,9 +121,9 @@ namespace TransmittalCreator.ViewModels
 					return;
 				_ordering = value;
 				OnPropertyChanged();
-				OnPropertyChanged("IsX");
-				OnPropertyChanged("IsY");
-				OnPropertyChanged("IsSelectedOrder");
+				OnPropertyChanged(nameof(IsX));
+				OnPropertyChanged(nameof(IsY));
+				OnPropertyChanged(nameof(IsSelectedOrder));
 			}
 		}
 
@@ -249,15 +173,8 @@ namespace TransmittalCreator.ViewModels
 			set
 			{
 				Set(ref _prefix, value);
-				if (IsCheckedNumbering)
-				{
-					FileName = value + RenumberStartValue + Suffix;
-				}
-				else
-				{
-					FileName = value + Suffix;
-				}
-				OnPropertyChanged("FileName");
+				FileName = value + SelectedAttr?.AttributeValue + RenumberStartValue + Suffix;
+				OnPropertyChanged(nameof(FileName));
 			}
 		}
 
@@ -267,28 +184,16 @@ namespace TransmittalCreator.ViewModels
 			set
 			{
 				Set(ref _suffix, value);
-				if (IsCheckedNumbering)
-				{
-					FileName = Prefix + SelectedAttr.AttributeValue + RenumberStartValue + value;
-				}
-
-				else
-				{
-					FileName = Prefix + value;
-				}
-				OnPropertyChanged("FileName");
+				FileName = Prefix + SelectedAttr?.AttributeValue + RenumberStartValue + value;
+				OnPropertyChanged(nameof(FileName));
 			}
 		}
-
-		
 
 		public bool ButtonClicked
 		{
 			get => _buttonClicked;
 			set => Set(ref _buttonClicked, value);
 		}
-
-		
 
 		/// <summary>
 		/// Команда для печати
@@ -307,6 +212,7 @@ namespace TransmittalCreator.ViewModels
 			}
 			set => Set(ref _printPagesCommand, value);
 		}
+
 
 		public void CloseWindow(object parameter)
 		{

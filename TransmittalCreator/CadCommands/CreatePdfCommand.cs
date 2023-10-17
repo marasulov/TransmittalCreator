@@ -26,16 +26,6 @@ public static class CreatePdfCommand
 		//var blockAttributes = new ObservableCollection<BlockAttribute> { new("", "") };
 		var blockAttributes = GetListBlockAttributeFromAttributeCollection(attributeCollection, tr);
 
-
-		//blockAttributes.Insert(0,new("", ""));
-
-		//var blockAttributes = new ObservableCollection<BlockAttribute>();
-
-		//foreach (KeyValuePair<string, string> entry in attrList)
-		//{
-		//	blockAttributes.Add(new BlockAttribute(entry.Key, entry.Value));
-		//}
-
 		var pdfCreatorVm = new CreatePdfVm();
 		pdfCreatorVm.Attributes = blockAttributes;
 
@@ -46,14 +36,10 @@ public static class CreatePdfCommand
 
 		Active.WriteMessageInDebug($"{pdfCreatorVm.Prefix}");
 
-		//if (!pdfCreatorVm.IsPrintAll)
-		//{
-		//	selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
-		//	selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
-		//}
+		selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
+		selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
 
 		var fileNameCreator = new FileNameCreator(pdfCreatorVm, selectedBlocksByName);
-
 
 		fileNameCreator.GetPrintParametersToPdf(tr);
 
@@ -66,48 +52,6 @@ public static class CreatePdfCommand
 		foreach (var printModel in printModels) PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
 
 		tr.Commit();
-
-
-		//	Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-		//	Dictionary<string, string> attrList = new Dictionary<string, string>();
-		//	var window = new Window1(new BlockViewModel(attrList));
-		//	Application.ShowModalWindow(window);
-		//	if (!window.isClicked) return;
-		//	//ObjectIdCollection objectIds = Utils.SelectDynamicBlockReferences();
-		//	List<Sheet> dict = new List<Sheet>();
-
-		//	using Transaction tr = Active.Database.TransactionManager.StartTransaction();
-		//	BlockSelector blockSelector = new BlockSelector();
-		//	blockSelector.GetFilterForSelectBlockId(window.BlockName);
-		//	bool isExec = true;
-		//	var res = blockSelector.SelectionResult;
-
-		//	if (res.Status != PromptStatus.OK)
-		//	{
-		//		isExec = false;
-		//		Active.Editor.WriteMessage("Надо выбрать блок");
-		//	}
-
-		//	if (isExec)
-		//	{
-		//		SelectionSet selSet = res.Value;
-		//		ObjectId[] idArrayTemp = selSet.GetObjectIds();
-
-		//		//TODO printing X Y
-
-		//		var fileNameCreator = new FileNameCreator(window, idArrayTemp);
-
-		//		fileNameCreator.GetPrintParametersToPdf(tr);
-
-		//		PrintUtils.CreateJsonFile(dict);
-
-		//		foreach (var printModel in fileNameCreator.GetPrintModels())
-		//		{
-		//			PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-		//		}
-		//	}
-
-		//	tr.Commit();
 	}
 
 
