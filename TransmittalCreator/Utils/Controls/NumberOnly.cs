@@ -1,65 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace TransmittalCreator.Utils.Controls
+namespace TransmittalCreator.Utils.Controls;
+
+public static class NumberOnly
 {
-	public static class NumberOnly
+	public static readonly DependencyProperty IsEnabledProperty =
+		DependencyProperty.RegisterAttached("IsEnabled", typeof(bool),
+			typeof(NumberOnly), new UIPropertyMetadata(false, OnValueChanged));
+
+	public static bool GetIsEnabled(Control o)
 	{
-		public static readonly DependencyProperty IsEnabledProperty =
-			DependencyProperty.RegisterAttached("IsEnabled", typeof(bool),
-				typeof(NumberOnly), new UIPropertyMetadata(false, OnValueChanged));
+		return (bool)o.GetValue(IsEnabledProperty);
+	}
 
-		public static bool GetIsEnabled(Control o) { return (bool)o.GetValue(IsEnabledProperty); }
+	public static void SetIsEnabled(Control o, bool value)
+	{
+		o.SetValue(IsEnabledProperty, value);
+	}
 
-		public static void SetIsEnabled(Control o, bool value) { o.SetValue(IsEnabledProperty, value); }
-
-		private static void OnValueChanged(DependencyObject dependencyObject,
-			DependencyPropertyChangedEventArgs e)
+	private static void OnValueChanged(DependencyObject dependencyObject,
+		DependencyPropertyChangedEventArgs e)
+	{
+		var uiElement = dependencyObject as Control;
+		if (uiElement == null) return;
+		if (e.NewValue is bool && (bool)e.NewValue)
 		{
-			var uiElement = dependencyObject as Control;
-			if (uiElement == null) return;
-			if (e.NewValue is bool && (bool)e.NewValue)
-			{
-				uiElement.PreviewTextInput += OnTextInput;
-				uiElement.PreviewKeyDown += OnPreviewKeyDown;
-				DataObject.AddPastingHandler(uiElement, OnPaste);
-			}
-
-			else
-			{
-				uiElement.PreviewTextInput -= OnTextInput;
-				uiElement.PreviewKeyDown -= OnPreviewKeyDown;
-				DataObject.RemovePastingHandler(uiElement, OnPaste);
-			}
+			uiElement.PreviewTextInput += OnTextInput;
+			uiElement.PreviewKeyDown += OnPreviewKeyDown;
+			DataObject.AddPastingHandler(uiElement, OnPaste);
 		}
 
-		private static void OnTextInput(object sender, TextCompositionEventArgs e)
+		else
 		{
-			if (e.Text.Any(c => !char.IsDigit(c))) { e.Handled = true; }
+			uiElement.PreviewTextInput -= OnTextInput;
+			uiElement.PreviewKeyDown -= OnPreviewKeyDown;
+			DataObject.RemovePastingHandler(uiElement, OnPaste);
 		}
+	}
 
-		private static void OnPreviewKeyDown(object sender, KeyEventArgs e)
+	private static void OnTextInput(object sender, TextCompositionEventArgs e)
+	{
+		if (e.Text.Any(c => !char.IsDigit(c))) e.Handled = true;
+	}
+
+	private static void OnPreviewKeyDown(object sender, KeyEventArgs e)
+	{
+		if (e.Key == Key.Space) e.Handled = true;
+	}
+
+	private static void OnPaste(object sender, DataObjectPastingEventArgs e)
+	{
+		if (e.DataObject.GetDataPresent(DataFormats.Text))
 		{
-			if (e.Key == Key.Space)e.Handled = true;
+			var text = Convert.ToString(e.DataObject.GetData(DataFormats.Text)).Trim();
+			if (text.Any(c => !char.IsDigit(c))) e.CancelCommand();
 		}
-
-		private static void OnPaste(object sender, DataObjectPastingEventArgs e)
+		else
 		{
-			if (e.DataObject.GetDataPresent(DataFormats.Text))
-			{
-				var text = Convert.ToString(e.DataObject.GetData(DataFormats.Text)).Trim();
-				if (text.Any(c => !char.IsDigit(c))) { e.CancelCommand(); }
-			}
-			else
-			{
-				e.CancelCommand();
-			}
+			e.CancelCommand();
 		}
 	}
 }

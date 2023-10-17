@@ -1,137 +1,119 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.DBCad;
 
-namespace TransmittalCreator
+namespace TransmittalCreator;
+
+public class EntityRotateJigger : EntityJig
 {
-   public class EntityRotateJigger : EntityJig
-    {
-        #region Fields
+	#region Constructors
 
-        public int mCurJigFactorIndex = 1;
+	public EntityRotateJigger(Entity ent, Point3d basePoint) : base(ent)
+	{
+		mBasePoint = basePoint;
+	}
 
-        private double mRotation = 0.0; // Factor #1
+	#endregion
 
-        private Point3d mBasePoint = new Point3d();
-        private Matrix3d mLastMatrix = new Matrix3d();
-        private double mLastAngle = 0.0;
 
-        #endregion
+	public static bool Jig(Entity ent, Point3d basePt)
+	{
+		EntityRotateJigger jigger = null;
+		try
+		{
+			jigger = new EntityRotateJigger(ent, basePt);
+			PromptResult pr;
+			do
+			{
+				pr = Active.Editor.Drag(jigger);
+				if (pr.Status == PromptStatus.Keyword)
+				{
+					// Add keyword handling code below
+				}
+				else
+				{
+					jigger.mCurJigFactorIndex++;
+				}
+			} while (pr.Status != PromptStatus.Cancel && pr.Status != PromptStatus.Error &&
+			         jigger.mCurJigFactorIndex <= 1);
 
-        #region Constructors
+			if (pr.Status == PromptStatus.Cancel || pr.Status == PromptStatus.Error)
+			{
+				if (jigger != null && jigger.Entity != null)
+					jigger.Entity.Dispose();
 
-        public EntityRotateJigger(Entity ent, Point3d basePoint) : base(ent)
-        {
-            mBasePoint = basePoint;
-        }
+				return false;
+			}
 
-        #endregion
+			return true;
+		}
+		catch
+		{
+			if (jigger != null && jigger.Entity != null)
+				jigger.Entity.Dispose();
 
-        #region Properties
+			return false;
+		}
+	}
 
-        private Editor Editor
-        {
-            get { return Active.Editor; }
-        }
+	#region Fields
 
-        private Matrix3d UCS
-        {
-            get { return Editor.CurrentUserCoordinateSystem; }
-        }
+	public int mCurJigFactorIndex = 1;
 
-        #endregion
+	private double mRotation; // Factor #1
 
-        #region Overrides
+	private Point3d mBasePoint;
+	private Matrix3d mLastMatrix = new();
+	private double mLastAngle;
 
-        protected override bool Update()
-        {
-            Point3d basePt = new Point3d(mBasePoint.X, mBasePoint.Y, mBasePoint.Z);
-            Matrix3d mat = Matrix3d.Rotation(mRotation - mLastAngle, Vector3d.ZAxis.TransformBy(UCS),
-                basePt.TransformBy(UCS));
-            Entity.TransformBy(mat);
+	#endregion
 
-            mLastAngle = mRotation;
+	#region Properties
 
-            return true;
-        }
+	private Editor Editor => Active.Editor;
 
-        protected override SamplerStatus Sampler(JigPrompts prompts)
-        {
-            switch (mCurJigFactorIndex)
-            {
-                case 1:
-                    JigPromptAngleOptions prOptions1 = new JigPromptAngleOptions("\nRotation angle:");
-                    prOptions1.BasePoint = mBasePoint;
-                    prOptions1.UseBasePoint = true;
-                    PromptDoubleResult prResult1 = prompts.AcquireAngle(prOptions1);
+	private Matrix3d UCS => Editor.CurrentUserCoordinateSystem;
 
-                    if (prResult1.Status == PromptStatus.Cancel) return SamplerStatus.Cancel;
+	#endregion
 
-                    if (prResult1.Value.Equals(mRotation))
-                    {
-                        return SamplerStatus.NoChange;
-                    }
-                    else
-                    {
-                        mRotation = prResult1.Value;
-                        return SamplerStatus.OK;
-                    }
-                default:
-                    break;
-            }
+	#region Overrides
 
-            return SamplerStatus.OK;
-        }
+	protected override bool Update()
+	{
+		var basePt = new Point3d(mBasePoint.X, mBasePoint.Y, mBasePoint.Z);
+		var mat = Matrix3d.Rotation(mRotation - mLastAngle, Vector3d.ZAxis.TransformBy(UCS),
+			basePt.TransformBy(UCS));
+		Entity.TransformBy(mat);
 
-        #endregion
+		mLastAngle = mRotation;
 
-        
+		return true;
+	}
 
-        public static bool Jig(Entity ent, Point3d basePt)
-        {
-            EntityRotateJigger jigger = null;
-            try
-            {
-                jigger = new EntityRotateJigger(ent, basePt);
-                PromptResult pr;
-                do
-                {
-                    pr = Active.Editor.Drag(jigger);
-                    if (pr.Status == PromptStatus.Keyword)
-                    {
-                        // Add keyword handling code below
+	protected override SamplerStatus Sampler(JigPrompts prompts)
+	{
+		switch (mCurJigFactorIndex)
+		{
+			case 1:
+				var prOptions1 = new JigPromptAngleOptions("\nRotation angle:");
+				prOptions1.BasePoint = mBasePoint;
+				prOptions1.UseBasePoint = true;
+				var prResult1 = prompts.AcquireAngle(prOptions1);
 
-                    }
-                    else
-                    {
-                        jigger.mCurJigFactorIndex++;
-                    }
-                } while (pr.Status != PromptStatus.Cancel && pr.Status != PromptStatus.Error &&
-                         jigger.mCurJigFactorIndex <= 1);
+				if (prResult1.Status == PromptStatus.Cancel) return SamplerStatus.Cancel;
 
-                if (pr.Status == PromptStatus.Cancel || pr.Status == PromptStatus.Error)
-                {
-                    if (jigger != null && jigger.Entity != null)
-                        jigger.Entity.Dispose();
+				if (prResult1.Value.Equals(mRotation))
+				{
+					return SamplerStatus.NoChange;
+				}
 
-                    return false;
-                }
-                else
-                    return true;
-            }
-            catch
-            {
-                if (jigger != null && jigger.Entity != null)
-                    jigger.Entity.Dispose();
+				mRotation = prResult1.Value;
+				return SamplerStatus.OK;
+		}
 
-                return false;
-            }
-        }
-    }
+		return SamplerStatus.OK;
+	}
+
+	#endregion
 }

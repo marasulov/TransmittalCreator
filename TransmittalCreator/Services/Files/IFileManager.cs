@@ -1,10 +1,9 @@
-﻿namespace TransmittalCreator.Services.Files
-{
-    public interface IFileManager
-    {
-        string FileName { get;  }
-        string DirPath { get; }
+﻿namespace TransmittalCreator.Services.Files;
 
-        //string GetFilePath();
-    }
+public interface IFileManager
+{
+	string FileName { get; }
+	string DirPath { get; }
+
+	//string GetFilePath();
 }

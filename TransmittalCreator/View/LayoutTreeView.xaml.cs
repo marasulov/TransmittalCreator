@@ -1,92 +1,88 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using TransmittalCreator.Models;
-using TransmittalCreator.Models.Layouts;
-using TransmittalCreator.Services;
 using TransmittalCreator.ViewModel;
 
-namespace TransmittalCreator.View
+namespace TransmittalCreator.View;
+
+/// <summary>
+///     Логика взаимодействия для LayoutTreeView.xaml
+/// </summary>
+public partial class LayoutTreeView : Window
 {
-    /// <summary>
-    /// Логика взаимодействия для LayoutTreeView.xaml
-    /// </summary>
-    public partial class LayoutTreeView : Window
-    {
-        public bool isClicked = false;
-        //BlockViewModel _data;
-        public string _blockName;
-        public List<PrintPackageModel> _printPackages;
-        private LayoutTreeViewModel _unchekedTree;
+	//BlockViewModel _data;
+	public string _blockName;
+	public List<PrintPackageModel> _printPackages;
+	private LayoutTreeViewModel _unchekedTree;
+	public bool isClicked;
 
-        public LayoutTreeView(List<PrintPackageModel> printPackages)
-        {
-	        _printPackages = printPackages;
+	public LayoutTreeView(List<PrintPackageModel> printPackages)
+	{
+		_printPackages = printPackages;
 
-            foreach (var package in _printPackages)
-            {
-                var layout = package.Layouts;
-            }
+		foreach (var package in _printPackages)
+		{
+			var layout = package.Layouts;
+		}
 
-            var nodes = new LayoutTreeViewModel().CreateTree(_printPackages);
+		var nodes = new LayoutTreeViewModel().CreateTree(_printPackages);
 
-            InitializeComponent();
+		InitializeComponent();
 
-            //LayoutTreeViewModel layoutTreeViewModel = this.tree.Items[0] as LayoutTreeViewModel;
-            this.tree.ItemsSource = nodes;
+		//LayoutTreeViewModel layoutTreeViewModel = this.tree.Items[0] as LayoutTreeViewModel;
+		tree.ItemsSource = nodes;
 
-            this.tree.Focus();
+		tree.Focus();
 
-            this.SizeToContent = SizeToContent.Height;
+		SizeToContent = SizeToContent.Height;
 
-            //DataContext = ;
-        }
+		//DataContext = ;
+	}
 
-        private void CreateButton_Click(object sender, RoutedEventArgs e)
-        {
-            var v = this.tree.ItemsSource.Cast<LayoutTreeViewModel>().ToList();
-            foreach (var layoutTree in v[0].Children)
-            {
-                switch (layoutTree.IsChecked)
-                {
-                    case true:
-                        continue;
-                    case false:
-                        RemoveUnchekedLayout(layoutTree);
-                        break;
-                }
+	private void CreateButton_Click(object sender, RoutedEventArgs e)
+	{
+		var v = tree.ItemsSource.Cast<LayoutTreeViewModel>().ToList();
+		foreach (var layoutTree in v[0].Children)
+		{
+			switch (layoutTree.IsChecked)
+			{
+				case true:
+					continue;
+				case false:
+					RemoveUnchekedLayout(layoutTree);
+					break;
+			}
 
-                var tempLayouts = layoutTree.Children;;
+			var tempLayouts = layoutTree.Children;
+			;
 
-                if (layoutTree.IsChecked != null) continue;
-                var selectedPackage = _printPackages.FirstOrDefault(x => x.PdfFileName == layoutTree.Name);
-                var selLayouts = selectedPackage.Layouts;
+			if (layoutTree.IsChecked != null) continue;
+			var selectedPackage = _printPackages.FirstOrDefault(x => x.PdfFileName == layoutTree.Name);
+			var selLayouts = selectedPackage.Layouts;
 
-                foreach (var layoutTreeChild in tempLayouts)
-                {
-                    if (layoutTreeChild.IsChecked != false) continue;
-                    string layoutName = layoutTreeChild.Name;
+			foreach (var layoutTreeChild in tempLayouts)
+			{
+				if (layoutTreeChild.IsChecked != false) continue;
+				var layoutName = layoutTreeChild.Name;
 
-                    var allLayouts = layoutTreeChild.Children;
+				var allLayouts = layoutTreeChild.Children;
 
-                    var layoutModel = selLayouts.FirstOrDefault(l => l.LayoutName == layoutName);
-                    selLayouts.Remove(layoutModel);
-                }
-            }
+				var layoutModel = selLayouts.FirstOrDefault(l => l.LayoutName == layoutName);
+				selLayouts.Remove(layoutModel);
+			}
+		}
 
-            isClicked = true;
-            this.Close();
-        }
+		isClicked = true;
+		Close();
+	}
 
-        private void RemoveUnchekedLayout(LayoutTreeViewModel layoutTree)
-        {
-            string layoutName = layoutTree.Name;
+	private void RemoveUnchekedLayout(LayoutTreeViewModel layoutTree)
+	{
+		var layoutName = layoutTree.Name;
 
-            var unchekedLayout = _printPackages.FirstOrDefault(x => x.PdfFileName == layoutName);
-            if (unchekedLayout != null)
-                _printPackages.Remove(unchekedLayout);
-        }
-
-    }
+		var unchekedLayout = _printPackages.FirstOrDefault(x => x.PdfFileName == layoutName);
+		if (unchekedLayout != null)
+			_printPackages.Remove(unchekedLayout);
+	}
 }

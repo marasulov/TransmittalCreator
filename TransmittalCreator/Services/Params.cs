@@ -1,13 +1,8 @@
-﻿using System.IO;
-using Newtonsoft.Json;
+﻿namespace TransmittalCreator.Services;
 
-namespace TransmittalCreator.Services
+public class Params
 {
-    public class Params
-    {
-        public string Pc3 { get; set; }
-        public string Pmp { get; set; }
-        public string[] StampName { get; set; }
-    }
-
+	public string Pc3 { get; set; }
+	public string Pmp { get; set; }
+	public string[] StampName { get; set; }
 }

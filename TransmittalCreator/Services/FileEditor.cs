@@ -1,47 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Autodesk.AutoCAD.ApplicationServices;
+using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 
-namespace TransmittalCreator.Services
+namespace TransmittalCreator.Services;
+
+internal class FileEditor
 {
-    class FileEditor
-    {
-        public string FileName { get; set; }
+	public FileEditor(string fileName)
+	{
+		FileName = fileName;
+	}
 
-        public FileEditor(string fileName)
-        {
-            this.FileName = fileName;
-        }
+	public string FileName { get; set; }
 
-        public void OpenDrawing()
-        {
-            DocumentCollection acDocMgr = Application.DocumentManager;
-            if (File.Exists(this.FileName))
-            {
-                acDocMgr.Open(this.FileName, false);
-            }
-            else
-            {
-                acDocMgr.MdiActiveDocument.Editor.WriteMessage("File " + this.FileName +
-                                                               " does not exist.");
-            }
-        }
+	public void OpenDrawing()
+	{
+		var acDocMgr = Application.DocumentManager;
+		if (File.Exists(FileName))
+			acDocMgr.Open(FileName, false);
+		else
+			acDocMgr.MdiActiveDocument.Editor.WriteMessage("File " + FileName +
+			                                               " does not exist.");
+	}
 
-        public void CloseDoc_Method()
-        {
-            Document docToWorkOn = Application.DocumentManager.Open(this.FileName, false);
-            var ed = Application.DocumentManager.MdiActiveDocument.Editor;
-            ed.Command("_.zoom", "_extents");
-            docToWorkOn.CloseAndSave(this.FileName);
-        }
-        public void ZoomExtCmd()
-        {
-            var ed = Application.DocumentManager.MdiActiveDocument.Editor;
-            ed.Command("_.zoom", "_extents");
-        }
-    }
+	public void CloseDoc_Method()
+	{
+		var docToWorkOn = Application.DocumentManager.Open(FileName, false);
+		var ed = Application.DocumentManager.MdiActiveDocument.Editor;
+		ed.Command("_.zoom", "_extents");
+		docToWorkOn.CloseAndSave(FileName);
+	}
+
+	public void ZoomExtCmd()
+	{
+		var ed = Application.DocumentManager.MdiActiveDocument.Editor;
+		ed.Command("_.zoom", "_extents");
+	}
 }

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace TransmittalCreator.ViewModels
 {
-	public class BlockAttribute: INotifyPropertyChanged
+	public class BlockAttribute//: INotifyPropertyChanged
 	{
 
 		private string _attributeName;
@@ -18,7 +18,7 @@ namespace TransmittalCreator.ViewModels
 			set
 			{
 				_attributeName = value;
-				OnPropertyChanged("AttributeName");
+				//OnPropertyChanged("AttributeName");
 			}
 		}
 
@@ -31,7 +31,7 @@ namespace TransmittalCreator.ViewModels
 			set
 			{
 				_attributeValue = value;
-				OnPropertyChanged("AttributeValue");
+				//OnPropertyChanged("AttributeValue");
 			}
 		}
 
@@ -41,16 +41,16 @@ namespace TransmittalCreator.ViewModels
 			this.AttributeValue = attrValue;
 		}
 
-		public string GetAttrName(BlockAttribute blockAttribute)
-		{
-			return blockAttribute.AttributeName;
-		}
+		//public string GetAttrName(BlockAttribute blockAttribute)
+		//{
+		//	return blockAttribute.AttributeName;
+		//}
 
-		public event PropertyChangedEventHandler PropertyChanged;
-		public void OnPropertyChanged([CallerMemberName] string prop = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
-		}
+		//public event PropertyChangedEventHandler PropertyChanged;
+		//public void OnPropertyChanged([CallerMemberName] string prop = "")
+		//{
+		//	PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+		//}
 
 	}
 }

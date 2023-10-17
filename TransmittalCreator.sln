@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmittalCreator.Infrastr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmittalCreator.ViewModels", "TransmittalCreator.ViewModels\TransmittalCreator.ViewModels.csproj", "{76E8CB8C-9509-4721-BFAA-34FB1FDFA092}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmittalCreator.View", "TransmittalCreator.View\TransmittalCreator.View.csproj", "{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,18 @@ Global
 		{76E8CB8C-9509-4721-BFAA-34FB1FDFA092}.Release|Any CPU.Build.0 = Release|Any CPU
 		{76E8CB8C-9509-4721-BFAA-34FB1FDFA092}.Release|x86.ActiveCfg = Release|Any CPU
 		{76E8CB8C-9509-4721-BFAA-34FB1FDFA092}.Release|x86.Build.0 = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Debug|x86.Build.0 = Debug|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.R2015|Any CPU.ActiveCfg = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.R2015|Any CPU.Build.0 = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.R2015|x86.ActiveCfg = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.R2015|x86.Build.0 = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Release|x86.ActiveCfg = Release|Any CPU
+		{4D9D4432-B01E-4B5E-AED4-BAE3627D8F7A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

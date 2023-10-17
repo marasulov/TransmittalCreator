@@ -5,84 +5,96 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        
+
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        TextElement.FontWeight ="Regular"
+        TextElement.FontWeight="Regular"
         TextElement.FontSize="14"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
-        FontFamily="{materialDesign:MaterialDesignFont}" Icon="..\0012.png" ShowInTaskbar="False" WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250"
+        FontFamily="{materialDesign:MaterialDesignFont}" Icon="..\0012.png" ShowInTaskbar="False"
+        WindowStartupLocation="CenterScreen" MinWidth="400" MinHeight="250"
         Title="ObjectDivider" Height="450" Width="800">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <materialDesign:BundledTheme BaseTheme="Dark" PrimaryColor="LightBlue" SecondaryColor="Lime" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/materialdesigntheme.dark.xaml" /> 
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" /> 
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/primary/materialdesigncolor.blue.xaml"/> 
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml"/> 
+                <ResourceDictionary
+                    Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/materialdesigntheme.dark.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/primary/materialdesigncolor.blue.xaml" />
+                <ResourceDictionary
+                    Source="pack://application:,,,/MaterialDesignColors;component/themes/recommended/accent/materialdesigncolor.green.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
     <Grid VerticalAlignment="Stretch" Margin="8 2 8 0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*"/>
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            
-            <TextBlock Grid.Column="0" VerticalAlignment="Center">Select object color</TextBlock>
-            <CheckBox Grid.Row="0" Grid.Column="1" IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}" Name="attributeCheckBox"/>
-            <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
-                      ItemsSource="{Binding AttributeViewModel.Attributes}" 
-                      SelectedItem="{Binding BlockAttribute}" 
-                      IsEnabled="{Binding IsChecked, ElementName=attributeCheckBox}" FontSize="12" Margin="8 0 8 0">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                            <StackPanel Orientation="Vertical">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock FontWeight="Thin" xml:space="preserve" 
-                                               Text="Attribute Name: "/>
-                                    <TextBlock FontWeight="Medium" Name="AttrNameTextBlock"  Text="{Binding Path=AttributeName}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock FontWeight="Thin" xml:space="preserve" Text="Attribute Value: "/>
-                                    <TextBlock FontWeight="DemiBold" Name="attrValueTextBox"  Text="{Binding Path = AttributeValue}" />
-                                </StackPanel>
-                            </StackPanel>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Numbering start with: </TextBlock>
-            <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}"></CheckBox>
-            <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox" 
-                     Text="{Binding Path=NumberingValue}"
-                     IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0">
-            </TextBox>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center">Select object color</TextBlock>
+        <CheckBox Grid.Row="0" Grid.Column="1"
+                  IsChecked="{Binding IsCheckedAttribute, UpdateSourceTrigger=PropertyChanged}"
+                  Name="attributeCheckBox" />
+        <ComboBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Name="comboAttributs" Height="40"
+                  ItemsSource="{Binding AttributeViewModel.Attributes}"
+                  SelectedItem="{Binding BlockAttribute}"
+                  IsEnabled="{Binding IsChecked, ElementName=attributeCheckBox}" FontSize="12" Margin="8 0 8 0">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontWeight="Thin" xml:space="preserve"
+                                       Text="Attribute Name: " />
+                            <TextBlock FontWeight="Medium" Name="AttrNameTextBlock" Text="{Binding Path=AttributeName}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock FontWeight="Thin" xml:space="preserve" Text="Attribute Value: " />
+                            <TextBlock FontWeight="DemiBold" Name="attrValueTextBox"
+                                       Text="{Binding Path = AttributeValue}" />
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
 
-            <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Prefix</TextBlock>
-            <!--<CheckBox Grid.Column="1" Grid.Row="2" ></CheckBox>-->
-            <TextBox Grid.Column="2" Grid.Row="2" Name="prefixTextBox" Text="{Binding Path=Prefix}" Margin="8 0 8 0"></TextBox>
+        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Numbering start with: </TextBlock>
+        <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox"
+                  IsChecked="{Binding IsCheckedNumbering, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox Grid.Column="2" Grid.Row="1" Name="numberingTextbox"
+                 Text="{Binding Path=NumberingValue}"
+                 IsEnabled="{Binding IsChecked, ElementName=numberingCheckbox}" Margin="8 0 8 0" />
 
-            <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center">Suffix</TextBlock>
-            <!--<CheckBox Grid.Column="1" Grid.Row="3"></CheckBox>-->
-            <TextBox Grid.Column="2" Grid.Row="3" Name="suffixTextBox" Text="{Binding Path=Suffix}" Margin="8 0 8 0"></TextBox>
+        <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Prefix</TextBlock>
+        <!--<CheckBox Grid.Column="1" Grid.Row="2" ></CheckBox>-->
+        <TextBox Grid.Column="2" Grid.Row="2" Name="prefixTextBox" Text="{Binding Path=Prefix}" Margin="8 0 8 0" />
 
-            <TextBlock Grid.Column="0" Grid.Row="4" Text="Filename"/>
-            <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName}"/>
-            <TextBlock Name="TextBlock1" Visibility="Collapsed" ></TextBlock>
-            <StackPanel Grid.Row="5" Grid.ColumnSpan="3"><Button Name="createButton" 
-                                TabIndex="3" >Create layer</Button></StackPanel>
-        </Grid>
+        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center">Suffix</TextBlock>
+        <!--<CheckBox Grid.Column="1" Grid.Row="3"></CheckBox>-->
+        <TextBox Grid.Column="2" Grid.Row="3" Name="suffixTextBox" Text="{Binding Path=Suffix}" Margin="8 0 8 0" />
+
+        <TextBlock Grid.Column="0" Grid.Row="4" Text="Filename" />
+        <TextBlock Grid.Column="2" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding FileName}" />
+        <TextBlock Name="TextBlock1" Visibility="Collapsed" />
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="3">
+            <Button Name="createButton"
+                    TabIndex="3">
+                Create layer
+            </Button>
+        </StackPanel>
+    </Grid>
 
 </Window>

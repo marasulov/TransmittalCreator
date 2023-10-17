@@ -9,80 +9,70 @@ using TransmittalCreator.Models;
 using TransmittalCreator.Utils;
 using TransmittalCreator.ViewModel;
 
-namespace TransmittalCreator
+namespace TransmittalCreator;
+
+public partial class Window1 : Window
 {
+	private BlockViewModel _data;
+	public bool isClicked;
 
-	public partial class Window1 : Window
-    {
-        public bool isClicked = false;
-        private BlockViewModel _data;
-        private string _blockName;
+	public Window1(BlockViewModel data)
+	{
+		InitializeComponent();
 
-        public string BlockName
-        {
-            get => _blockName;
-            set => _blockName = value;
-        }
+		_data = data;
+		var combolist = new List<BlockAttribute>();
 
-        public Window1(BlockViewModel data)
-        {
-            InitializeComponent();
+		var attrList = new Dictionary<string, string>();
+		var tr = Active.Database.TransactionManager.StartTransaction();
 
-            _data = data;
-            List<BlockAttribute> combolist = new List<BlockAttribute>();
+		var names = PrintUtils.GetAttrList(tr, attrList);
+		attrList = names.Item2;
 
-            Dictionary<string, string> attrList = new Dictionary<string, string>();
-            var tr = Active.Database.TransactionManager.StartTransaction();
+		foreach (var entry in attrList) combolist.Add(new BlockAttribute(entry.Key, entry.Value));
 
-            var names = PrintUtils.GetAttrList(tr, attrList);
-            attrList = names.Item2;
+		comboAttributs.ItemsSource = combolist;
 
-            foreach (KeyValuePair<string, string> entry in attrList)
-            {
-                combolist.Add(new BlockAttribute(entry.Key, entry.Value));
-            }
+		DataContext = new FilenameModel();
+	}
 
-            comboAttributs.ItemsSource = combolist;
+	public string BlockName { get; set; }
 
-            DataContext = new FilenameModel();
-        }
+	private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+	{
+		e.CanExecute = true;
+	}
 
-        private void NewCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = true;
-        }
+	private void NewCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+	{
+		isClicked = true;
+		Close();
+	}
 
-        private void NewCommand_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            isClicked = true;
-            this.Close();
-        }
+	private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+	{
+		var regex = new Regex("[^0-9]+");
+		e.Handled = regex.IsMatch(e.Text);
+	}
 
-        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-            Regex regex = new Regex("[^0-9]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
+	private void createButton_Click(object sender, RoutedEventArgs e)
+	{
+		isClicked = true;
+		Close();
+	}
+}
 
-        private void createButton_Click(object sender, RoutedEventArgs e)
-        {
-            isClicked = true;
-            this.Close();
-        }
-    }
-
-    class ProxyDomain : MarshalByRefObject
-    {
-        public Assembly GetAssembly(string assemblyPath)
-        {
-            try
-            {
-                return Assembly.LoadFrom(assemblyPath);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(ex.Message);
-            }
-        }
-    }
+internal class ProxyDomain : MarshalByRefObject
+{
+	public Assembly GetAssembly(string assemblyPath)
+	{
+		try
+		{
+			return Assembly.LoadFrom(assemblyPath);
+		}
+		catch (Exception ex)
+		{
+			throw new InvalidOperationException(ex.Message);
+		}
+	}
 }

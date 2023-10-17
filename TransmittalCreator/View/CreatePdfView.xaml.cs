@@ -1,24 +1,23 @@
 ﻿using System.Windows;
 using TransmittalCreator.ViewModels;
 
-namespace TransmittalCreator.View
+namespace TransmittalCreator.View;
+
+/// <summary>
+///     Логика взаимодействия для PdfCreatorView.xaml
+/// </summary>
+public partial class CreatePdfView : Window
 {
-	/// <summary>
-	/// Логика взаимодействия для PdfCreatorView.xaml
-	/// </summary>
-	public partial class CreatePdfView : Window
+	public CreatePdfView(CreatePdfVm pdfCreatorViewModel)
 	{
-		public CreatePdfView(CreatePdfVm pdfCreatorViewModel)
-		{
-			InitializeComponent();
+		InitializeComponent();
 
-			DataContext = pdfCreatorViewModel;
-			Loaded += On_Loaded;
-		}
+		DataContext = pdfCreatorViewModel;
+		Loaded += On_Loaded;
+	}
 
-		private void On_Loaded(object sender, RoutedEventArgs e)
-		{
-			Style = (Style)FindResource("WindowElementStyle");
-		}
+	private void On_Loaded(object sender, RoutedEventArgs e)
+	{
+		Style = (Style)FindResource("WindowElementStyle");
 	}
 }

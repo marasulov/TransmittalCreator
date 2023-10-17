@@ -1,144 +1,131 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
-using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.ApplicationServices.Core;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.DBCad;
 
-namespace TransmittalCreator.Services
+namespace TransmittalCreator.Services;
+
+public class ObjectCopier
 {
-    public class ObjectCopier
-    {
-        private Point3d _minPoint3d;
-        public Point3d MinPoint3d
-        {
-            get => _minPoint3d;
-            set => _minPoint3d = value;
-        }
-        private Point3d _maxPoint3d;
-        public Point3d MaxPoint3d
-        {
-            get => _maxPoint3d;
-            set => _maxPoint3d = value;
-        }
+	public ObjectCopier(ObjectId objectId)
+	{
+		GetBlockLengths(objectId);
+	}
 
-        public ObjectIdCollection ObjectIdColls { get; set; }
+	public Point3d MinPoint3d { get; set; }
 
-        public ObjectCopier(ObjectId objectId)
-        {
-            GetBlockLengths(objectId);
-        }
+	public Point3d MaxPoint3d { get; set; }
 
-        private void GetBlockLengths(ObjectId objectId)
-        {
+	public ObjectIdCollection ObjectIdColls { get; set; }
 
-            Document doc = Application.DocumentManager.MdiActiveDocument;
+	private void GetBlockLengths(ObjectId objectId)
+	{
+		var doc = Application.DocumentManager.MdiActiveDocument;
 
-            ObjectIdCollection acObjIdColl = new ObjectIdCollection();
-            Database acCurDb = doc.Database;
+		var acObjIdColl = new ObjectIdCollection();
+		var acCurDb = doc.Database;
 
-            using (DocumentLock acLckDocCur = doc.LockDocument())
-            {
-                using (Transaction Tx = Active.Database.TransactionManager.StartTransaction())
-                {
-                    BlockReference bref = Tx.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
+		using (var acLckDocCur = doc.LockDocument())
+		{
+			using (var Tx = Active.Database.TransactionManager.StartTransaction())
+			{
+				var bref = Tx.GetObject(objectId, OpenMode.ForWrite) as BlockReference;
 
-                    Extents3d extents3d = bref.GeometryExtentsBestFit();
-                    this.MinPoint3d = extents3d.MinPoint;
-                    this.MaxPoint3d = extents3d.MaxPoint;
-                    //Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(bref.Position.X, bref.Position.Y, 0), false);
-                    //blockPosition = new Point2d(blockPos3d.X, blockPos3d.Y);
-                    //DynamicBlockReferencePropertyCollection props = bref.DynamicBlockReferencePropertyCollection;
-                    //dimPoint2d = new Point2d(blockPosition.X + blockWidth, blockPosition.Y + blockHeidht);
+				var extents3d = bref.GeometryExtentsBestFit();
+				MinPoint3d = extents3d.MinPoint;
+				MaxPoint3d = extents3d.MaxPoint;
+				//Point3d blockPos3d = Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(bref.Position.X, bref.Position.Y, 0), false);
+				//blockPosition = new Point2d(blockPos3d.X, blockPos3d.Y);
+				//DynamicBlockReferencePropertyCollection props = bref.DynamicBlockReferencePropertyCollection;
+				//dimPoint2d = new Point2d(blockPosition.X + blockWidth, blockPosition.Y + blockHeidht);
 
-                    Tx.Commit();
-                }
+				Tx.Commit();
+			}
+		}
+	}
 
-            }
-        }
+	public ObjectIdCollection SelectCrossingWindow()
+	{
+		var doc = Application.DocumentManager.MdiActiveDocument;
 
-        public ObjectIdCollection SelectCrossingWindow()
-        {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
+		var acObjIdColl = new ObjectIdCollection();
+		var acCurDb = doc.Database;
 
-            ObjectIdCollection acObjIdColl = new ObjectIdCollection();
-            Database acCurDb = doc.Database;
+		using (var acLckDocCur = doc.LockDocument())
+		{
+			// Start a transaction
+			using (var acTrans = doc.TransactionManager.StartTransaction())
+			{
+				var psr = doc.Editor.SelectCrossingWindow(MinPoint3d, MaxPoint3d);
+				if (psr.Status == PromptStatus.OK)
+				{
+					var cnt = 0;
+					using (doc.TransactionManager.StartTransaction())
+					{
+						foreach (var oID in psr.Value.GetObjectIds())
+						{
+							var ent = (Entity)oID.GetObject(OpenMode.ForRead);
+							cnt += 1;
+							//doc.Editor.WriteMessage(ent.ToString(), "SelectCrossingWindow Entity  " + cnt.ToString());
+							acObjIdColl.Add(oID);
+						}
+					}
+				}
 
-            using (DocumentLock acLckDocCur = doc.LockDocument())
-            {
-                // Start a transaction
-                using (Transaction acTrans = doc.TransactionManager.StartTransaction())
-                {
+				// Save the new objects to the database
+				acTrans.Commit();
+			}
 
-                    PromptSelectionResult psr = doc.Editor.SelectCrossingWindow(this.MinPoint3d, this.MaxPoint3d);
-                    if (psr.Status == PromptStatus.OK)
-                    {
-                        int cnt = 0;
-                        using (doc.TransactionManager.StartTransaction())
-                        {
-                            foreach (ObjectId oID in psr.Value.GetObjectIds())
-                            {
-                                Entity ent = (Entity)oID.GetObject(Autodesk.AutoCAD.DatabaseServices.OpenMode.ForRead);
-                                cnt += 1;
-                                //doc.Editor.WriteMessage(ent.ToString(), "SelectCrossingWindow Entity  " + cnt.ToString());
-                                acObjIdColl.Add(oID);
-                            }
-                        }
-                    }
+			// Unlock the document
+		}
 
-                    // Save the new objects to the database
-                    acTrans.Commit();
-                }
-
-                // Unlock the document
-            }
-
-            return acObjIdColl;
-        }
+		return acObjIdColl;
+	}
 
 
-        public void CopyObjectsNewDatabases(ObjectIdCollection acObjIdColl, string dwgFilename)
-        {
-            //ObjectIdCollection acObjIdColl = new ObjectIdCollection();
-            // Get the current document and database
-            Document acDoc = Application.DocumentManager.MdiActiveDocument;
-            Database acCurDb = acDoc.Database;
+	public void CopyObjectsNewDatabases(ObjectIdCollection acObjIdColl, string dwgFilename)
+	{
+		//ObjectIdCollection acObjIdColl = new ObjectIdCollection();
+		// Get the current document and database
+		var acDoc = Application.DocumentManager.MdiActiveDocument;
+		var acCurDb = acDoc.Database;
 
-            // Lock the new document
-            try
-            {
-                using (Database db = new Database())
-                {
-                    using (Transaction acTrans = db.TransactionManager.StartTransaction())
-                    {
-                        // Open the Block table for read
-                        BlockTable acBlkTblNewDoc;
-                        acBlkTblNewDoc = acTrans.GetObject(db.BlockTableId,
-                            OpenMode.ForRead) as BlockTable;
-                        // Open the Block table record Model space for read
-                        BlockTableRecord acBlkTblRecNewDoc;
-                        acBlkTblRecNewDoc = acTrans.GetObject(acBlkTblNewDoc[BlockTableRecord.ModelSpace],
-                            OpenMode.ForRead) as BlockTableRecord;
-                        // Clone the objects to the new database
-                        IdMapping acIdMap = new IdMapping();
-                        acCurDb.WblockCloneObjects(acObjIdColl, acBlkTblRecNewDoc.ObjectId, acIdMap,
-                            DuplicateRecordCloning.Ignore, false);
-                        // Save the copied objects to the database
-                        //ZoomObjects(acObjIdColl);
-                        acTrans.Commit();
-                    }
-                    db.SaveAs(dwgFilename, db.OriginalFileVersion);
-                    FileInfo fi = new FileInfo(dwgFilename);
-                    Active.Editor.WriteMessage("\nSize of {0}: {1}-{2}", dwgFilename, fi.Length, db.OriginalFileVersion);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        }
-    }
+		// Lock the new document
+		try
+		{
+			using (var db = new Database())
+			{
+				using (var acTrans = db.TransactionManager.StartTransaction())
+				{
+					// Open the Block table for read
+					BlockTable acBlkTblNewDoc;
+					acBlkTblNewDoc = acTrans.GetObject(db.BlockTableId,
+						OpenMode.ForRead) as BlockTable;
+					// Open the Block table record Model space for read
+					BlockTableRecord acBlkTblRecNewDoc;
+					acBlkTblRecNewDoc = acTrans.GetObject(acBlkTblNewDoc[BlockTableRecord.ModelSpace],
+						OpenMode.ForRead) as BlockTableRecord;
+					// Clone the objects to the new database
+					var acIdMap = new IdMapping();
+					acCurDb.WblockCloneObjects(acObjIdColl, acBlkTblRecNewDoc.ObjectId, acIdMap,
+						DuplicateRecordCloning.Ignore, false);
+					// Save the copied objects to the database
+					//ZoomObjects(acObjIdColl);
+					acTrans.Commit();
+				}
+
+				db.SaveAs(dwgFilename, db.OriginalFileVersion);
+				var fi = new FileInfo(dwgFilename);
+				Active.Editor.WriteMessage("\nSize of {0}: {1}-{2}", dwgFilename, fi.Length, db.OriginalFileVersion);
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
+	}
 }

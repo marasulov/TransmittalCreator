@@ -1,11 +1,10 @@
 ﻿using System.IO;
 
-namespace TransmittalCreator.Services.Serializers
+namespace TransmittalCreator.Services.Serializers;
+
+public interface ISerializer
 {
-    public interface ISerializer
-    {
-        string Serialize<T>(T item);
-        T Deserialize<T>(Stream stream);
-        string Filename { get; }
-    }
+	string Filename { get; }
+	string Serialize<T>(T item);
+	T Deserialize<T>(Stream stream);
 }

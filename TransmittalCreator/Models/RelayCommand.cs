@@ -1,33 +1,32 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace TransmittalCreator.Models
+namespace TransmittalCreator.Models;
+
+public class RelayCommand
 {
-    public class RelayCommand
-    {
-        private readonly Action<object> execute;
-        private readonly Func<object, bool> canExecute;
+	private readonly Func<object, bool> canExecute;
+	private readonly Action<object> execute;
 
-        public event EventHandler CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
+	public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+	{
+		this.execute = execute;
+		this.canExecute = canExecute;
+	}
 
-        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
-        {
-            this.execute = execute;
-            this.canExecute = canExecute;
-        }
+	public event EventHandler CanExecuteChanged
+	{
+		add => CommandManager.RequerySuggested += value;
+		remove => CommandManager.RequerySuggested -= value;
+	}
 
-        public bool CanExecute(object parameter)
-        {
-            return this.canExecute == null || this.canExecute(parameter);
-        }
+	public bool CanExecute(object parameter)
+	{
+		return canExecute == null || canExecute(parameter);
+	}
 
-        public void Execute(object parameter)
-        {
-            this.execute(parameter);
-        }
-    }
+	public void Execute(object parameter)
+	{
+		execute(parameter);
+	}
 }

@@ -8,20 +8,20 @@ using System.Threading.Tasks;
 
 namespace TransmittalCreator.ViewModels.ViewModels
 {
-	public interface ICreatePdfVm : INotifyPropertyChanged
+	public interface ICreatePdfVm 
 	{
-		bool IsX { get; set; }
-		bool IsY { get; set; }
-		bool IsSelectedOrder { get; set; }
-		ObservableCollection<BlockAttribute> Attributes { get; set; }
-		BlockAttribute SelectedAttr { get; set; }
-		int RenumberStartValue { get; set; }
-		bool RenumberLayouts { get; set; }
-		bool InsertTotalPages { get; set; }
-		string Prefix { get; set; }
-		string Suffix { get; set; }
-		bool IsCheckedNumbering { get; set; }
-		bool IsAttributeChecked { get; set; }
+		//bool IsX { get; set; }
+		//bool IsY { get; set; }
+		//bool IsSelectedOrder { get; set; }
+		//List<BlockAttribute> Attributes { get; set; }
+		//BlockAttribute SelectedAttr { get; set; }
+		//int RenumberStartValue { get; set; }
+		//bool RenumberLayouts { get; set; }
+		//bool InsertTotalPages { get; set; }
+		//string Prefix { get; set; }
+		//string Suffix { get; set; }
+		//bool IsCheckedNumbering { get; set; }
+		//bool IsAttributeChecked { get; set; }
 		//bool IsValidPrinting { get; }
 	}
 }

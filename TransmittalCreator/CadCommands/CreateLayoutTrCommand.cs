@@ -1,8 +1,9 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Autodesk.AutoCAD.ApplicationServices.Core;
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
-using System.Collections.Generic;
-using System.Linq;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
@@ -10,57 +11,54 @@ using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
-using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
-namespace TransmittalCreator.CadCommands
+namespace TransmittalCreator.CadCommands;
+
+public class CreateLayoutTrCommand
 {
-	public class CreateLayoutTrCommand
+	[CommandMethod("CrLayTr")]
+	public void CreateTransmitallFromLayout()
 	{
-		[CommandMethod("CrLayTr")]
-		public void CreateTransmitallFromLayout()
+		try
 		{
-			try
+			using (var trans = Active.Database.TransactionManager.StartTransaction())
 			{
-				using (Transaction trans = Active.Database.TransactionManager.StartTransaction())
-				{
-					string allPath = FileManager.GetFilePath();
-					//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
-					string[] blockNames = FileManager.GetBlockNames();
-					DynamicBlockFinder dynamicBlocks = new DynamicBlockFinder(blockNames);
-					var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
-					
-					layoutModelCollection.ListLayouts("Model");
-					layoutModelCollection.CreateLayoutCollection();
-					layoutModelCollection.SetPrintModels(trans);
+				var allPath = FileManager.GetFilePath();
+				//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
+				var blockNames = FileManager.GetBlockNames();
+				var dynamicBlocks = new DynamicBlockFinder(blockNames);
+				var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
 
-					string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
+				layoutModelCollection.ListLayouts("Model");
+				layoutModelCollection.CreateLayoutCollection();
+				layoutModelCollection.SetPrintModels(trans);
 
-					var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
-					
-					LayoutTreeView window = new LayoutTreeView(packageCreator.PrintPackageModels);
-					Autodesk.AutoCAD.ApplicationServices.Core.Application.ShowModalWindow(window);
+				string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
 
-					if (!window.isClicked) return;
+				var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
 
-					var printPackages = window._printPackages;
-					packageCreator.PrintPackageModels = printPackages;
-					var sheetType = SheetType.MultiPdf;
+				var window = new LayoutTreeView(packageCreator.PrintPackageModels);
+				Application.ShowModalWindow(window);
 
-					packageCreator.PublishAllPackages();
+				if (!window.isClicked) return;
 
-					var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
+				var printPackages = window._printPackages;
+				packageCreator.PrintPackageModels = printPackages;
+				var sheetType = SheetType.MultiPdf;
 
-					List<Sheet> sheets = new List<Sheet>();
+				packageCreator.PublishAllPackages();
 
-					PrintUtils.GetSheetsFromBlocks(Active.Editor, sheets, trans, new ObjectIdCollection(blockIds));
-					PrintUtils.CreateJsonFile(sheets);
-				}
+				var blockIds = printPackages.SelectMany(x => x.Layouts.Select(y => y.BlocksObjectId)).ToArray();
+
+				var sheets = new List<Sheet>();
+
+				PrintUtils.GetSheetsFromBlocks(Active.Editor, sheets, trans, new ObjectIdCollection(blockIds));
+				PrintUtils.CreateJsonFile(sheets);
 			}
-			catch (Exception e)
-			{
-				Active.WriteMessage($"Произошла ошибка {e.ErrorStatus}");
-			}
-
+		}
+		catch (Exception e)
+		{
+			Active.WriteMessage($"Произошла ошибка {e.ErrorStatus}");
 		}
 	}
 }

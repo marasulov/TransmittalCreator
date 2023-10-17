@@ -4,201 +4,180 @@ using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using TransmittalCreator.DBCad;
 
-namespace TransmittalCreator.Utils
+namespace TransmittalCreator.Utils;
+
+/// <summary>
+///     Утилиты работы со слоями
+/// </summary>
+public static class LayerUtils
 {
+	/// <summary>Проверка наличия слоя в документе по имени</summary>
+	/// <param name="layerName">Имя слоя</param>
+	public static bool HasLayer(string layerName)
+	{
+		using (Active.Document.LockDocument())
+		{
+			using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
+			{
+				var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
+				if (lt != null)
+					if (lt.Has(layerName))
+						return true;
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>Получение LayerTableRecord по имени слоя</summary>
+	/// <param name="layerName">Имя слоя</param>
+	public static LayerTableRecord GetLayerTableRecordByLayerName(string layerName)
+	{
+		using (Active.Document.LockDocument())
+		{
+			using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
+			{
+				var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
+				if (lt != null)
+					foreach (var layerId in lt)
+					{
+						var layer = tr.GetObject(layerId, OpenMode.ForRead) as LayerTableRecord;
+						if (layer != null && layer.Name.Equals(layerName)) return layer;
+					}
+			}
+		}
+
+		return null;
+	}
 
 	/// <summary>
-	/// Утилиты работы со слоями
+	///     Проверка не заблокирован ли слой
 	/// </summary>
-	public static class LayerUtils
+	/// <param name="layerName">Имя слоя</param>
+	public static bool IsLockedLayer(string layerName)
 	{
-		/// <summary>Проверка наличия слоя в документе по имени</summary>
-		/// <param name="layerName">Имя слоя</param>
-		public static bool HasLayer(string layerName)
+		using (Active.Document.LockDocument())
 		{
-			using (Active.Document.LockDocument())
+			using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
 			{
-				using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
-				{
-					var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
-					if (lt != null)
+				var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
+				if (lt != null)
+					foreach (var layerId in lt)
 					{
-						if (lt.Has(layerName))
-						{
-							return true;
-						}
+						var layer = tr.GetObject(layerId, OpenMode.ForRead) as LayerTableRecord;
+						if (layer != null && layer.Name.Equals(layerName)) return layer.IsLocked;
 					}
-				}
 			}
-
-			return false;
 		}
 
-		/// <summary>Получение LayerTableRecord по имени слоя</summary>
-		/// <param name="layerName">Имя слоя</param>
-		public static LayerTableRecord GetLayerTableRecordByLayerName(string layerName)
-		{
+		return false;
+	}
+
+	/// <summary>
+	///     Создание слоя в текущем документе по данным, сохраненным в файле стилей
+	/// </summary>
+	/// <param name="layerXElement">Xml layer data node</param>
+	public static bool AddLayerFromXElement(XElement layerXElement)
+	{
+		var layer = GetLayerFromXml(layerXElement);
+		var layerCreated = false;
+		if (layer != null)
 			using (Active.Document.LockDocument())
 			{
-				using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
+				using (var tr = Active.Database.TransactionManager.StartTransaction())
 				{
-					var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
-					if (lt != null)
+					using (var lyrTbl =
+					       tr.GetObject(Active.Database.LayerTableId, OpenMode.ForWrite) as LayerTable)
 					{
-						foreach (var layerId in lt)
+						if (lyrTbl != null)
 						{
-							var layer = tr.GetObject(layerId, OpenMode.ForRead) as LayerTableRecord;
-							if (layer != null && layer.Name.Equals(layerName))
+							if (!lyrTbl.Has(layer.Name))
 							{
-								return layer;
+								lyrTbl.Add(layer);
+								tr.AddNewlyCreatedDBObject(layer, true);
+								layerCreated = true;
+							}
+							else
+							{
+								layerCreated = true;
 							}
 						}
 					}
+
+					tr.Commit();
 				}
 			}
 
-			return null;
-		}
+		return layerCreated;
+	}
 
-		/// <summary>
-		/// Проверка не заблокирован ли слой
-		/// </summary>
-		/// <param name="layerName">Имя слоя</param>
-		public static bool IsLockedLayer(string layerName)
+	/// <summary>
+	///     save layers to xml
+	/// </summary>
+	/// <param name="layerTableRecord">Instance of <see cref="LayerTableRecord" /></param>
+	/// <returns></returns>
+	public static XElement SetLayerXml(LayerTableRecord layerTableRecord)
+	{
+		if (layerTableRecord == null) return new XElement("LayerTableRecord");
+
+		using (Active.Document.LockDocument())
 		{
-			using (Active.Document.LockDocument())
-			{
-				using (var tr = Active.Database.TransactionManager.StartOpenCloseTransaction())
-				{
-					var lt = tr.GetObject(Active.Database.LayerTableId, OpenMode.ForRead) as LayerTable;
-					if (lt != null)
-					{
-						foreach (var layerId in lt)
-						{
-							var layer = tr.GetObject(layerId, OpenMode.ForRead) as LayerTableRecord;
-							if (layer != null && layer.Name.Equals(layerName))
-							{
-								return layer.IsLocked;
-							}
-						}
-					}
-				}
-			}
+			var layerTableRecordXml = new XElement("LayerTableRecord");
+			layerTableRecordXml.SetAttributeValue("Name", layerTableRecord.Name); // string
+			layerTableRecordXml.SetAttributeValue("IsFrozen", layerTableRecord.IsFrozen); // bool
+			layerTableRecordXml.SetAttributeValue("IsHidden", layerTableRecord.IsHidden); // bool
+			layerTableRecordXml.SetAttributeValue("Description", layerTableRecord.Description); // string
+			layerTableRecordXml.SetAttributeValue("IsLocked", layerTableRecord.IsLocked); // bool
+			layerTableRecordXml.SetAttributeValue("IsOff", layerTableRecord.IsOff); // bool
+			layerTableRecordXml.SetAttributeValue("IsPlottable", layerTableRecord.IsPlottable); // bool
+			layerTableRecordXml.SetAttributeValue("Color", layerTableRecord.Color.ColorIndex); // color
+			layerTableRecordXml.SetAttributeValue("Linetype",
+				Active.GetLineTypeName(layerTableRecord.LinetypeObjectId)); // ObjectId
+			layerTableRecordXml.SetAttributeValue("LineWeight", layerTableRecord.LineWeight); // LineWeight
+			layerTableRecordXml.SetAttributeValue("ViewportVisibilityDefault",
+				layerTableRecord.ViewportVisibilityDefault); // bool
 
-			return false;
+			return layerTableRecordXml;
 		}
+	}
 
-		/// <summary>
-		/// Создание слоя в текущем документе по данным, сохраненным в файле стилей
-		/// </summary>
-		/// <param name="layerXElement">Xml layer data node</param>
-		public static bool AddLayerFromXElement(XElement layerXElement)
+	// get layers from xml
+	private static LayerTableRecord GetLayerFromXml(XElement layerXElement)
+	{
+		var layerTblR = new LayerTableRecord();
+		var nameAttr = layerXElement?.Attribute("Name");
+
+		// string
+		if (nameAttr != null)
 		{
-			var layer = GetLayerFromXml(layerXElement);
-			var layerCreated = false;
-			if (layer != null)
-			{
-				using (Active.Document.LockDocument())
-				{
-					using (var tr = Active.Database.TransactionManager.StartTransaction())
-					{
-						using (var lyrTbl =
-							   tr.GetObject(Active.Database.LayerTableId, OpenMode.ForWrite) as LayerTable)
-						{
-							if (lyrTbl != null)
-							{
-								if (!lyrTbl.Has(layer.Name))
-								{
-									lyrTbl.Add(layer);
-									tr.AddNewlyCreatedDBObject(layer, true);
-									layerCreated = true;
-								}
-								else
-								{
-									layerCreated = true;
-								}
-							}
-						}
+			layerTblR.Name = nameAttr.Value;
+			layerTblR.Description = layerXElement.Attribute("Description")?.Value;
 
-						tr.Commit();
-					}
-				}
-			}
+			// bool
+			layerTblR.IsFrozen = bool.TryParse(layerXElement.Attribute("IsFrozen")?.Value, out var b) && b;
+			layerTblR.IsHidden = bool.TryParse(layerXElement.Attribute("IsHidden")?.Value, out b) && b;
+			layerTblR.IsLocked = bool.TryParse(layerXElement.Attribute("IsLocked")?.Value, out b) && b;
+			layerTblR.IsOff = bool.TryParse(layerXElement.Attribute("IsOff")?.Value, out b) && b;
+			layerTblR.IsPlottable = bool.TryParse(layerXElement.Attribute("IsPlottable")?.Value, out b) && b;
+			layerTblR.ViewportVisibilityDefault =
+				bool.TryParse(layerXElement.Attribute("ViewportVisibilityDefault")?.Value, out b) && b;
 
-			return layerCreated;
+			// color
+			layerTblR.Color = Color.FromColorIndex(
+				ColorMethod.ByAci,
+				short.TryParse(layerXElement.Attribute("Color")?.Value, out var sh) ? sh : short.Parse("7"));
+
+			// linetype
+			layerTblR.LinetypeObjectId = Active.GetLineTypeObjectId(layerXElement.Attribute("Linetype")?.Value);
+
+			// LineWeight
+			layerTblR.LineWeight = Enum.TryParse(layerXElement.Attribute("LineWeight")?.Value, out LineWeight lw)
+				? lw
+				: LineWeight.ByLineWeightDefault;
+
+			return layerTblR;
 		}
 
-		/// <summary>
-		/// save layers to xml
-		/// </summary>
-		/// <param name="layerTableRecord">Instance of <see cref="LayerTableRecord"/></param>
-		/// <returns></returns>
-		public static XElement SetLayerXml(LayerTableRecord layerTableRecord)
-		{
-			if (layerTableRecord == null)
-			{
-				return new XElement("LayerTableRecord");
-			}
-
-			using (Active.Document.LockDocument())
-			{
-				var layerTableRecordXml = new XElement("LayerTableRecord");
-				layerTableRecordXml.SetAttributeValue("Name", layerTableRecord.Name); // string
-				layerTableRecordXml.SetAttributeValue("IsFrozen", layerTableRecord.IsFrozen); // bool
-				layerTableRecordXml.SetAttributeValue("IsHidden", layerTableRecord.IsHidden); // bool
-				layerTableRecordXml.SetAttributeValue("Description", layerTableRecord.Description); // string
-				layerTableRecordXml.SetAttributeValue("IsLocked", layerTableRecord.IsLocked); // bool
-				layerTableRecordXml.SetAttributeValue("IsOff", layerTableRecord.IsOff); // bool
-				layerTableRecordXml.SetAttributeValue("IsPlottable", layerTableRecord.IsPlottable); // bool
-				layerTableRecordXml.SetAttributeValue("Color", layerTableRecord.Color.ColorIndex); // color
-				layerTableRecordXml.SetAttributeValue("Linetype",
-					Active.GetLineTypeName(layerTableRecord.LinetypeObjectId)); // ObjectId
-				layerTableRecordXml.SetAttributeValue("LineWeight", layerTableRecord.LineWeight); // LineWeight
-				layerTableRecordXml.SetAttributeValue("ViewportVisibilityDefault",
-					layerTableRecord.ViewportVisibilityDefault); // bool
-
-				return layerTableRecordXml;
-			}
-		}
-
-		// get layers from xml
-		private static LayerTableRecord GetLayerFromXml(XElement layerXElement)
-		{
-			var layerTblR = new LayerTableRecord();
-			var nameAttr = layerXElement?.Attribute("Name");
-
-			// string
-			if (nameAttr != null)
-			{
-				layerTblR.Name = nameAttr.Value;
-				layerTblR.Description = layerXElement.Attribute("Description")?.Value;
-
-				// bool
-				layerTblR.IsFrozen = bool.TryParse(layerXElement.Attribute("IsFrozen")?.Value, out var b) && b;
-				layerTblR.IsHidden = bool.TryParse(layerXElement.Attribute("IsHidden")?.Value, out b) && b;
-				layerTblR.IsLocked = bool.TryParse(layerXElement.Attribute("IsLocked")?.Value, out b) && b;
-				layerTblR.IsOff = bool.TryParse(layerXElement.Attribute("IsOff")?.Value, out b) && b;
-				layerTblR.IsPlottable = bool.TryParse(layerXElement.Attribute("IsPlottable")?.Value, out b) && b;
-				layerTblR.ViewportVisibilityDefault =
-					bool.TryParse(layerXElement.Attribute("ViewportVisibilityDefault")?.Value, out b) && b;
-
-				// color
-				layerTblR.Color = Color.FromColorIndex(
-					ColorMethod.ByAci,
-					short.TryParse(layerXElement.Attribute("Color")?.Value, out var sh) ? sh : short.Parse("7"));
-
-				// linetype
-				layerTblR.LinetypeObjectId = Active.GetLineTypeObjectId(layerXElement.Attribute("Linetype")?.Value);
-
-				// LineWeight
-				layerTblR.LineWeight = Enum.TryParse(layerXElement.Attribute("LineWeight")?.Value, out LineWeight lw)
-					? lw
-					: LineWeight.ByLineWeightDefault;
-
-				return layerTblR;
-			}
-
-			return null;
-		}
+		return null;
 	}
 }

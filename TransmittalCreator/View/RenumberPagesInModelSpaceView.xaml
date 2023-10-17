@@ -7,21 +7,20 @@
         xmlns:controls="clr-namespace:TransmittalCreator.Utils.Controls"
         xmlns:viewModels="clr-namespace:TransmittalCreator.ViewModels.ViewModels;assembly=TransmittalCreator.ViewModels"
         mc:Ignorable="d"
-        Title="" 
-        Height="350" Width="350" 
+        Title=""
+        Height="350" Width="350"
         MinHeight="250" MinWidth="300"
         Style="{DynamicResource WindowElementStyle}"
-        ResizeMode="NoResize" 
-        WindowStartupLocation="CenterScreen"
-        >
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
     <Window.DataContext>
-        <viewModels:RenumberPagesInModelSpaceVM></viewModels:RenumberPagesInModelSpaceVM>
+        <viewModels:RenumberPagesInModelSpaceVM />
     </Window.DataContext>
     <Window.Resources>
         <ResourceDictionary>
             <Style TargetType="{x:Type TextBlock}">
-                <Setter Property="VerticalAlignment" Value="Center"/>
-                <Setter Property="Margin" Value="2"/>
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="2" />
             </Style>
 
             <ResourceDictionary.MergedDictionaries>
@@ -33,23 +32,23 @@
     <DockPanel>
         <Grid VerticalAlignment="Stretch" Margin="8 2 8 0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
                 <RowDefinition Height="*" />
                 <RowDefinition />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Grid.Row="0">Numbering start:</TextBlock>
-            <TextBox Grid.Column="1" Grid.Row="0" Name="numberingStartTextbox" 
-                     Text="{Binding Path=RenumberStartValue}" 
-                     controls:NumberOnly.IsEnabled="True" 
+            <TextBox Grid.Column="1" Grid.Row="0" Name="numberingStartTextbox"
+                     Text="{Binding Path=RenumberStartValue}"
+                     controls:NumberOnly.IsEnabled="True"
                      Margin="8 0 8 0"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                      materialDesign:TextFieldAssist.HasClearButton="True">
@@ -63,14 +62,15 @@
                 </materialDesign:HintAssist.Hint>
             </TextBox>
 
-            <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">Insert total pages <!--<LineBreak/> Вставить кол-во Листов--></TextBlock>
-            <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox" 
+            <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">
+                Insert total pages <!--<LineBreak/> Вставить кол-во Листов--></TextBlock>
+            <CheckBox Grid.Column="1" Grid.Row="1" Name="numberingCheckbox"
                       Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}"
-                      IsChecked="{Binding InsertTotalPages, UpdateSourceTrigger=PropertyChanged}"/>
+                      IsChecked="{Binding InsertTotalPages, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center">Prefix </TextBlock>
-            <TextBox Grid.Column="1" Grid.Row="2" Name="prefixTextBox" 
-                     Text="{Binding Path=Prefix}" >
+            <TextBox Grid.Column="1" Grid.Row="2" Name="prefixTextBox"
+                     Text="{Binding Path=Prefix}">
                 <materialDesign:HintAssist.Hint>
                     <StackPanel
                         Orientation="Horizontal"
@@ -82,7 +82,7 @@
             </TextBox>
 
             <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center"> Suffix</TextBlock>
-            <TextBox Grid.Column="1" Grid.Row="3" Name="suffixTextBox" 
+            <TextBox Grid.Column="1" Grid.Row="3" Name="suffixTextBox"
                      Text="{Binding Path=Suffix}"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                      materialDesign:TextFieldAssist.HasClearButton="True"
@@ -97,29 +97,30 @@
                 </materialDesign:HintAssist.Hint>
             </TextBox>
 
-            <TextBlock Grid.Column="0" Grid.Row="4" >Sample</TextBlock>
-            <TextBlock Grid.Column="1" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding PageName}"/>
+            <TextBlock Grid.Column="0" Grid.Row="4">Sample</TextBlock>
+            <TextBlock Grid.Column="1" Grid.Row="4" x:Name="fileNameTextblock" Text="{Binding PageName}" />
 
-            <TextBlock Grid.Column="0" Grid.Row="5" 
-                      Margin="2 3 5 0">
-                Numbering order 
+            <TextBlock Grid.Column="0" Grid.Row="5"
+                       Margin="2 3 5 0">
+                Numbering order
             </TextBlock>
-            <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Horizontal" Margin="5" >
-                <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX" 
-                             IsChecked="{Binding IsX}"/>
-                <RadioButton Content="Y" Margin="2 0 5 0" Name="RadioButtonY" 
-                             IsChecked="{Binding IsY}"/>
-                <RadioButton Content="Select order" Margin="2 0 5 0" 
-                             IsChecked="{Binding IsSelectedOrder}" 
-                             x:Name="RadioButtonSelOrder"/>
+            <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Horizontal" Margin="5">
+                <RadioButton Content="X" Margin="2 0 5 0" Name="RadioButtonX"
+                             IsChecked="{Binding IsX}" />
+                <RadioButton Content="Y" Margin="2 0 5 0" Name="RadioButtonY"
+                             IsChecked="{Binding IsY}" />
+                <RadioButton Content="Select order" Margin="2 0 5 0"
+                             IsChecked="{Binding IsSelectedOrder}"
+                             x:Name="RadioButtonSelOrder" />
             </StackPanel>
-            
-            <Button Grid.Column="0" Name="createButton"  Grid.Row="6" Grid.ColumnSpan="2" VerticalAlignment="Center"
-                    TabIndex="1" 
-                    Command="{Binding RenumberPagesCommand}" 
-                    CommandParameter="Clicked">Renumber
+
+            <Button Grid.Column="0" Name="createButton" Grid.Row="6" Grid.ColumnSpan="2" VerticalAlignment="Center"
+                    TabIndex="1"
+                    Command="{Binding RenumberPagesCommand}"
+                    CommandParameter="Clicked">
+                Renumber
             </Button>
-            
+
         </Grid>
     </DockPanel>
 </Window>

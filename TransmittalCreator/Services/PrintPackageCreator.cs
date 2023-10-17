@@ -1,114 +1,110 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.PlottingServices;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Autodesk.AutoCAD.ApplicationServices.Core;
+using Autodesk.AutoCAD.PlottingServices;
+using Autodesk.AutoCAD.Publishing;
 using TransmittalCreator.Models;
 using TransmittalCreator.Models.Layouts;
 
-namespace TransmittalCreator.Services
+namespace TransmittalCreator.Services;
+
+public class PrintPackageCreator
 {
-    public class PrintPackageCreator
-    {
-        public List<PrintPackageModel> PrintPackageModels { get; set; } = new List<PrintPackageModel>();
-        private LayoutModelCollection LayoutModels { get; set; }
-        private string[] MainPageName = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009"};
+	private readonly string[] MainPageName = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
 
-        //TODO finish refactoring from here
-        public PrintPackageCreator(LayoutModelCollection layoutModels, string[] mainPageName)
-        {
-            LayoutModels = layoutModels;
-            MainPageName = mainPageName;
-            CreatePrintPackages();
-        }
+	//TODO finish refactoring from here
+	public PrintPackageCreator(LayoutModelCollection layoutModels, string[] mainPageName)
+	{
+		LayoutModels = layoutModels;
+		MainPageName = mainPageName;
+		CreatePrintPackages();
+	}
 
-        private void CreatePrintPackages()
-        {
-            var layoutModels = LayoutModels.LayoutModels;
-            string mainPageDocNum = "";
-            foreach (var layout in layoutModels)
-            {
-	            
-                var printModel = layout.PrintModel;
+	public List<PrintPackageModel> PrintPackageModels { get; set; } = new();
+	private LayoutModelCollection LayoutModels { get; }
 
-                if (printModel.StampViewName.Contains(MainPageName[0]) || printModel.StampViewName.Contains(MainPageName[1]))
-                {
-                    List<LayoutModel> layouts = new List<LayoutModel> { layout };
-                    PrintPackageModels.Add(new PrintPackageModel(printModel.DocNumber, layouts));
-                    mainPageDocNum = printModel.DocNumber;
-                }
-                else
-                {
-                    var printPackageModel = PrintPackageModels.FirstOrDefault(x => x.PdfFileName == mainPageDocNum);
-                    printPackageModel?.Layouts.Add(layout);
-                }
-            }
-        }
+	private void CreatePrintPackages()
+	{
+		var layoutModels = LayoutModels.LayoutModels;
+		var mainPageDocNum = "";
+		foreach (var layout in layoutModels)
+		{
+			var printModel = layout.PrintModel;
 
-        public void PublishAllPackages()
-        {
-            foreach (var package in PrintPackageModels)
-            {
-                PublishPackage(package);
-            }
-        }
+			if (printModel.StampViewName.Contains(MainPageName[0]) ||
+			    printModel.StampViewName.Contains(MainPageName[1]))
+			{
+				var layouts = new List<LayoutModel> { layout };
+				PrintPackageModels.Add(new PrintPackageModel(printModel.DocNumber, layouts));
+				mainPageDocNum = printModel.DocNumber;
+			}
+			else
+			{
+				var printPackageModel = PrintPackageModels.FirstOrDefault(x => x.PdfFileName == mainPageDocNum);
+				printPackageModel?.Layouts.Add(layout);
+			}
+		}
+	}
 
-        public void PublishPackage(PrintPackageModel package)
-        {
-            Document doc = Application.DocumentManager.MdiActiveDocument;
-            Database db = doc.Database;
+	public void PublishAllPackages()
+	{
+		foreach (var package in PrintPackageModels) PublishPackage(package);
+	}
 
-            short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
-            Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+	public void PublishPackage(PrintPackageModel package)
+	{
+		var doc = Application.DocumentManager.MdiActiveDocument;
+		var db = doc.Database;
 
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                DsdEntryCollection collection = new DsdEntryCollection();
-                foreach (var layoutModel in package.Layouts)
-                {
-                    DsdEntry entry = new DsdEntry();
-                    entry.DwgName = package.DwgPath + package.DwgFileName;
-                    entry.Layout = layoutModel.LayoutName;
-                    entry.Title = "Layout_" + layoutModel.LayoutName;
-                    entry.NpsSourceDwg = entry.DwgName;
-                    entry.Nps = "Setup1";
+		var bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
+		Application.SetSystemVariable("BACKGROUNDPLOT", 0);
 
-                    collection.Add(entry);
-                }
+		using (var tr = db.TransactionManager.StartTransaction())
+		{
+			var collection = new DsdEntryCollection();
+			foreach (var layoutModel in package.Layouts)
+			{
+				var entry = new DsdEntry();
+				entry.DwgName = package.DwgPath + package.DwgFileName;
+				entry.Layout = layoutModel.LayoutName;
+				entry.Title = "Layout_" + layoutModel.LayoutName;
+				entry.NpsSourceDwg = entry.DwgName;
+				entry.Nps = "Setup1";
 
-                DsdData dsdData = new DsdData();
-                dsdData.SheetType = SheetType.MultiPdf; //SheetType.MultiPdf
-                dsdData.ProjectPath = package.DwgPath;
-                dsdData.DestinationName =
-                    $"{dsdData.ProjectPath}{package.PdfFileName}.pdf";
-                if (System.IO.File.Exists(dsdData.DestinationName))
-                    System.IO.File.Delete(dsdData.DestinationName);
-                dsdData.SetDsdEntryCollection(collection);
-                string dsdFile = $"{dsdData.ProjectPath}{package.PdfFileName}.dsd";
+				collection.Add(entry);
+			}
 
-                dsdData.WriteDsd(dsdFile);
-                dsdData.ReadDsd(dsdFile);
+			var dsdData = new DsdData();
+			dsdData.SheetType = SheetType.MultiPdf; //SheetType.MultiPdf
+			dsdData.ProjectPath = package.DwgPath;
+			dsdData.DestinationName =
+				$"{dsdData.ProjectPath}{package.PdfFileName}.pdf";
+			if (File.Exists(dsdData.DestinationName))
+				File.Delete(dsdData.DestinationName);
+			dsdData.SetDsdEntryCollection(collection);
+			var dsdFile = $"{dsdData.ProjectPath}{package.PdfFileName}.dsd";
 
-                System.IO.File.Delete(dsdFile);
-                var plotConfig = PlotConfigManager.SetCurrentConfig("DWG_To_PDF_Uzle.pc3");
-                var publisher = Application.Publisher;
+			dsdData.WriteDsd(dsdFile);
+			dsdData.ReadDsd(dsdFile);
 
-                publisher.AboutToBeginPublishing +=
-                    new Autodesk.AutoCAD.Publishing.
-                        AboutToBeginPublishingEventHandler(
-                            Publisher_AboutToBeginPublishing);
-                dsdData.PromptForDwfName = false;
-                publisher.PublishExecute(dsdData, plotConfig);
-                tr.Commit();
-            }
+			File.Delete(dsdFile);
+			var plotConfig = PlotConfigManager.SetCurrentConfig("DWG_To_PDF_Uzle.pc3");
+			var publisher = Application.Publisher;
 
-            Application.SetSystemVariable("BACKGROUNDPLOT", bgPlot);
-        }
+			publisher.AboutToBeginPublishing +=
+				Publisher_AboutToBeginPublishing;
+			dsdData.PromptForDwfName = false;
+			publisher.PublishExecute(dsdData, plotConfig);
+			tr.Commit();
+		}
 
-        static void Publisher_AboutToBeginPublishing(object sender,
-            Autodesk.AutoCAD.Publishing.AboutToBeginPublishingEventArgs e)
-        {
-            Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nPublishing!!");
-        }
-    }
+		Application.SetSystemVariable("BACKGROUNDPLOT", bgPlot);
+	}
+
+	private static void Publisher_AboutToBeginPublishing(object sender,
+		AboutToBeginPublishingEventArgs e)
+	{
+		Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nPublishing!!");
+	}
 }
