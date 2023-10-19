@@ -7,7 +7,7 @@ using TransmittalCreator.DBCad;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels.ViewModels;
-using AcadUtils = Autodesk.AutoCAD.Internal.Utils;
+
 
 namespace TransmittalCreator.CadCommands;
 
@@ -74,10 +74,13 @@ public class RenumberBlockPagesCommand
 			totalPages, renumberVm.Prefix, renumberVm.Suffix);
 
 		tr.Commit();
+		
+
+		AcadUtils.GetInfoBubble("Листы успешно перенумерованы", "Перенумерование завершено");
 	}
 
 	private static Point3d GetUcsPoint3d(BlockReference blockReference)
 	{
-		return AcadUtils.UcsToDisplay(new Point3d(blockReference.Position.X, blockReference.Position.Y, 0), false);
+		return Autodesk.AutoCAD.Internal.Utils.UcsToDisplay(new Point3d(blockReference.Position.X, blockReference.Position.Y, 0), false);
 	}
 }

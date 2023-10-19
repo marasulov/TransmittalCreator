@@ -115,7 +115,7 @@ public class RenumberBlockPagesInLayoutCommand
 			trans.Commit();
 			Active.Editor.Regen();
 
-			AcadUtils.GetInfoBubble("Листы перенумерованы", "Перенумерование завершено");
+			AcadUtils.GetInfoBubble("Листы успешно перенумерованы", "Перенумерование завершено");
 		}
 	}
 

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Runtime;
 using TransmittalCreator.DBCad;
@@ -14,6 +16,7 @@ public static class CreatePdfCommand
 	[CommandMethod("CreatePdf")]
 	public static void CreatePdfName()
 	{
+		var printedPages = new List<string>();
 		Active.Document.SendStringToExecute("REGENALL ", true, false, true);
 		using var tr = Active.Database.TransactionManager.StartTransaction();
 		var selectAllBlocks = BlockUtils.SelectBlocksWithFilter();
@@ -49,9 +52,17 @@ public static class CreatePdfCommand
 		if (pdfCreatorVm.IsY) printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
 
 
-		foreach (var printModel in printModels) PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+		foreach (var printModel in printModels)
+		{
+			PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+			printedPages.Add(printModel.DocNumber +".pdf создан");
+		}
 
 		tr.Commit();
+
+		var joinedBubbleTexts = string.Join("\n", printedPages);
+		string drawingPath =  Path.GetDirectoryName(Application.DocumentManager. CurrentDocument.Database.Filename);
+		AcadUtils.GetInfoBubble("Создание файлов успешно завершено", joinedBubbleTexts, drawingPath);
 	}
 
 

@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using TransmittalCreator.DBCad;
@@ -14,6 +17,7 @@ public class CreateTransPdfCommand
 	public static void CreateTransmittalAndPdf()
 	{
 		var dict = new List<Sheet>();
+		var printedPages = new List<string>();
 		var printModels = new List<PrintModel>();
 		Active.Document.SendStringToExecute("REGENALL ", true, false, true);
 		using (var tr = Active.Database.TransactionManager.StartTransaction())
@@ -40,9 +44,17 @@ public class CreateTransPdfCommand
 
 			PrintUtils.CreateJsonFile(dict);
 
-			foreach (var printModel in printModels) PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+			foreach (var printModel in printModels)
+			{
+				PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+				printedPages.Add(printModel.DocNumber + ".pdf создан");
+			}
 
 			tr.Commit();
 		}
+
+		var joinedBubbleTexts = string.Join("\n", printedPages);
+		string drawingPath = Path.GetDirectoryName(Application.DocumentManager.CurrentDocument.Database.Filename);
+		AcadUtils.GetInfoBubble("Создание файлов успешно завершено", joinedBubbleTexts, drawingPath);
 	}
 }

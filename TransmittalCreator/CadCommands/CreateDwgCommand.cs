@@ -1,4 +1,5 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
+﻿using System.Collections.Generic;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
@@ -17,12 +18,13 @@ public class CreateDwgCommand
 	[CommandMethod("CreateDwg")]
 	public static void CreateDwg()
 	{
+		string drawingPath =  Path.GetDirectoryName(Application.DocumentManager. CurrentDocument.Database.Filename);
 		Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-
+		var createdFiles = new List<string>();
 		var layersDictionary = LayerManipulation.GetLayersIsBlockedCol();
 		if (Active.Document == null) return;
 		Active.Document.LockOrUnlockLayers(false, ignoreCurrent: false, lockZero: true);
-
+		
 		var isExec = true;
 		using (var tr = Active.Database.TransactionManager.StartTransaction())
 		{
@@ -51,7 +53,7 @@ public class CreateDwgCommand
 					if (blockNames.Contains(block.Name)) idArray.Add(objectId);
 
 				}
-
+				
 				foreach (ObjectId objectId in idArray)
 				{
 					var objectCopier = new ObjectCopier(objectId);
@@ -68,15 +70,19 @@ public class CreateDwgCommand
 					Active.Editor.WriteMessage("{0} сохранен", dwgFilename);
 
 					var newFileName = AcadUtils.ZoomFilesAndSave(dwgFilename);
+
 					File.Delete(dwgFilename);
 					File.Move(newFileName, dwgFilename);
+					createdFiles.Add(dwgFilename+" создан");
+					
 				}
 			}
 
 			Active.Document.LockLayers(layersDictionary);
 			tr.Commit();
 
-			AcadUtils.GetInfoBubble("Файлы успешно созданы", "Создание файлов завершено");
+			var joinedBubbleTexts = string.Join("\n", createdFiles);
+			AcadUtils.GetInfoBubble("Создание файлов успешно завершено", joinedBubbleTexts, drawingPath);
 		}
 	}
 }

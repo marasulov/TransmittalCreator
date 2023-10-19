@@ -71,7 +71,7 @@ public static class AcadUtils
 
 	/// <summary>
 	///     Открыть объект для чтения
-	/// </summary>
+	/// </summary>  
 	/// <typeparam name="T">Тип объекта</typeparam>
 	/// <param name="objectId">Идентификатор примитива</param>
 	/// <param name="openErased">Открыть с меткой "Стерто"</param>
@@ -180,9 +180,9 @@ public static class AcadUtils
 					var matWCS2DCS = Matrix3d.PlaneToWorld(vpTabRec.ViewDirection);
 					matWCS2DCS = Matrix3d.Displacement(vpTabRec.Target - Point3d.Origin) * matWCS2DCS;
 					matWCS2DCS = Matrix3d.Rotation(-vpTabRec.ViewTwist,
-						             vpTabRec.ViewDirection,
-						             vpTabRec.Target)
-					             * matWCS2DCS;
+									 vpTabRec.ViewDirection,
+									 vpTabRec.Target)
+								 * matWCS2DCS;
 					matWCS2DCS = matWCS2DCS.Inverse();
 					var extents = new Extents3d(db.Extmin, db.Extmax);
 					extents.TransformBy(matWCS2DCS);
@@ -202,7 +202,7 @@ public static class AcadUtils
 
 			newFileName = fileName.Substring(0, fileName.Length - 4) + "z.dwg";
 			var version = GetCurrentAcadVersion();
-			
+
 			db.SaveAs(newFileName, version);
 		}
 
@@ -212,7 +212,7 @@ public static class AcadUtils
 	public static DwgVersion GetCurrentAcadVersion()
 	{
 		string version = AcadUtils.GetAcadVersionInfo();
-		
+
 		DwgVersion dwgVersion = DwgVersion.Current;
 		if (version.Equals("2016"))
 		{
@@ -223,12 +223,20 @@ public static class AcadUtils
 
 	}
 
-	public static void GetInfoBubble(string bubbleText, string bubbleTitle)
+	public static void GetInfoBubble(string bubbleTitle, string joinedBubbleTexts,  string drawingPath = null)
 	{
 		var trayItemBubble = new TrayItemBubbleWindow();
-		trayItemBubble.Text = bubbleText; 
-		trayItemBubble.Title = bubbleTitle;
 		
+		trayItemBubble.Title = bubbleTitle;
+		trayItemBubble.Text = joinedBubbleTexts;
+
+		if (drawingPath != null)
+		{
+			trayItemBubble.HyperText = drawingPath;
+			trayItemBubble.HyperLink = drawingPath;
+		}
+		
+		trayItemBubble.IconType = IconType.Information;
 
 		var trayItem = new TrayItem();
 
@@ -238,33 +246,33 @@ public static class AcadUtils
 	}
 
 	public static string GetAcadVersionInfo()
-        {
-            // credit Gile: https://forums.autodesk.com/t5/net/which-autocad-vertical-am-i-using/m-p/6861378#M51975
+	{
+		// credit Gile: https://forums.autodesk.com/t5/net/which-autocad-vertical-am-i-using/m-p/6861378#M51975
 
-            var productKey = HostApplicationServices.Current.UserRegistryProductRootKey;
-            var groups = Regex.Match(productKey, @"ACAD-([0-9A-F])\d(\d{2}):([0-9A-F]{3})").Groups;
-            string release;
-            switch (groups[1].Value)
-            {
-                case "5": release = "2007"; break;
-                case "6": release = "2008"; break;
-                case "7": release = "2009"; break;
-                case "8": release = "2010"; break;
-                case "9": release = "2011"; break;
-                case "A": release = "2012"; break;
-                case "B": release = "2013"; break;
-                case "D": release = "2014"; break;
-                case "E": release = "2015"; break;
-                case "F": release = "2016"; break;
-                case "0": release = "2017"; break;
-                case "1": release = "2018"; break;
-                case "2": release = "2019"; break;
-                case "3": release = "2020"; break;
-                case "4": release = "2021"; break;
-                default: release = "unknown"; break;
-            }
-            
+		var productKey = HostApplicationServices.Current.UserRegistryProductRootKey;
+		var groups = Regex.Match(productKey, @"ACAD-([0-9A-F])\d(\d{2}):([0-9A-F]{3})").Groups;
+		string release;
+		switch (groups[1].Value)
+		{
+			case "5": release = "2007"; break;
+			case "6": release = "2008"; break;
+			case "7": release = "2009"; break;
+			case "8": release = "2010"; break;
+			case "9": release = "2011"; break;
+			case "A": release = "2012"; break;
+			case "B": release = "2013"; break;
+			case "D": release = "2014"; break;
+			case "E": release = "2015"; break;
+			case "F": release = "2016"; break;
+			case "0": release = "2017"; break;
+			case "1": release = "2018"; break;
+			case "2": release = "2019"; break;
+			case "3": release = "2020"; break;
+			case "4": release = "2021"; break;
+			default: release = "unknown"; break;
+		}
 
-            return release;
-        }
+
+		return release;
+	}
 }
