@@ -44,8 +44,7 @@ public class FileNameCreator
 			var btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
 
 			var docNumber = GetBlockAttributeValue(blkRef);
-			//formatValue = attrDict.FirstOrDefault(x => x.Key == "ФОРМАТ").Value;
-			//ed.WriteMessage("\nBlock:{0} - {1} габариты {2} -{3}", btr.Name, docNumber, posPoint2d.ToString(), formatValue);
+			
 			_printModels.Add(new PrintModel(docNumber, blkId));
 			btr.Dispose();
 		}
