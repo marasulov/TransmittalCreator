@@ -7,7 +7,6 @@ namespace TransmittalCreator.Models;
 public class FileModel : INotifyPropertyChanged
 {
 	private string fileName;
-	private string fileType;
 
 	public string FileName
 	{

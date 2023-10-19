@@ -14,7 +14,6 @@ public partial class LayoutTreeView : Window
 	//BlockViewModel _data;
 	public string _blockName;
 	public List<PrintPackageModel> _printPackages;
-	private LayoutTreeViewModel _unchekedTree;
 	public bool isClicked;
 
 	public LayoutTreeView(List<PrintPackageModel> printPackages)

@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
+using System.Collections.Generic;
+using System.Linq;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
@@ -11,7 +10,7 @@ using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
-using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
+
 
 namespace TransmittalCreator.CadCommands;
 
@@ -38,7 +37,7 @@ public class CreateLayoutTrCommand
 				var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
 
 				var window = new LayoutTreeView(packageCreator.PrintPackageModels);
-				Application.ShowModalWindow(window);
+				Autodesk.AutoCAD.ApplicationServices.Application.ShowModalWindow(window);
 
 				if (!window.isClicked) return;
 
@@ -56,7 +55,7 @@ public class CreateLayoutTrCommand
 				PrintUtils.CreateJsonFile(sheets);
 			}
 		}
-		catch (Exception e)
+		catch (Autodesk.AutoCAD.Runtime.Exception e)
 		{
 			Active.WriteMessage($"Произошла ошибка {e.ErrorStatus}");
 		}

@@ -40,7 +40,10 @@ public static class CreatePdfCommand
 		Active.WriteMessageInDebug($"{pdfCreatorVm.Prefix}");
 
 		selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
+		if (selectAllBlocks == null) return;
+
 		selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
+		if (selectedBlocksByName.Count <= 0) return;
 
 		var fileNameCreator = new FileNameCreator(pdfCreatorVm, selectedBlocksByName);
 

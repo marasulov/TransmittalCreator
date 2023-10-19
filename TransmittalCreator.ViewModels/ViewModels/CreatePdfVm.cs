@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using System.Windows.Threading;
-using TransmittalCreator.ViewModels.Annotations;
 using TransmittalCreator.ViewModels.Enums;
 using TransmittalCreator.ViewModels.ViewModels;
 
@@ -21,14 +16,11 @@ namespace TransmittalCreator.ViewModels
 		private string _fileName;
 		private string _suffix;
 		private string _prefix;
-		private string _renumberStartValue;
+		private string _renumberStartValue = "0";
 		private bool _isCheckedNumbering;
 		private bool _insertTotalPages;
 		private Ordering _ordering = Ordering.IsSelectedOrder;
 		private bool _isAttributeChecked;
-		private string _selectedItem;
-		private bool _isChecked;
-		private BlockAttribute _selectedBlockAttribute;
 
 		public CreatePdfVm()
 		{
@@ -98,7 +90,17 @@ namespace TransmittalCreator.ViewModels
 			get => _renumberStartValue;
 			set
 			{
-				Set(ref _renumberStartValue, value);
+				//Set(ref _renumberStartValue, value);
+				if (_renumberStartValue == value)
+				{
+					return;
+				}
+
+				if (IsCheckedNumbering & value == null)
+				{
+					_renumberStartValue = "0";
+				}
+				OnPropertyChanged();
 				FileName = Prefix + SelectedAttr?.AttributeValue + value + Suffix;
 				OnPropertyChanged(nameof(FileName));
 			}

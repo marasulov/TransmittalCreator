@@ -29,16 +29,11 @@ public class FileNameCreator
 		_isXChecked = createPdf.IsX;
 		_isYChecked = createPdf.IsY;
 		_attributeName = createPdf?.SelectedAttr?.AttributeName;
-		NumberingValue = Int32.Parse(createPdf.RenumberStartValue);
+		NumberingValue = createPdf.RenumberStartValue == null ? 0 : Int32.Parse(createPdf.RenumberStartValue);
 
 		_objectIdCollection = ids;
 	}
 
-	//public List<PrintModel> PrintModels
-	//{
-	//    get => _printModels;
-	//    set => _printModels = value;
-	//}
 	public int NumberingValue { get; set; }
 
 	public void GetPrintParametersToPdf(Transaction tr)

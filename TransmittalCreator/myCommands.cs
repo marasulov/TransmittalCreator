@@ -305,7 +305,6 @@ public class MyCommands : IExtensionApplication
 				ed.WriteMessage("\nBlock: " + btr.Name);
 				btr.Dispose();
 				var attCol = blkRef.AttributeCollection;
-				int circleId = default;
 				var blockX = blockPostion.X;
 				var blockY = blockPostion.Y;
 				var blockZ = blockPostion.Z;
