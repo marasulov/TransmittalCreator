@@ -5,18 +5,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:no="clr-namespace:TransmittalCreator.Utils.Controls"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        
         xmlns:viewModels="clr-namespace:TransmittalCreator.ViewModels;assembly=TransmittalCreator.ViewModels"
         mc:Ignorable="d"
         Title="CreatePdf"
         Height="310"
         Width="400"
-        ShowInTaskbar="False"
         WindowStartupLocation="CenterScreen"
         MinHeight="250"
         MinWidth="400"
-        Topmost="True"
-        Style="{DynamicResource WindowElementStyle}">
+        Style="{DynamicResource WindowElementStyle}" ResizeMode="NoResize">
 
     <Window.DataContext>
         <viewModels:CreatePdfVm />

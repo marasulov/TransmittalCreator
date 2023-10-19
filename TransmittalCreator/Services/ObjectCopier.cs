@@ -1,10 +1,12 @@
 ﻿using System;
 using System.IO;
-using Autodesk.AutoCAD.ApplicationServices.Core;
+using System.Windows;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Utils;
+using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 
 namespace TransmittalCreator.Services;
 
@@ -23,7 +25,7 @@ public class ObjectCopier
 
 	private void GetBlockLengths(ObjectId objectId)
 	{
-		var doc = Application.DocumentManager.MdiActiveDocument;
+		var doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
 
 		var acObjIdColl = new ObjectIdCollection();
 		var acCurDb = doc.Database;
@@ -47,9 +49,13 @@ public class ObjectCopier
 		}
 	}
 
+	/// <summary>
+	/// Выбор объектов по пересекающему полигону
+	/// </summary>
+	/// <returns></returns>
 	public ObjectIdCollection SelectCrossingWindow()
 	{
-		var doc = Application.DocumentManager.MdiActiveDocument;
+		var doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
 
 		var acObjIdColl = new ObjectIdCollection();
 		var acCurDb = doc.Database;
@@ -88,44 +94,43 @@ public class ObjectCopier
 
 	public void CopyObjectsNewDatabases(ObjectIdCollection acObjIdColl, string dwgFilename)
 	{
-		//ObjectIdCollection acObjIdColl = new ObjectIdCollection();
-		// Get the current document and database
+
 		var acDoc = Application.DocumentManager.MdiActiveDocument;
 		var acCurDb = acDoc.Database;
 
 		// Lock the new document
 		try
 		{
-			using (var db = new Database())
-			{
-				using (var acTrans = db.TransactionManager.StartTransaction())
-				{
-					// Open the Block table for read
-					BlockTable acBlkTblNewDoc;
-					acBlkTblNewDoc = acTrans.GetObject(db.BlockTableId,
-						OpenMode.ForRead) as BlockTable;
-					// Open the Block table record Model space for read
-					BlockTableRecord acBlkTblRecNewDoc;
-					acBlkTblRecNewDoc = acTrans.GetObject(acBlkTblNewDoc[BlockTableRecord.ModelSpace],
-						OpenMode.ForRead) as BlockTableRecord;
-					// Clone the objects to the new database
-					var acIdMap = new IdMapping();
-					acCurDb.WblockCloneObjects(acObjIdColl, acBlkTblRecNewDoc.ObjectId, acIdMap,
-						DuplicateRecordCloning.Ignore, false);
-					// Save the copied objects to the database
-					//ZoomObjects(acObjIdColl);
-					acTrans.Commit();
-				}
+			using var db = new Database();
 
-				db.SaveAs(dwgFilename, db.OriginalFileVersion);
-				var fi = new FileInfo(dwgFilename);
-				Active.Editor.WriteMessage("\nSize of {0}: {1}-{2}", dwgFilename, fi.Length, db.OriginalFileVersion);
+			using (Transaction acTrans = db.TransactionManager.StartTransaction())
+			{
+				// Open the Block table for read
+				BlockTable acBlkTblNewDoc = acTrans.GetObject(db.BlockTableId,
+					OpenMode.ForRead) as BlockTable;
+				// Open the Block table record Model space for read
+				BlockTableRecord acBlkTblRecNewDoc = acTrans.GetObject(acBlkTblNewDoc[BlockTableRecord.ModelSpace],
+					OpenMode.ForRead) as BlockTableRecord;
+				// Clone the objects to the new database
+				
+				var acIdMap = new IdMapping();
+				acCurDb.WblockCloneObjects(acObjIdColl, acBlkTblRecNewDoc.ObjectId, acIdMap,
+					DuplicateRecordCloning.Ignore, false);
+				// Save the copied objects to the database
+
+				acTrans.Commit();
 			}
+
+			var version = AcadUtils.GetCurrentAcadVersion();;
+			
+			db.SaveAs(dwgFilename, version);
+
 		}
 		catch (Exception e)
 		{
-			Console.WriteLine(e);
-			throw;
+			MessageBox.Show($"невозможно распечатать {e.Message}");
+
 		}
 	}
+
 }

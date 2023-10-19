@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Windows;
 using TransmittalCreator.DBCad;
@@ -23,7 +25,6 @@ public class RenumberBlockPagesInLayoutCommand
 	public static void RenumberBlockPagesInLayout()
 	{
 		var renumberVm = new RenumberPagesViewModel();
-
 		var renumberPagesView = new RenumberPagesInLayoutSpaceView(renumberVm);
 
 		renumberVm.OnRequestClose += (s, e) => renumberPagesView.Close();
@@ -34,7 +35,7 @@ public class RenumberBlockPagesInLayoutCommand
 		Active.WriteMessageInDebug(
 			$"InsertTotalPages = {renumberVm.InsertTotalPages}, RenumberLayouts - {renumberVm.RenumberLayouts}, DeleteEmptyLayouts - {renumberVm.DeleteEmptyLayouts} ");
 
-		//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
+		Active.Document.SendStringToExecute("_QSAVE ", true, false, false);
 
 		var blockNames = FileManager.GetBlockNames();
 		var dynamicBlocks = new DynamicBlockFinder(blockNames);
@@ -46,6 +47,7 @@ public class RenumberBlockPagesInLayoutCommand
 
 			var blockReferences = new List<BlockReference>();
 			//BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "Page", "Лист" });
+
 			layoutModelCollection.SetPrintModels(trans);
 			layoutModelCollection.SetLayoutPlotSetting();
 			layoutModelCollection.DynamicBlocks.GetLayoutsWithDynBlocks(trans, layoutModelCollection.LayoutModels);
@@ -91,7 +93,7 @@ public class RenumberBlockPagesInLayoutCommand
 						{
 							var layout = trans.GetObject(btr.LayoutId, OpenMode.ForWrite) as Layout;
 							if ((layout != null) & !layout.LayoutName.Equals("Model") &
-							    (attributeValue != layoutModel.LayoutName))
+								(attributeValue != layoutModel.LayoutName))
 							{
 								errorValue = attributeValue;
 								layout.LayoutName = attributeValue;
@@ -113,15 +115,7 @@ public class RenumberBlockPagesInLayoutCommand
 			trans.Commit();
 			Active.Editor.Regen();
 
-			var trayItemBubble = new TrayItemBubbleWindow();
-			trayItemBubble.Text = "Листы перенумерованы";
-			trayItemBubble.Title = "Перенумерование завершено";
-
-			var trayItem = new TrayItem();
-
-			Application.StatusBar.TrayItems.Add(trayItem);
-			trayItem.ShowBubbleWindow(trayItemBubble);
-			Application.StatusBar.Update();
+			AcadUtils.GetInfoBubble("Листы перенумерованы", "Перенумерование завершено");
 		}
 	}
 
@@ -138,4 +132,6 @@ public class RenumberBlockPagesInLayoutCommand
 
 		return null;
 	}
+
+
 }

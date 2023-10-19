@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Autodesk.AutoCAD.ApplicationServices.Core;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
@@ -11,6 +11,7 @@ using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
+using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 
 namespace TransmittalCreator.CadCommands;
 
@@ -23,8 +24,7 @@ public class CreateLayoutTrCommand
 		{
 			using (var trans = Active.Database.TransactionManager.StartTransaction())
 			{
-				var allPath = FileManager.GetFilePath();
-				//Active.Database.SaveAs(allPath, true, DwgVersion.Current, Active.Database.SecurityParameters);
+				Active.Document.SendStringToExecute("_QSAVE ", true, false, false);
 				var blockNames = FileManager.GetBlockNames();
 				var dynamicBlocks = new DynamicBlockFinder(blockNames);
 				var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
@@ -32,7 +32,7 @@ public class CreateLayoutTrCommand
 				layoutModelCollection.ListLayouts("Model");
 				layoutModelCollection.CreateLayoutCollection();
 				layoutModelCollection.SetPrintModels(trans);
-
+				layoutModelCollection.SetLayoutPlotSetting();
 				string[] viewNames = { "Форма 3 ГОСТ Р 21.1101-2009 M25", "Форма 3 ГОСТ Р 21.1101-2009" };
 
 				var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);

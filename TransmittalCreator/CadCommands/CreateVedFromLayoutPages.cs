@@ -9,7 +9,7 @@ namespace TransmittalCreator.CadCommands;
 
 public static class CreateVedFromLayoutPages
 {
-	[CommandMethod("CreateVedFromLayout")]
+	//[CommandMethod("CreateVedFromLayout")]
 	public static void CreateVedFromLayout()
 	{
 		var allPath = FileManager.GetFilePath();
