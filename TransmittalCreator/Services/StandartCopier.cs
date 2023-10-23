@@ -9,12 +9,18 @@ namespace TransmittalCreator.Services;
 
 public class StandartCopier
 {
+
 	//private string confFile = @"\\uz-fs\Install\CAD\Blocks\conf.json";
-	private readonly string confFile =
-		Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
+
+
 
 	public StandartCopier()
 	{
+		string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
+#if DEBUG
+		confFile = "D:\\data\\source\\repos\\TransmittalCreator\\TransmittalCreator\\conf.json";
+#endif
+
 		var jsonFile = File.ReadAllText(confFile);
 		var deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 

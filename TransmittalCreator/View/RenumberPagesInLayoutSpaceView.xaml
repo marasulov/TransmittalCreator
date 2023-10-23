@@ -116,7 +116,9 @@
                        Text="{Binding PageName}"
                        materialDesign:TextBlockAssist.AutoToolTip="True" />
 
-            <Button Grid.Column="0" Name="createButton" Grid.Row="7" Grid.ColumnSpan="2" VerticalAlignment="Center"
+            <Button Grid.Column="0" Name="createButton" Grid.Row="7" 
+                    Grid.ColumnSpan="2" VerticalAlignment="Center"
+                    IsDefault="True"
                     TabIndex="1"
                     Command="{Binding RenumberPagesCommand}"
                     CommandParameter="Clicked">

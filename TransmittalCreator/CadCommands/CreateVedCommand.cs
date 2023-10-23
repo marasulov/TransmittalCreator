@@ -10,6 +10,7 @@ using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 
 namespace TransmittalCreator.CadCommands;
@@ -47,18 +48,13 @@ public class CreateVedCommand
 				if (!(block is null))
 				{
 					var blockName = block.Name;
-
-					var jsonFile = File.ReadAllText(Path.Combine(
-						Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
-					var deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
-
-					//if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
-					if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
+					var blockNames = FileManager.GetBlockNames();
+					if (blockNames.Contains(blockName)) idArray.Add(objectId);
 				}
 			}
 
 			PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-			var selAttrName = "НОМЕР_ЛИСТА";
+			const string selAttrName = "НОМЕР_ЛИСТА";
 
 			var dictOrdered = dict.OrderBy(x => x.MinPointX).ToList();
 			PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);

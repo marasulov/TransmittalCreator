@@ -1,12 +1,9 @@
-﻿using System;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Runtime;
-using Autodesk.AutoCAD.Windows;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services.Blocks;
@@ -14,7 +11,6 @@ using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
-using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
 
 namespace TransmittalCreator.CadCommands;
@@ -52,8 +48,6 @@ public class RenumberBlockPagesInLayoutCommand
 			layoutModelCollection.SetLayoutPlotSetting();
 			layoutModelCollection.DynamicBlocks.GetLayoutsWithDynBlocks(trans, layoutModelCollection.LayoutModels);
 
-			//layoutModelCollection.ExcludeEmptyLayout();
-
 			var blocksList = layoutModelCollection.LayoutModels.Select(x => x.BlocksObjectId).ToList();
 			if (blocksList.Count == 0) return;
 			blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForRead))
@@ -85,20 +79,25 @@ public class RenumberBlockPagesInLayoutCommand
 					//var layouts = DatabaseExtension.GetLayouts(Active.Database, mode:OpenMode.ForWrite);
 					foreach (var layoutModel in layoutModelCollection.LayoutModels)
 					{
-						var attributeValue = GetAttributeValueByTag(layoutModel.BlocksObjectId, "page");
-						var btr =
-							trans.GetObject(layoutModel.Layout.BlockTableRecordId,
-								OpenMode.ForRead) as BlockTableRecord;
-						if ((btr != null) & btr.IsLayout)
+						foreach (var page in new string[]{"Лист2_Спец","Лист"})
 						{
-							var layout = trans.GetObject(btr.LayoutId, OpenMode.ForWrite) as Layout;
-							if ((layout != null) & !layout.LayoutName.Equals("Model") &
-								(attributeValue != layoutModel.LayoutName))
+							var attributeValue = GetAttributeValueByTag(layoutModel.BlocksObjectId, page);
+							var btr =
+								trans.GetObject(layoutModel.Layout.BlockTableRecordId,
+									OpenMode.ForRead) as BlockTableRecord;
+							if ((btr != null) & btr.IsLayout)
 							{
-								errorValue = attributeValue;
-								layout.LayoutName = attributeValue;
+								var layout = trans.GetObject(btr.LayoutId, OpenMode.ForWrite) as Layout;
+								if ((layout != null) & !layout.LayoutName.Equals("Model") &
+								    (attributeValue != layoutModel.LayoutName))
+								{
+									errorValue = attributeValue;
+									layout.LayoutName = attributeValue;
+								}
 							}
 						}
+
+						
 					}
 				}
 				catch (Exception aex)
@@ -109,7 +108,13 @@ public class RenumberBlockPagesInLayoutCommand
 							$"Перенумерование отменено Лист {errorValue} существуют, попробуйте сначала изменить с добавлением префикса");
 						return;
 					}
+					else
+					{
+						MessageBox.Show(
+							$"Перенумерование прервано, произошла ошибка {aex.Message}");
+					}
 				}
+
 			}
 
 			trans.Commit();
