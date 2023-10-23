@@ -20,13 +20,13 @@ public class CreateVedCommand
 	[CommandMethod("CreateVed")]
 	public static void CreateVed()
 	{
-		var dict = new List<Sheet>();
-		var printModels = new List<PrintModel>();
+		List<Sheet> dict = new List<Sheet>();
+		List<PrintModel> printModels = new List<PrintModel>();
 		Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-		using (var tr = Active.Database.TransactionManager.StartTransaction())
+		using (Transaction tr = DBCad.Active.Database.TransactionManager.StartTransaction())
 		{
 			//фильтр для выбора только блока
-			var blockSelector = new BlockSelector();
+			BlockSelector blockSelector = new BlockSelector();
 			blockSelector.GetFilterForSelectBlockId();
 			var res = blockSelector.SelectionResult;
 
@@ -36,25 +36,29 @@ public class CreateVedCommand
 				return;
 			}
 
-			var selSet = res.Value;
-			var idArrayTemp = selSet.GetObjectIds();
+			SelectionSet selSet = res.Value;
+			ObjectId[] idArrayTemp = selSet.GetObjectIds();
 
-			var idArray = new ObjectIdCollection();
+			ObjectIdCollection idArray = new ObjectIdCollection();
 			foreach (var objectId in idArrayTemp)
 			{
-				var blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-				var block =
+				BlockReference blRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
+				BlockTableRecord block =
 					tr.GetObject(blRef.DynamicBlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
 				if (!(block is null))
 				{
-					var blockName = block.Name;
-					var blockNames = FileManager.GetBlockNames();
-					if (blockNames.Contains(blockName)) idArray.Add(objectId);
+					string blockName = block.Name;
+
+					string jsonFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json"));
+					Params deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
+
+					//if (blockName == "Формат" | blockName == "ФорматM25") idArray.Add(objectId);
+					if (deserializeObject.StampName.Contains(blockName)) idArray.Add(objectId);
 				}
 			}
 
 			PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
-			const string selAttrName = "НОМЕР_ЛИСТА";
+			string selAttrName = "НОМЕР_ЛИСТА";
 
 			var dictOrdered = dict.OrderBy(x => x.MinPointX).ToList();
 			PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
