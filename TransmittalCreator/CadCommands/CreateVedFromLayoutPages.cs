@@ -353,12 +353,9 @@ public static class CreateVedFromLayoutPages
 	}
 
 
-	[CommandMethod("CreateVedFromLayout")]
+	//[CommandMethod("CreateVedFromLayout")]
 	public static void CreateVedFromLayout()
 	{
-		//		var version = AcadUtils.GetCurrentAcadVersion();;
-		//		var allPath = FileManager.GetFilePath();
-
 		Active.Document.SendStringToExecute("_QSAVE ", true, false, false);
 		var blockNames = FileManager.GetBlockNames();
 		var dynamicBlocks = new DynamicBlockFinder(blockNames);
@@ -370,33 +367,17 @@ public static class CreateVedFromLayoutPages
 
 		layoutModelCollection.CreateCollectionFromBlockNames(trans);
 
-		//BlockUtils.BlockAttributeEnumerator(blockReferences, new[] { "Page", "Лист" });
-
-		//layoutModelCollection.SetPrintModels(trans); 
-		//layoutModelCollection.SetLayoutPlotSetting();
-		layoutModelCollection.DynamicBlocks.GetLayoutsWithDynBlocks(trans, layoutModelCollection.LayoutModels);
-
-		var blocksList = layoutModelCollection.DynamicBlocks.BlockRefIds;
-		if (blocksList.Count == 0) return;
-
-
-		//blockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForRead))
-		//	.OfType<BlockReference>());
-		//LayoutManager layoutManager = LayoutManager.Current;
-		SetCurrentLayoutTab(layoutModelCollection.LayoutModels[0].LayoutName);
+		var blocksList = layoutModelCollection.BlockReferences.Select(x=>x.ObjectId).ToArray();
+		if (blocksList.Length == 0) return;
 
 		//TODO данные для таблицы
 		var dict = new List<Sheet>();
-		PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, trans, blocksList);
+		PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, trans, new ObjectIdCollection(blocksList));
 		PrintUtils.CreateOnlyVed(dict);
 		trans.Commit();
 	}
-	public static void SetCurrentLayoutTab(string tab)
-	{
-		var doc = Application.DocumentManager.MdiActiveDocument;
-		using (doc.LockDocument())
-			LayoutManager.Current.CurrentLayout = tab;
-	}
+
+
 	//[CommandMethod("CreateCircleInPS")]
 	public static void Test_CreateCircleInPS()
 	{

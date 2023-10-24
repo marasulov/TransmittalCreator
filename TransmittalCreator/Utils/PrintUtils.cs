@@ -533,23 +533,24 @@ public static class PrintUtils
 
 	public static void CreateOnlyVed(List<Sheet> dict, double scale = 1)
 	{
-		var ed = Active.Editor;
 		
+		var ed = Active.Editor;
+		var tr = Active.Database.TransactionManager.StartTransaction();
 		// Start the transaction
 		try
 		{
 			//GetSheetsFromBlocks(ed, dict, tr);
 			CreateTableFromList(dict, scale);
-			
+			tr.Commit();
 		}
 		catch (Exception ex)
 		{
 			ed.WriteMessage("Exception: " + ex.Message + " " + ex.InnerException);
 		}
-		//finally
-		//{
-		//	tr.Dispose();
-		//}
+		finally
+		{
+			tr.Dispose();
+		}
 	}
 
 	public static void CreateOnlytrans(List<Sheet> dict)
@@ -585,7 +586,7 @@ public static class PrintUtils
 			//Active.Editor.SwitchToPaperSpace();
 			
 			var bt = (Db.BlockTable)tr.GetObject(db.BlockTableId, Db.OpenMode.ForRead);
-			var btr = (Db.BlockTableRecord)tr.GetObject(bt[BlockTableRecord.PaperSpace], Db.OpenMode.ForWrite);
+			var btr = (Db.BlockTableRecord)tr.GetObject(db.CurrentSpaceId, Db.OpenMode.ForWrite);
 			var tb = new Db.Table();
 			tb.TableStyle = db.Tablestyle;
 			
