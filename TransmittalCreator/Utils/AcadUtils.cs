@@ -245,7 +245,7 @@ public static class AcadUtils
 		Application.StatusBar.Update();
 	}
 
-	public static string GetAcadVersionInfo()
+	private static string GetAcadVersionInfo()
 	{
 		// credit Gile: https://forums.autodesk.com/t5/net/which-autocad-vertical-am-i-using/m-p/6861378#M51975
 
@@ -271,7 +271,6 @@ public static class AcadUtils
 			case "4": release = "2021"; break;
 			default: release = "unknown"; break;
 		}
-
 
 		return release;
 	}

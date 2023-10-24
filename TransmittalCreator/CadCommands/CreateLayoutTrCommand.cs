@@ -3,6 +3,7 @@ using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
 using System.Collections.Generic;
 using System.Linq;
+using Autodesk.AutoCAD.ApplicationServices;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services;
@@ -37,7 +38,7 @@ public class CreateLayoutTrCommand
 				var packageCreator = new PrintPackageCreator(layoutModelCollection, viewNames);
 
 				var window = new LayoutTreeView(packageCreator.PrintPackageModels);
-				Autodesk.AutoCAD.ApplicationServices.Application.ShowModalWindow(window);
+				Application.ShowModalWindow(window);
 
 				if (!window.isClicked) return;
 
@@ -55,7 +56,7 @@ public class CreateLayoutTrCommand
 				PrintUtils.CreateJsonFile(sheets);
 			}
 		}
-		catch (Autodesk.AutoCAD.Runtime.Exception e)
+		catch (Exception e)
 		{
 			Active.WriteMessage($"Произошла ошибка {e.ErrorStatus}");
 		}

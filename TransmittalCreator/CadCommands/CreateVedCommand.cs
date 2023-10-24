@@ -10,6 +10,7 @@ using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
+using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
 
 namespace TransmittalCreator.CadCommands;

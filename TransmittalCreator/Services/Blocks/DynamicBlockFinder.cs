@@ -48,7 +48,7 @@ public class DynamicBlockFinder
 	}
 
 	/// <summary>
-	///     записывает id блока в блок layout'a
+	///  записывает id блока в блок layout'a
 	/// </summary>
 	/// <param name="trans"></param>
 	/// <param name="layoutModels"></param>

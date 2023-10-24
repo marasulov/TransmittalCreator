@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Internal;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Services.Files;
 using AcApp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 
 namespace TransmittalCreator;
@@ -100,12 +102,11 @@ public static class CommandsWatcher
 							if (block != null)
 							{
 								blockName = block.Name;
-								ed.WriteMessage("Block name is : "
-								                + block.Name + "\n");
-								if ((blockName == "Формат") | (blockName == "ФорматM25"))
+								var blockNames = FileManager.GetBlockNames();
+								if (blockNames.Contains(blockName))
 								{
 									e.Veto();
-									AcApp.ShowAlertDialog("Редактирование этого блока запрещено");
+									AcApp.ShowAlertDialog("Редактирование этого блока запрещено / Editing this block is prohibited");
 								}
 							}
 

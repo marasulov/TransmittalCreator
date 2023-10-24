@@ -6,10 +6,12 @@ using System.Linq;
 using System.Windows;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.Colors;
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
+
 using iTextSharp.text.pdf;
 using Newtonsoft.Json;
 using TransmittalCreator.DBCad;
@@ -18,6 +20,7 @@ using TransmittalCreator.Services;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
+using Active = TransmittalCreator.DBCad.Active;
 
 namespace TransmittalCreator.Utils;
 
@@ -239,7 +242,7 @@ public static class PrintUtils
 		return attrList;
 	}
 
-	public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Db.Transaction tr,
+	public static void GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Db.Transaction tr,
 		Db.ObjectIdCollection idArray)
 	{
 		// Build a filter list so that only
@@ -265,45 +268,55 @@ public static class PrintUtils
 
 				var stampViewValue = GetBlockAttributeValueByAttrName(blkRef);
 				var btr = (Db.BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, Db.OpenMode.ForRead);
-				ed.WriteMessage("\nBlock: " + btr.Name);
+
 				btr.Dispose();
 				var attCol = blkRef.AttributeCollection;
 
-				foreach (Db.ObjectId attId in attCol)
-				{
-					var attRef = (Db.AttributeReference)tr.GetObject(attId, Db.OpenMode.ForRead);
-					//ed.WriteMessage("\n{0} значение {1} видимость {2}", attRef.Tag, attRef.TextString, vis.ToString());
-					switch (attRef.Tag)
-					{
-						case "НОМЕР_ЛИСТА":
-							docNumber = attRef.TextString;
-							break;
-						case "НАЗВАНИЕEN":
-							objectNameEng = attRef.TextString;
-							break;
-						case "ЛИСТEN":
-							docTitleEng = attRef.TextString;
-							break;
-						case "НАЗВАНИЕRU":
-							objectNameRu = attRef.TextString;
-							break;
-						case "НАЗВАНИЕ_ЛИСТАRU":
-							docTitleRu = attRef.TextString;
-							break;
-						case "НАЗВАНИЕ_ЛИСТА":
-							docTitleRu = attRef.TextString;
-							break;
-						case "ЛИСТ":
-							sheetNumber = attRef.TextString;
-							break;
-					}
-				}
-
-				dict.Add(new Sheet(sheetNumber.Trim(), docNumber.Trim(), objectNameEng.Trim(), docTitleEng.Trim(),
-					objectNameRu.Trim(), docTitleRu.Trim(), stampViewValue.Trim(), minPointX));
+				dict.Add(CreateSheetFromAttributs(attCol, tr, stampViewValue.Trim(), minPointX));
 			}
+	}
 
-		return dict;
+	private static Sheet CreateSheetFromAttributs(Db.AttributeCollection attCol, Db.Transaction tr, string stampViewValue, double minPointX)
+	{
+		string sheetNumber = "",
+			docNumber = "",
+			objectNameEng = "",
+			docTitleEng = "",
+			objectNameRu = "",
+			docTitleRu = "";
+
+		foreach (Db.ObjectId attId in attCol)
+		{
+			var attRef = (Db.AttributeReference)tr.GetObject(attId, Db.OpenMode.ForRead);
+
+			switch (attRef.Tag)
+			{
+				case "НОМЕР_ЛИСТА":
+					docNumber = attRef.TextString;
+					break;
+				case "НАЗВАНИЕEN":
+					objectNameEng = attRef.TextString;
+					break;
+				case "ЛИСТEN":
+					docTitleEng = attRef.TextString;
+					break;
+				case "НАЗВАНИЕRU":
+					objectNameRu = attRef.TextString;
+					break;
+				case "НАЗВАНИЕ_ЛИСТАRU":
+					docTitleRu = attRef.TextString;
+					break;
+				case "НАЗВАНИЕ_ЛИСТА":
+					docTitleRu = attRef.TextString;
+					break;
+				case "ЛИСТ":
+					sheetNumber = attRef.TextString;
+					break;
+			}
+		}
+
+		return new Sheet(sheetNumber.Trim(), docNumber.Trim(), objectNameEng.Trim(), docTitleEng.Trim(),
+			objectNameRu.Trim(), docTitleRu.Trim(), stampViewValue.Trim(), minPointX);
 	}
 
 	/// <summary>
@@ -520,6 +533,7 @@ public static class PrintUtils
 
 	public static void CreateOnlyVed(List<Sheet> dict, double scale = 1)
 	{
+		
 		var ed = Active.Editor;
 		var tr = Active.Database.TransactionManager.StartTransaction();
 		// Start the transaction
@@ -559,27 +573,30 @@ public static class PrintUtils
 	public static void CreateTableFromList(List<Sheet> dict, double scale = 1)
 	{
 		//dict = dict.OrderBy(x => x.SheetNumber).ToList();
-		var db = Active.Database;
+		
+		var db = HostApplicationServices.WorkingDatabase;
 		var ed = Active.Editor;
 		using (var tr = db.TransactionManager.StartTransaction())
 		{
-			var pr = ed.GetPoint("\nEnter table insertion point: ");
+			PromptPointOptions prOpt = new PromptPointOptions("\nEnter table insertion point: ");
+			PromptPointResult pr = ed.GetPoint(prOpt);
+
+			if (pr.Status != PromptStatus.OK) return;
+			//Application.SetSystemVariable("TILEMODE", 0);
+			//Active.Editor.SwitchToPaperSpace();
+			
 			var bt = (Db.BlockTable)tr.GetObject(db.BlockTableId, Db.OpenMode.ForRead);
-			var msId = bt[Db.BlockTableRecord.ModelSpace];
-			var btr = (Db.BlockTableRecord)tr.GetObject(msId, Db.OpenMode.ForWrite);
+			var btr = (Db.BlockTableRecord)tr.GetObject(db.CurrentSpaceId, Db.OpenMode.ForWrite);
 			var tb = new Db.Table();
 			tb.TableStyle = db.Tablestyle;
-			//tb.TableStyle = db.Tablestyle;
+			
 			btr.AppendEntity(tb);
-			// Число строк
+			
 			var RowsNum = dict.Count;
-			// Число столбцов
 			var ColumnsNum = 3;
-			// Высота строки
 			var rowheight = 8 * scale;
-			// Ширина столбца
 			var columnwidth = 15 * scale;
-			// Добавляем строки и колонки
+			
 			tb.InsertRows(0, rowheight, RowsNum + 1);
 			tb.InsertColumns(0, columnwidth, ColumnsNum - 1);
 			tb.SetRowHeight(rowheight);
@@ -592,7 +609,7 @@ public static class PrintUtils
 			range.Borders.Bottom.IsVisible = true;
 			range.Borders.Left.IsVisible = false;
 			range.Borders.Right.IsVisible = false;
-			//var row = tb.Rows[RowsNum];
+			
 			range = Db.CellRange.Create(tb, 1, 1, 1, 2);
 			tb.UnmergeCells(range);
 			tb.Columns[0].Width = 15 * scale;
@@ -606,13 +623,11 @@ public static class PrintUtils
 			tb.Cells[1, 0].TextString = "Лист";
 
 			tb.Columns[1].Width = 140 * scale;
-
-			tb.Cells[1, 1].TextString = "Наименование";
+						tb.Cells[1, 1].TextString = "Наименование";
 
 			tb.Columns[2].Width = 30 * scale;
-
 			tb.Cells[1, 2].TextString = "Примечание";
-			//заполняем по одной все ячейки
+			
 			var curRow = 2;
 			var i = 0;
 			foreach (var item in dict)
@@ -634,8 +649,6 @@ public static class PrintUtils
 					}
 				}
 
-				//tb.Cells[curRow, 6].TextString = item.DocTitleEng;
-				//tb.Cells[curRow, 4].TextString = item.DocTitleRu;
 				curRow++;
 			}
 
@@ -805,7 +818,7 @@ public static class PrintUtils
 		options.AddAllowedClass(typeof(Db.BlockReference), false);
 		var acSSPrompt = ed.GetEntity(options);
 		using (var tx =
-		       db.TransactionManager.StartTransaction())
+			   db.TransactionManager.StartTransaction())
 		{
 			var blockRef = tx.GetObject(acSSPrompt.ObjectId,
 				Db.OpenMode.ForRead) as Db.BlockReference;
@@ -817,7 +830,7 @@ public static class PrintUtils
 				block = tx.GetObject(blockRef.BlockTableRecord, Db.OpenMode.ForRead) as Db.BlockTableRecord;
 			if (block != null)
 				ed.WriteMessage("Block name is : "
-				                + block.Name + "\n");
+								+ block.Name + "\n");
 			tx.Commit();
 		}
 	}
@@ -953,7 +966,7 @@ public static class PrintUtils
 							{
 								//получаем первую страницу
 								using (var document2 =
-								       new iTextSharp.text.Document(pdfReader.GetPageSizeWithRotation(1)))
+									   new iTextSharp.text.Document(pdfReader.GetPageSizeWithRotation(1)))
 								{
 									//открываем страницу
 									document2.Open();

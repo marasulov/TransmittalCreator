@@ -162,14 +162,10 @@ public class LayoutModelCollection
 		var blocksList = LayoutModels.Select(x => x.BlocksObjectId).ToList();
 		if (blocksList.Count == 0) return;
 
-		//TODO сюда вставить нумерацию листов
 		BlockReferences = new List<BlockReference>();
 		BlockReferences.AddRange(blocksList.Select(blockRefId => blockRefId.GetObject(OpenMode.ForWrite))
 			.OfType<BlockReference>());
 
-		//BlockUtils.BlockAttributeEnumerator(blockReferences,new []{"Page", "Лист"});
-		//SetPrintModels(trans);
-		//SetLayoutPlotSetting();
 	}
 
 	public void CreateLayoutCollection()
