@@ -663,7 +663,7 @@ public class MyCommands : IExtensionApplication
 		ed.WriteMessage("\nNo longer watching folder.");
 	}
 
-	//[CommandMethod("MYSL")]
+	[CommandMethod("MYSL")]
 	public static void SplinedLeader()
 	{
 		var doc
@@ -704,7 +704,7 @@ public class MyCommands : IExtensionApplication
 		}
 	}
 
-	//[CommandMethod("DL")]
+	[CommandMethod("DL")]
 	public void DirectionalLeader()
 	{
 		var doc = Application.DocumentManager.MdiActiveDocument;
@@ -979,9 +979,9 @@ public class MyCommands : IExtensionApplication
 
 	#endregion
 
-	#region
+	#region 
 
-	//[CommandMethod("JigLine")]
+	[CommandMethod("JigLine")]
 	public static void JigLine()
 	{
 		var doc = Application.DocumentManager.MdiActiveDocument;

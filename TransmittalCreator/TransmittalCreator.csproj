@@ -154,6 +154,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\DefaultEntityJig.cs" />
     <Compile Include="CadCommands\BlockExtCommand.cs" />
     <Compile Include="CadCommands\CreateCombinedPdfCommand.cs" />
     <Compile Include="CadCommands\CreateDwgCommand.cs" />
@@ -243,6 +244,7 @@
     </Compile>
     <Compile Include="Utils\BlockUtils.cs" />
     <Compile Include="Utils\Controls\NumberOnly.cs" />
+    <Compile Include="Utils\JigUtils.cs" />
     <Compile Include="Utils\LayoutUtils.cs" />
     <Compile Include="Utils\PrintUtils.cs" />
     <Compile Include="Utils\AcadUtils.cs" />
