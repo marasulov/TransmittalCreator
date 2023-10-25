@@ -154,7 +154,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Base\DefaultEntityJig.cs" />
     <Compile Include="CadCommands\BlockExtCommand.cs" />
     <Compile Include="CadCommands\CreateCombinedPdfCommand.cs" />
     <Compile Include="CadCommands\CreateDwgCommand.cs" />
@@ -174,7 +173,6 @@
     <Compile Include="DBCad\Active.cs" />
     <Compile Include="CircleDrawJig.cs" />
     <Compile Include="DocumentWatcher.cs" />
-    <Compile Include="LeaderJig.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -185,10 +183,6 @@
     </Compile>
     <Compile Include="Services\Blocks\BlockAttributeEnumerator.cs" />
     <Compile Include="Services\ExtensionMethods.cs" />
-    <Compile Include="SplinedLeaderJig.cs" />
-    <Compile Include="LineJigger.cs" />
-    <Compile Include="DimMoveJig.cs" />
-    <Compile Include="EntityRotateJigger.cs" />
     <Compile Include="Hvac.cs" />
     <Compile Include="Models\FilenameModel.cs" />
     <Compile Include="Models\Layouts\LayoutModel.cs" />
@@ -242,9 +236,9 @@
     <Compile Include="Styles\VS2012\VS2012WindowStyle.xaml.cs">
       <DependentUpon>VS2012WindowStyle.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Jigs\SpesTableJig.cs" />
     <Compile Include="Utils\BlockUtils.cs" />
     <Compile Include="Utils\Controls\NumberOnly.cs" />
-    <Compile Include="Utils\JigUtils.cs" />
     <Compile Include="Utils\LayoutUtils.cs" />
     <Compile Include="Utils\PrintUtils.cs" />
     <Compile Include="Utils\AcadUtils.cs" />

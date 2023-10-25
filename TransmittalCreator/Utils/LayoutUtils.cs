@@ -5,7 +5,7 @@ using Autodesk.AutoCAD.EditorInput;
 
 namespace TransmittalCreator.Utils;
 
-public class LayoutUtils
+public static class LayoutUtils
 {
 	public static void DeleteEmptyLayouts(Database db, Editor ed, List<string> notEmptyList)
 	{
@@ -18,7 +18,7 @@ public class LayoutUtils
 		ed.Regen();
 	}
 
-	public static List<string> GetTabOrderedLayoutNames(Database db)
+	private static List<string> GetTabOrderedLayoutNames(Database db)
 	{
 		if (db == null)
 			return null;

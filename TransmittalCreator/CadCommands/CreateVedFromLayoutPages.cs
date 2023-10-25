@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Controls;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
+using System.Collections.Generic;
+using System.Linq;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services.Blocks;
@@ -33,7 +29,7 @@ public static class CreateVedFromLayoutPages
 
 		layoutModelCollection.CreateCollectionFromBlockNames(trans);
 
-		var blocksList = layoutModelCollection.BlockReferences.Select(x=>x.ObjectId).ToArray();
+		var blocksList = layoutModelCollection.BlockReferences.Select(x => x.ObjectId).ToArray();
 		if (blocksList.Length == 0) return;
 
 		//TODO данные для таблицы
@@ -80,7 +76,7 @@ public static class CreateVedFromLayoutPages
 		}
 	}
 
-
+	//TODO попробовать сюда таблицу
 	//[CommandMethod("CreateCircleInCurrent")]
 	public static void Test_CreateCircleInCurrent()
 	{

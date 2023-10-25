@@ -44,7 +44,6 @@ public class Hvac : EntityJig
 
 			var type = typeof(HvacTable);
 
-			var tableCols = type.GetProperties().Length;
 			CreateLayer();
 
 			var filter = new MyMessageFilter();

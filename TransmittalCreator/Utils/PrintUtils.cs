@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Windows;
-using Autodesk.AutoCAD.ApplicationServices;
+﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
-
+using DocumentFormat.OpenXml.Spreadsheet;
 using iTextSharp.text.pdf;
 using Newtonsoft.Json;
-using TransmittalCreator.DBCad;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Windows;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
+using Active = TransmittalCreator.DBCad.Active;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 using Db = Autodesk.AutoCAD.DatabaseServices;
 using Exception = Autodesk.AutoCAD.Runtime.Exception;
-using Active = TransmittalCreator.DBCad.Active;
 
 namespace TransmittalCreator.Utils;
 
@@ -248,12 +247,12 @@ public static class PrintUtils
 		// Build a filter list so that only
 		// block references are selected
 
-		string sheetNumber = "",
-			docNumber = "",
-			objectNameEng = "",
-			docTitleEng = "",
-			objectNameRu = "",
-			docTitleRu = "";
+		//string sheetNumber = "",
+		//	docNumber = "",
+		//	objectNameEng = "",
+		//	docTitleEng = "",
+		//	objectNameRu = "",
+		//	docTitleRu = "";
 
 		foreach (Db.ObjectId blkId in idArray)
 			//TODO Check this point
@@ -533,7 +532,7 @@ public static class PrintUtils
 
 	public static void CreateOnlyVed(List<Sheet> dict, double scale = 1)
 	{
-		
+
 		var ed = Active.Editor;
 		var tr = Active.Database.TransactionManager.StartTransaction();
 		// Start the transaction
@@ -570,96 +569,102 @@ public static class PrintUtils
 		}
 	}
 
-	public static void CreateTableFromList(List<Sheet> dict, double scale = 1)
+	private static void CreateTableFromList(List<Sheet> pagesValues, double scale = 1)
 	{
-		//dict = dict.OrderBy(x => x.SheetNumber).ToList();
-		
-		var db = HostApplicationServices.WorkingDatabase;
-		var ed = Active.Editor;
-		using (var tr = db.TransactionManager.StartTransaction())
+		try
 		{
-			PromptPointOptions prOpt = new PromptPointOptions("\nEnter table insertion point: ");
-			PromptPointResult pr = ed.GetPoint(prOpt);
-
-			if (pr.Status != PromptStatus.OK) return;
-			//Application.SetSystemVariable("TILEMODE", 0);
-			//Active.Editor.SwitchToPaperSpace();
-			
-			var bt = (Db.BlockTable)tr.GetObject(db.BlockTableId, Db.OpenMode.ForRead);
-			var btr = (Db.BlockTableRecord)tr.GetObject(db.CurrentSpaceId, Db.OpenMode.ForWrite);
-			var tb = new Db.Table();
-			tb.TableStyle = db.Tablestyle;
-			
-			btr.AppendEntity(tb);
-			
-			var RowsNum = dict.Count;
-			var ColumnsNum = 3;
-			var rowheight = 8 * scale;
-			var columnwidth = 15 * scale;
-			
-			tb.InsertRows(0, rowheight, RowsNum + 1);
-			tb.InsertColumns(0, columnwidth, ColumnsNum - 1);
-			tb.SetRowHeight(rowheight);
-			tb.SetColumnWidth(columnwidth);
-			tb.Position = pr.Value;
-			// Объединяем ячейки
-			var range = Db.CellRange.Create(tb, 0, 0, 0, 2);
-			tb.MergeCells(range);
-			range.Borders.Top.IsVisible = false;
-			range.Borders.Bottom.IsVisible = true;
-			range.Borders.Left.IsVisible = false;
-			range.Borders.Right.IsVisible = false;
-			
-			range = Db.CellRange.Create(tb, 1, 1, 1, 2);
-			tb.UnmergeCells(range);
-			tb.Columns[0].Width = 15 * scale;
-			tb.Cells[0, 0].TextHeight = 5 * scale;
-			tb.Cells[0, 0].Alignment = Db.CellAlignment.MiddleCenter;
-			tb.Cells[0, 0].TextString = "Ведомость рабочих чертежей основного комплекта";
-			var row = tb.Rows[RowsNum + 1];
-			tb.UnmergeCells(row);
-			tb.Rows[1].Alignment = Db.CellAlignment.MiddleCenter;
-			tb.Rows[1].TextHeight = 3.5 * scale;
-			tb.Cells[1, 0].TextString = "Лист";
-
-			tb.Columns[1].Width = 140 * scale;
-						tb.Cells[1, 1].TextString = "Наименование";
-
-			tb.Columns[2].Width = 30 * scale;
-			tb.Cells[1, 2].TextString = "Примечание";
-			
-			var curRow = 2;
-			var i = 0;
-			foreach (var item in dict)
+			using (DocumentLock docLock = Active.Document.LockDocument())
 			{
-				if (!string.IsNullOrWhiteSpace(item.DocNumber))
+				var jig = new SpesTableJig(pagesValues);    //NOTE: added the content input
+				PromptResult res = Active.Editor.Drag(jig);
+				if (res.Status == PromptStatus.OK)
 				{
-					i++;
-					tb.Rows[curRow].TextHeight = 3.0 * scale;
-					tb.Cells[curRow, 0].TextString = i.ToString();
-					tb.Cells[curRow, 0].Alignment = Db.CellAlignment.MiddleCenter;
-
-
-					tb.Cells[curRow, 1].TextString = item.DocNumber + " " + item.DocTitleRu;
-					tb.Cells[curRow, 1].Alignment = Db.CellAlignment.MiddleLeft;
-					if (!string.IsNullOrEmpty(item.Comment))
+					Database db = HostApplicationServices.WorkingDatabase;
+					using (Transaction tr = db.TransactionManager.StartTransaction())
 					{
-						tb.Cells[curRow, 2].TextString = item.Comment;
-						tb.Cells[curRow, 2].Alignment = Db.CellAlignment.MiddleLeft;
+						BlockTableRecord btr = (BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite);
+						btr.AppendEntity(jig.GetEntity());
+						tr.AddNewlyCreatedDBObject(jig.GetEntity(), true);
+						tr.Commit();
 					}
 				}
-
-				curRow++;
+				
 			}
-
-			range = Db.CellRange.Create(tb, RowsNum, 0, RowsNum, RowsNum);
-			tb.UnmergeCells(range);
-			tb.GenerateLayout();
-			tr.AddNewlyCreatedDBObject(tb, true);
-			tr.Commit();
+		}
+		catch (System.Exception ex)
+		{
+			Active.WriteMessage(ex.ToString());
 		}
 	}
 
+	public static Db.Table CreateSpesTable(Db.Table tb,List<Sheet> pagesValues, double scale, Point3d position)
+	{
+		var rowsNum = pagesValues.Count;
+		var columnsNum = 3;
+		var rowHeight = 8 * scale;
+		var columnWidth = 15 * scale;
+
+		tb.InsertRows(0, rowHeight, rowsNum + 1);
+		tb.InsertColumns(0, columnWidth, columnsNum - 1);
+		tb.SetRowHeight(rowHeight);
+		tb.SetColumnWidth(columnWidth);
+		tb.Position = position;
+
+		// Объединяем ячейки
+		var range = Db.CellRange.Create(tb, 0, 0, 0, 2);
+		tb.MergeCells(range);
+		range.Borders.Top.IsVisible = false;
+		range.Borders.Bottom.IsVisible = true;
+		range.Borders.Left.IsVisible = false;
+		range.Borders.Right.IsVisible = false;
+
+		range = Db.CellRange.Create(tb, 1, 1, 1, 2);
+		tb.UnmergeCells(range);
+		tb.Columns[0].Width = 15 * scale;
+		tb.Cells[0, 0].TextHeight = 5 * scale;
+		tb.Cells[0, 0].Alignment = Db.CellAlignment.MiddleCenter;
+		tb.Cells[0, 0].TextString = "Ведомость рабочих чертежей основного комплекта";
+		var row = tb.Rows[rowsNum + 1];
+		tb.UnmergeCells(row);
+		tb.Rows[1].Alignment = Db.CellAlignment.MiddleCenter;
+		tb.Rows[1].TextHeight = 3.5 * scale;
+		tb.Cells[1, 0].TextString = "Лист";
+
+		tb.Columns[1].Width = 140 * scale;
+		tb.Cells[1, 1].TextString = "Наименование";
+
+		tb.Columns[2].Width = 30 * scale;
+		tb.Cells[1, 2].TextString = "Примечание";
+		var curRow = 2;
+		var i = 0;
+		foreach (var item in pagesValues)
+		{
+			if (!string.IsNullOrWhiteSpace(item.DocNumber))
+			{
+				i++;
+				tb.Rows[curRow].TextHeight = 3.0 * scale;
+				tb.Cells[curRow, 0].TextString = i.ToString();
+				tb.Cells[curRow, 0].Alignment = Db.CellAlignment.MiddleCenter;
+
+
+				tb.Cells[curRow, 1].TextString = item.DocNumber + " " + item.DocTitleRu;
+				tb.Cells[curRow, 1].Alignment = Db.CellAlignment.MiddleLeft;
+				if (!string.IsNullOrEmpty(item.Comment))
+				{
+					tb.Cells[curRow, 2].TextString = item.Comment;
+					tb.Cells[curRow, 2].Alignment = Db.CellAlignment.MiddleLeft;
+				}
+			}
+
+			curRow++;
+		}
+
+		range = Db.CellRange.Create(tb, rowsNum, 0, rowsNum, rowsNum);
+		tb.UnmergeCells(range);
+		tb.GenerateLayout();
+
+		return tb;
+	}
 
 	//[CommandMethod("SetDynamicBlkProperty")]
 	public static void SetDynamicBlkProperty()
@@ -930,7 +935,7 @@ public static class PrintUtils
 		curPos.TextHeight = textHeight;
 		curPos.TextString = stringValue;
 		curPos.Alignment = Db.CellAlignment.MiddleCenter;
-		curPos.ContentColor = Color.FromColorIndex(ColorMethod.ByAci, colorNumber);
+		curPos.ContentColor = Autodesk.AutoCAD.Colors.Color.FromColorIndex(ColorMethod.ByAci, colorNumber);
 	}
 
 	/// <summary>

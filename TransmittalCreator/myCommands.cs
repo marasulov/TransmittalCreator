@@ -1,6 +1,13 @@
 ﻿// (C) Copyright 2020 by HP Inc. 
 //
 
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.Internal;
+using Autodesk.AutoCAD.Runtime;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,14 +15,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Internal;
-using Autodesk.AutoCAD.Runtime;
-using LeaderPlacement;
-using OfficeOpenXml;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
@@ -31,7 +30,7 @@ namespace TransmittalCreator;
 
 public class MyCommands : IExtensionApplication
 {
-	private const string path = @"C:\Users\yusufzhon.marasulov\Desktop\Test1\1\";
+	//private const string path = @"C:\Users\yusufzhon.marasulov\Desktop\Test1\1\";
 
 
 	public static bool UseBedit = true;
@@ -336,7 +335,6 @@ public class MyCommands : IExtensionApplication
 		}
 	}
 
-
 	//[CommandMethod("InsertBlockByPline")]
 	public static void InsertBlockByPline()
 	{
@@ -423,30 +421,30 @@ public class MyCommands : IExtensionApplication
 
 
 	//[CommandMethod("EC")]
-	public void EventCommand()
-	{
-		var dm = Application.DocumentManager;
-		var doc = dm.MdiActiveDocument;
-		if (doc == null)
-			return;
-		var ed = doc.Editor;
-		// We'll start by creating one square for each file in the
-		// specified location. The nSquares() function uses some
-		// global state for the index and the total count
+	//public void EventCommand()
+	//{
+	//	var dm = Application.DocumentManager;
+	//	var doc = dm.MdiActiveDocument;
+	//	if (doc == null)
+	//		return;
+	//	var ed = doc.Editor;
+	//	// We'll start by creating one square for each file in the
+	//	// specified location. The nSquares() function uses some
+	//	// global state for the index and the total count
 
-		nSquares(ed);
-		// Create a FileSystemWatcher for the path, looking for
-		// write changes and drawing more squares as needed
-		if (_fsw == null)
-		{
-			_fsw = new FileSystemWatcher(path, "*.*");
-			_fsw.Changed += (o, s) => nSquaresInContext(dm, ed, path);
-			_fsw.NotifyFilter = NotifyFilters.LastWrite
-			                    | NotifyFilters.FileName;
-			_fsw.EnableRaisingEvents = true;
-			ed.WriteMessage("\nWatching \"{0}\" for changes.", path);
-		}
-	}
+	//	nSquares(ed);
+	//	// Create a FileSystemWatcher for the path, looking for
+	//	// write changes and drawing more squares as needed
+	//	if (_fsw == null)
+	//	{
+	//		_fsw = new FileSystemWatcher(path, "*.*");
+	//		_fsw.Changed += (o, s) => nSquaresInContext(dm, ed, path);
+	//		_fsw.NotifyFilter = NotifyFilters.LastWrite
+	//		                    | NotifyFilters.FileName;
+	//		_fsw.EnableRaisingEvents = true;
+	//		ed.WriteMessage("\nWatching \"{0}\" for changes.", path);
+	//	}
+	//}
 
 
 #pragma warning disable 1998
@@ -661,85 +659,6 @@ public class MyCommands : IExtensionApplication
 		}
 
 		ed.WriteMessage("\nNo longer watching folder.");
-	}
-
-	[CommandMethod("MYSL")]
-	public static void SplinedLeader()
-	{
-		var doc
-			= Application.DocumentManager.MdiActiveDocument;
-		var ed = doc.Editor;
-		var db = doc.Database;
-		var jig = new SplinedLeaderJig();
-		var bSuccess = true;
-		var bComplete = false;
-		while (bSuccess && !bComplete)
-		{
-			SplinedLeaderJig._mIsJigStarted = false;
-			var dragres = ed.Drag(jig);
-			bSuccess = dragres.Status == PromptStatus.OK;
-			if (bSuccess)
-				jig.addVertex();
-			bComplete = dragres.Status == PromptStatus.None;
-			if (bComplete) jig.removeLastVertex();
-		}
-
-		if (bComplete)
-		{
-			// Append entity to DB
-			var tr = db.TransactionManager.StartTransaction();
-			using (tr)
-			{
-				var bt = tr.GetObject(
-					db.BlockTableId, OpenMode.ForRead
-				) as BlockTable;
-				var ms =
-					bt[BlockTableRecord.ModelSpace].GetObject
-						(OpenMode.ForWrite) as BlockTableRecord;
-				ms.AppendEntity(jig.getEntity());
-				tr.AddNewlyCreatedDBObject(jig.getEntity(),
-					true);
-				tr.Commit();
-			}
-		}
-	}
-
-	[CommandMethod("DL")]
-	public void DirectionalLeader()
-	{
-		var doc = Application.DocumentManager.MdiActiveDocument;
-		var ed = doc.Editor;
-		var db = doc.Database;
-		// Ask the user for the string and the start point of the leader
-		var pso = new PromptStringOptions("\nEnter text");
-		pso.AllowSpaces = true;
-		var pr = ed.GetString(pso);
-		if (pr.Status != PromptStatus.OK)
-			return;
-		var ppr = ed.GetPoint("\nStart point of leader");
-		if (ppr.Status != PromptStatus.OK)
-			return;
-		// Start a transaction, as we'll be jigging a db-resident object
-		using (var tr = db.TransactionManager.StartTransaction())
-		{
-			var bt =
-				(BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead, false);
-			var btr =
-				(BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite, false);
-			// Create and pass in an invisible MLeader
-			// This helps avoid flickering when we start the jig
-			var ml = new MLeader();
-			ml.Visible = false;
-			// Create jig
-			var jig = new LeaderJig.DirectionalLeaderJig(pr.StringResult, ppr.Value, ml);
-			// Add the MLeader to the drawing: this allows it to be displayed
-			btr.AppendEntity(ml);
-			tr.AddNewlyCreatedDBObject(ml, true);
-			// Set end point in the jig
-			var res = ed.Drag(jig);
-			// If all is well, commit
-			if (res.Status == PromptStatus.OK) tr.Commit();
-		}
 	}
 
 	private static void DocumentManager_DocumentLockModeChanged(
@@ -981,15 +900,7 @@ public class MyCommands : IExtensionApplication
 
 	#region 
 
-	[CommandMethod("JigLine")]
-	public static void JigLine()
-	{
-		var doc = Application.DocumentManager.MdiActiveDocument;
-		if (LineJigger.Jig())
-			doc.Editor.WriteMessage("\nsuccess\n");
-		else
-			doc.Editor.WriteMessage("\nfailure\n");
-	}
+	
 
 	// Modal Command with pickfirst selection
 	//[CommandMethod("hvacTable")]
