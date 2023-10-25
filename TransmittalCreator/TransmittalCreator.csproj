@@ -171,7 +171,6 @@
     <Compile Include="CadCommands\CreatePdfCommand.cs" />
     <Compile Include="Converters\RatioConverter.cs" />
     <Compile Include="DBCad\Active.cs" />
-    <Compile Include="CircleDrawJig.cs" />
     <Compile Include="DocumentWatcher.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
