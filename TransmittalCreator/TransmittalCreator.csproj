@@ -157,6 +157,7 @@
     <Compile Include="CadCommands\BlockExtCommand.cs" />
     <Compile Include="CadCommands\CreateCombinedPdfCommand.cs" />
     <Compile Include="CadCommands\CreateDwgCommand.cs" />
+    <Compile Include="CadCommands\CreateLayoutsForStamps.cs" />
     <Compile Include="CadCommands\CreateLayoutTrCommand.cs" />
     <Compile Include="CadCommands\CreatePdfWithRenumberingCommand.cs" />
     <Compile Include="CadCommands\CreatePTestCommand.cs" />

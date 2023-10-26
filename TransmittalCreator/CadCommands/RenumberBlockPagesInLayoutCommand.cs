@@ -35,7 +35,8 @@ public class RenumberBlockPagesInLayoutCommand
 
 		var blockNames = FileManager.GetBlockNames();
 		var dynamicBlocks = new DynamicBlockFinder(blockNames);
-		using (var trans = Active.Database.TransactionManager.StartTransaction())
+
+		Active.UsingTransaction(trans =>
 		{
 			var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
 			layoutModelCollection.ListLayouts("Model");
@@ -79,7 +80,7 @@ public class RenumberBlockPagesInLayoutCommand
 					//var layouts = DatabaseExtension.GetLayouts(Active.Database, mode:OpenMode.ForWrite);
 					foreach (var layoutModel in layoutModelCollection.LayoutModels)
 					{
-						foreach (var page in new string[]{"Лист2_Спец","Лист"})
+						foreach (var page in new []{"Лист2_Спец","Лист"})
 						{
 							var attributeValue = GetAttributeValueByTag(layoutModel.BlocksObjectId, page);
 							var btr =
@@ -117,11 +118,12 @@ public class RenumberBlockPagesInLayoutCommand
 
 			}
 
-			trans.Commit();
 			Active.Editor.Regen();
 
 			AcadUtils.GetInfoBubble("Листы успешно перенумерованы", "Перенумерование завершено");
-		}
+		});
+
+		
 	}
 
 	private static string GetAttributeValueByTag(ObjectId blockRefId, string tag)

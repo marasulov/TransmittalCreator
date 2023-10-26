@@ -22,6 +22,7 @@ public class CreateCombinedPdfCommand
 		var dict = new List<Sheet>();
 		var printModels = new List<PrintModel>();
 		Active.Document.SendStringToExecute("REGENALL ", true, false, true);
+
 		using (var tr = Active.Database.TransactionManager.StartTransaction())
 		{
 			//фильтр для выбора только блока
