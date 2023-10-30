@@ -307,33 +307,6 @@ public static class PrintUtils
 			objectNameRu.Trim(), docTitleRu.Trim(), stampViewValue.Trim(), minPointX);
 	}
 
-	/// <summary>
-	///     создает колекцию листов из блоков штампа
-	/// </summary>
-	/// <param name="ed">editor</param>
-	/// <param name="dict"> коллекция листов</param>
-	/// <param name="tr"> транзакция </param>
-	/// <returns>коллекция листов </returns>
-	public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Db.Transaction tr,
-		Db.ObjectIdCollection objectIdCollection, AttributModel attributModel)
-	{
-		foreach (Db.ObjectId blkId in objectIdCollection)
-		{
-			var blkRef = (Db.BlockReference)tr.GetObject(blkId, Db.OpenMode.ForRead);
-
-			var btr = (Db.BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, Db.OpenMode.ForRead);
-
-			var extents3d = blkRef.GeometricExtents;
-			ed.WriteMessage("\nBlock:{0} габариты {1} ", btr.Name, extents3d.MinPoint.ToString(),
-				extents3d.MaxPoint.ToString());
-			btr.Dispose();
-
-		}
-
-		return dict;
-	}
-
-
 	public static Db.Database CreateDatabaseFromTemplate(string templateName, string password)
 	{
 		if (templateName == null || templateName.Trim() == string.Empty) return null;
@@ -507,23 +480,6 @@ public static class PrintUtils
 		finally
 		{
 			tr.Dispose();
-		}
-	}
-
-	public static void CreateOnlytrans(List<Sheet> dict)
-	{
-		var ed = Active.Editor;
-		//Transaction tr = Active.Database.TransactionManager.StartTransaction();
-		// Start the transaction
-		try
-		{
-			//GetSheetsFromBlocks(ed, dict, tr);
-			//tr.Commit();
-			Sheet.WriteToExcel(dict);
-		}
-		catch (Exception ex)
-		{
-			ed.WriteMessage("Exception: " + ex.Message + " " + ex.InnerException);
 		}
 	}
 

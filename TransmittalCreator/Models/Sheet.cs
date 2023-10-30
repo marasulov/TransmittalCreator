@@ -1,10 +1,9 @@
-﻿using System;
+﻿using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.Office.Interop.Excel;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
 
 namespace TransmittalCreator;
 
@@ -70,48 +69,6 @@ public class Sheet
 
 	public double MinPointX { get; }
 
-	public static void WriteToExcel(List<Sheet> sheets)
-	{
-		var templatePath = @"\\uzliti-cloud\Users\GRP3\MarasulovYusuf\Transmittal\шаблон.xltx";
-		var application = new Application();
-		application.Visible = true;
-		var wb = application.Workbooks.Open(templatePath);
-		var ws = application.ActiveSheet as Worksheet;
-
-		var usedRange = ws.UsedRange;
-		var countRecords = usedRange.Rows.Count;
-		var add = countRecords + 1;
-		var i = 0;
-
-		var countSheets = sheets.Count + 9;
-		var rangeX = ws.Range["B10", "q" + countSheets];
-		rangeX.RowHeight = 63;
-		rangeX.VerticalAlignment = XlVAlign.xlVAlignCenter;
-		var borders = rangeX.Borders;
-		borders.LineStyle = XlLineStyle.xlContinuous;
-		borders.Weight = XlBorderWeight.xlMedium;
-
-		//ws.Cells[4,17] = DateTime.Now.ToString("   dd-MM-yyyy");
-
-		sheets = sheets.OrderBy(x => x.SheetNumber).ToList();
-
-		foreach (var item in sheets)
-		{
-			ws.Cells[add + i, 2] = item.SheetNumber;
-
-			ws.Cells[add + i, 3] = item.DocNumber;
-			ws.Range[ws.Cells[add + i, 3], ws.Cells[add + i, 7]].Merge();
-
-			ws.Cells[add + i, 8] = item.DocTitleEng + "\n" + item.ObjectNameEng;
-			ws.Range[ws.Cells[add + i, 8], ws.Cells[add + i, 14]].Merge();
-
-			ws.Cells[add + i, 15] = item.DocTitleRu + "\n" + item.ObjectNameRu;
-			ws.Range[ws.Cells[add + i, 15], ws.Cells[add + i, 17]].Merge();
-			i++;
-		}
-	}
-
-
 	public static void WriteToExcelEplus(List<Sheet> sheetList, string dwgFilename)
 	{
 		var templatePath = @"\\uzliti-cloud\Users\GRP3\MarasulovYusuf\Transmittal\шаблон.xlsx";
@@ -130,11 +87,6 @@ public class Sheet
 			var startRow = 9;
 			var i = 0;
 			var countSheets = sheetList.Count + 9;
-
-			//rangeX.VerticalAlignment = XlVAlign.xlVAlignCenter;
-			//Excel.Borders borders = rangeX.Borders;
-			//borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-			//borders.Weight = XlBorderWeight.xlMedium;
 
 			ws.Cells[4, 17].Value = DateTime.Now.ToString("   dd-MM-yyyy");
 			sheetList = sheetList.OrderBy(x => x.SheetNumber).ToList();
@@ -175,21 +127,5 @@ public class Sheet
 			tableRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
 			excelFile.SaveAs(fNewFile);
 		}
-
-
-		//foreach (Sheet item in sheets)
-		//{
-		//    ws.Cells[add + i, 2] = item.SheetNumber;
-
-		//    ws.Cells[add + i, 3] = item.DocNumber;
-		//    ws.Range[ws.Cells[add + i, 3], ws.Cells[add + i, 7]].Merge();
-
-		//    ws.Cells[add + i, 8] = item.DocTitleEng + "\n" + item.ObjectNameEng;
-		//    ws.Range[ws.Cells[add + i, 8], ws.Cells[add + i, 14]].Merge();
-
-		//    ws.Cells[add + i, 15] = item.DocTitleRu + "\n" + item.ObjectNameRu;
-		//    ws.Range[ws.Cells[add + i, 15], ws.Cells[add + i, 17]].Merge();
-		//    i++;
-		//}
 	}
 }

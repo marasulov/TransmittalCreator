@@ -107,11 +107,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-      <HintPath>..\..\..\..\..\..\Windows\assembly\GAC_MSIL\Microsoft.Office.Interop.Excel\15.0.0.0__71e9bce111e9429c\Microsoft.Office.Interop.Excel.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -180,27 +175,19 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Resources\ProxyDomain.cs" />
     <Compile Include="Resources\WindowResources.xaml.cs">
       <DependentUpon>WindowResources.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\Blocks\BlockAttributeEnumerator.cs" />
     <Compile Include="Services\ExtensionMethods.cs" />
     <Compile Include="Hvac.cs" />
-    <Compile Include="Models\FilenameModel.cs" />
     <Compile Include="Models\Layouts\LayoutModel.cs" />
     <Compile Include="Models\Layouts\LayoutModelCollection.cs" />
     <Compile Include="Models\PrintPackageModel.cs" />
-    <Compile Include="PdfCreator.xaml.cs">
-      <DependentUpon>PdfCreator.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\AttributModel.cs" />
-    <Compile Include="Models\BlockAttribute.cs" />
     <Compile Include="Models\HvacTable.cs" />
     <Compile Include="Services\Blocks\BlockSelector.cs" />
     <Compile Include="Services\Blocks\DynamicBlockFinder.cs" />
@@ -216,7 +203,6 @@
     <Compile Include="Models\PrintModel.cs" />
     <Compile Include="Models\RelayCommand.cs" />
     <Compile Include="Models\Sheet.cs" />
-    <Compile Include="Models\SpesSheetModel.cs" />
     <Compile Include="myCommands.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -245,7 +231,6 @@
     <Compile Include="Utils\PrintUtils.cs" />
     <Compile Include="Utils\AcadUtils.cs" />
     <Compile Include="Utils\LayerUtils.cs" />
-    <Compile Include="ViewModel\AttributeViewModel.cs" />
     <Compile Include="ViewModel\LayoutTreeViewModel.cs" />
     <Compile Include="ViewModel\VirtualToggleButton.cs" />
     <Compile Include="View\RenumberPagesInLayoutSpaceView.xaml.cs">
@@ -298,14 +283,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="PdfCreator.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="MainWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="App.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -9,11 +9,6 @@ namespace TransmittalCreator.Services;
 
 public class StandartCopier
 {
-
-	//private string confFile = @"\\uz-fs\Install\CAD\Blocks\conf.json";
-
-
-
 	public StandartCopier()
 	{
 		string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
@@ -103,9 +98,6 @@ public class StandartCopier
 
 			Active.Editor.WriteMessage("Файлы настройки присутствуют, для перевода в pdf наберите CreateTranspdf");
 		}
-
-		//if (!File.Exists(Pc3Destination)) IsFileCopied(Pc3Source, Pc3Destination);
-		//if (!File.Exists(PmpDestination)) IsFileCopied(PmpSource, PmpDestination);
 
 		return true;
 	}

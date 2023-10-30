@@ -1,9 +1,7 @@
 ﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.Windows;
 using System;
-using System.Drawing;
 using System.Text;
-using Microsoft.Office.Interop.Excel;
 using TransmittalCreator.DBCad;
 using Application = Autodesk.AutoCAD.ApplicationServices.Application;
 

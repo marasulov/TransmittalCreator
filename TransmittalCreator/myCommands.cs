@@ -17,6 +17,7 @@ using System.Text;
 using System.Windows.Forms;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
+using TransmittalCreator.Resources;
 using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
@@ -30,26 +31,17 @@ namespace TransmittalCreator;
 
 public class MyCommands : IExtensionApplication
 {
-	//private const string path = @"C:\Users\yusufzhon.marasulov\Desktop\Test1\1\";
-
-
 	public static bool UseBedit = true;
 	private int _arcPrevQty;
 
 	private bool _drawing;
 
-	//private string confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, "conf.json");
 	private FileSystemWatcher _fsw;
 	private int _linesPrevQty;
 
 	public void Initialize()
 	{
 		CommandsWatcher.Initialize();
-		//AcadUtils.Documents.DocumentActivated += Documents_DocumentActivated;
-
-
-		//if (AcadUtils.Document != null) 
-		//	SubscribeDocumentEvents(AcadUtils.Document);
 
 		Application.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
 		var executablePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -80,8 +72,7 @@ public class MyCommands : IExtensionApplication
 		{
 			//Get the block definition "Check".
 			var blockName = "Опора 2";
-			var bt =
-				db.BlockTableId.GetObject(OpenMode.ForRead) as BlockTable;
+			var bt = db.BlockTableId.GetObject(OpenMode.ForRead) as BlockTable;
 			var blockDef =
 				bt[blockName].GetObject(OpenMode.ForRead) as BlockTableRecord;
 
