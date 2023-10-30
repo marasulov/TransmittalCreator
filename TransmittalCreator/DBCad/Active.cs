@@ -117,6 +117,8 @@ public static class Active
 		Database.SaveAs(path, true, DwgVersion.Current, Database.SecurityParameters);
 	}
 
+
+
 	public static void UsingTransaction(TransactionDelegate action)
 	{
 		using var tr = Database.TransactionManager.StartTransaction();
@@ -129,6 +131,11 @@ public static class Active
 		{
 			tr.Abort();
 		}
+	}
+
+	public static void UsingCurrentSpace(this Database database, Action<Transaction, BlockTableRecord> action)
+	{
+		database.UsingTableRecord(BlockTableRecord.ModelSpace, action);
 	}
 
 	public static void UsingModelSpace(this Database database, Action<Transaction, BlockTableRecord> action)

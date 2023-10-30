@@ -173,6 +173,8 @@
     <Compile Include="Converters\RatioConverter.cs" />
     <Compile Include="DBCad\Active.cs" />
     <Compile Include="DocumentWatcher.cs" />
+    <Compile Include="Informers\BalloonNotifier.cs" />
+    <Compile Include="Informers\IInformer.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -199,7 +201,6 @@
     </Compile>
     <Compile Include="Models\AttributModel.cs" />
     <Compile Include="Models\BlockAttribute.cs" />
-    <Compile Include="Models\FileModel.cs" />
     <Compile Include="Models\HvacTable.cs" />
     <Compile Include="Services\Blocks\BlockSelector.cs" />
     <Compile Include="Services\Blocks\DynamicBlockFinder.cs" />
@@ -209,6 +210,7 @@
     <Compile Include="Services\FileNameCreator.cs" />
     <Compile Include="Services\Files\FileManager.cs" />
     <Compile Include="Services\Files\IFileManager.cs" />
+    <Compile Include="Services\IFileNameCreator.cs" />
     <Compile Include="Services\LayerManipulation.cs" />
     <Compile Include="Services\ObjectCopier.cs" />
     <Compile Include="Models\PrintModel.cs" />
@@ -244,9 +246,7 @@
     <Compile Include="Utils\AcadUtils.cs" />
     <Compile Include="Utils\LayerUtils.cs" />
     <Compile Include="ViewModel\AttributeViewModel.cs" />
-    <Compile Include="ViewModel\BlockViewModel.cs" />
     <Compile Include="ViewModel\LayoutTreeViewModel.cs" />
-    <Compile Include="ViewModel\CreatePdfViewModel.cs" />
     <Compile Include="ViewModel\VirtualToggleButton.cs" />
     <Compile Include="View\RenumberPagesInLayoutSpaceView.xaml.cs">
       <DependentUpon>RenumberPagesInLayoutSpaceView.xaml</DependentUpon>
@@ -262,9 +262,6 @@
     </Compile>
     <Compile Include="View\CreatePdfView.xaml.cs">
       <DependentUpon>CreatePdfView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Window1.xaml.cs">
-      <DependentUpon>Window1.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -342,10 +339,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\CreatePdfView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Window1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

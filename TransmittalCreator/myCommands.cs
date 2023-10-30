@@ -54,12 +54,12 @@ public class MyCommands : IExtensionApplication
 		Application.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
 		var executablePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-		var pd = new ProxyDomain();
-		var assembly = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignThemes.Wpf.dll"));
+		//var pd = new ProxyDomain();
+		//var assembly = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignThemes.Wpf.dll"));
 
-		var assembly1 = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignColors.dll"));
+		//var assembly1 = pd.GetAssembly(Path.Combine(executablePath, "MaterialDesignColors.dll"));
 
-		if ((assembly != null) | (assembly1 != null)) Active.Editor.WriteMessage("style dlls not load");
+		//if ((assembly != null) | (assembly1 != null)) Active.Editor.WriteMessage("style dlls not load");
 
 
 		var standartCopier = new StandartCopier();

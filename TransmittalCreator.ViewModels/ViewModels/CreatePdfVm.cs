@@ -106,7 +106,7 @@ namespace TransmittalCreator.ViewModels
 			}
 		}
 
-		public bool CanClose()
+		private bool CanClose()
 		{
 			return (IsAttributeChecked & SelectedAttr != null) | IsCheckedNumbering;
 		}
@@ -216,7 +216,7 @@ namespace TransmittalCreator.ViewModels
 		}
 
 
-		public void CloseWindow(object parameter)
+		private void CloseWindow(object parameter)
 		{
 			string clicked = parameter as string;
 			if (clicked != "Clicked") return;

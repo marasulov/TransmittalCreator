@@ -5,6 +5,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Informers;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Utils;
@@ -55,6 +56,8 @@ public class CreateTransPdfCommand
 
 		var joinedBubbleTexts = string.Join("\n", printedPages);
 		string drawingPath = Path.GetDirectoryName(Application.DocumentManager.CurrentDocument.Database.Filename);
-		AcadUtils.GetInfoBubble("Создание файлов успешно завершено", joinedBubbleTexts, drawingPath);
+		
+		BalloonNotifier notifier = new BalloonNotifier("Создание файлов успешно завершено", "Создание файлов успешно завершено", drawingPath);
+		notifier.Notify(joinedBubbleTexts);
 	}
 }

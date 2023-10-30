@@ -39,35 +39,13 @@ public static class BlockUtils
 						attribute.TextString = allPages.ToString();
 			}
 
-			//foreach (ObjectId attRefId in block.AttributeCollection)
-			//{
-			//	AttributeReference attRef = attRefId.GetObject(OpenMode.ForWrite) as AttributeReference;
-			//	DBCad.Active.Editor.WriteMessage($"{attRef.Tag}\n");
-			//	if (attRef == null) continue;
-
-			//	foreach (var attr in attributeNames)
-			//	{
-			//		if (attr.Equals(attRef.Tag, StringComparison.InvariantCultureIgnoreCase))
-			//		{
-			//			attRef.TextString = startFrom.ToString();
-			//		}
-			//	}
-			//	if (allPages == 0) continue;
-			//	string[] allPagesAttributes = { "PAGES", "ЛИСТОВ" };
-			//	foreach (var allPage in allPagesAttributes)
-			//	{
-			//		if (attRef.Tag.Equals(allPage, StringComparison.InvariantCultureIgnoreCase))
-			//			attRef.TextString = allPages.ToString();
-			//	}
-
-			//}
 			startFrom++;
 		}
 	}
 
 
 	/// <summary>
-	///     Возвращает блоки по имени из выбранного списка блоков
+	/// Возвращает блоки по имени из выбранного списка блоков
 	/// </summary>
 	/// <param name="allSelectedBlocks"></param>
 	/// <param name="tr"></param>
@@ -100,7 +78,6 @@ public static class BlockUtils
 			}
 		);
 		var selResult = Active.Editor.SelectAll(sFilter);
-
 
 		if (onlySelectedPages)
 		{

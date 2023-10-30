@@ -10,6 +10,7 @@ using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
 using TransmittalCreator.Utils;
+using TransmittalCreator.Informers;
 
 namespace TransmittalCreator.CadCommands;
 
@@ -82,7 +83,9 @@ public class CreateDwgCommand
 			tr.Commit();
 
 			var joinedBubbleTexts = string.Join("\n", createdFiles);
-			AcadUtils.GetInfoBubble("Создание файлов успешно завершено", joinedBubbleTexts, drawingPath);
+
+			BalloonNotifier notifier = new BalloonNotifier("Создание файлов успешно завершено", "Создание файлов успешно завершено", drawingPath);
+			notifier.Notify(joinedBubbleTexts);
 		}
 	}
 }

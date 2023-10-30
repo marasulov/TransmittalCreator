@@ -24,19 +24,6 @@ public class Sheet
 		MinPointX = minPointX;
 	}
 
-	//public Sheet(string sheetNumber, string docNumber, string commment, string objectNameEng, string docTitleEng, string objectNameRu, string docTitleRu)
-	//{
-	//    Int32.TryParse(sheetNumber, out int tempNumber);
-	//    this.SheetNumber = tempNumber;
-	//    this.DocNumber = docNumber;
-	//    this.Comment = commment;
-	//    this.ObjectNameEng = objectNameEng;
-	//    this.DocTitleEng = docTitleEng;
-	//    this.ObjectNameRu = objectNameRu;
-	//    this.DocTitleRu = docTitleRu;
-	//}
-
-
 	public Sheet(string docNumber, string objectNameEng)
 	{
 		DocNumber = docNumber;
@@ -44,38 +31,38 @@ public class Sheet
 	}
 
 	/// <summary>
-	///     Номер листа
+	/// Номер листа
 	/// </summary>
 	public int SheetNumber { get; set; }
 
 	/// <summary>
-	///     Document Number
+	/// Document Number
 	/// </summary>
 	public string DocNumber { get; set; }
 
 	/// <summary>
-	///     Comment
+	/// Comment
 	/// </summary>
 	public string Comment { get; set; }
 
 	/// <summary>
-	///     Document Name in English
+	/// Document Name in English
 	/// </summary>
 
 	public string ObjectNameEng { get; set; }
 
 	/// <summary>
-	///     Document Title (English)
+	/// Document Title (English)
 	/// </summary>
 	public string DocTitleEng { get; set; }
 
 	/// <summary>
-	///     documnet name in rus
+	/// documnet name in rus
 	/// </summary>
 	public string ObjectNameRu { get; set; }
 
 	/// <summary>
-	///     Document Title (Rus)
+	/// Document Title (Rus)
 	/// </summary>
 	public string DocTitleRu { get; set; }
 

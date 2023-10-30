@@ -158,7 +158,7 @@ public static class AcadUtils
 	}
 
 	/// <summary>
-	///     Зуммирует объекты в файле по границам
+	/// Зуммирует объекты в файле по границам
 	/// </summary>
 	/// <param name="fileName">Имя файла</param>
 	/// <returns></returns>
@@ -221,28 +221,6 @@ public static class AcadUtils
 
 		return dwgVersion;
 
-	}
-
-	public static void GetInfoBubble(string bubbleTitle, string joinedBubbleTexts,  string drawingPath = null)
-	{
-		var trayItemBubble = new TrayItemBubbleWindow();
-		
-		trayItemBubble.Title = bubbleTitle;
-		trayItemBubble.Text = joinedBubbleTexts;
-
-		if (drawingPath != null)
-		{
-			trayItemBubble.HyperText = drawingPath;
-			trayItemBubble.HyperLink = drawingPath;
-		}
-		
-		trayItemBubble.IconType = IconType.Information;
-
-		var trayItem = new TrayItem();
-
-		Application.StatusBar.TrayItems.Add(trayItem);
-		trayItem.ShowBubbleWindow(trayItemBubble);
-		Application.StatusBar.Update();
 	}
 
 	private static string GetAcadVersionInfo()

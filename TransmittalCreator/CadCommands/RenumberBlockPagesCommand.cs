@@ -4,6 +4,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Informers;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels.ViewModels;
@@ -75,8 +76,8 @@ public class RenumberBlockPagesCommand
 
 		tr.Commit();
 		
-
-		AcadUtils.GetInfoBubble("Листы успешно перенумерованы", "Перенумерование завершено");
+		BalloonNotifier notifier = new BalloonNotifier("Листы успешно перенумерованы", "Листы успешно перенумерованы");
+		notifier.Notify("Перенумерование завершено");
 	}
 
 	private static Point3d GetUcsPoint3d(BlockReference blockReference)

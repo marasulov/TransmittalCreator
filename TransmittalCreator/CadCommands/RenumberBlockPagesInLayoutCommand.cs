@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Informers;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
@@ -120,7 +121,8 @@ public class RenumberBlockPagesInLayoutCommand
 
 			Active.Editor.Regen();
 
-			AcadUtils.GetInfoBubble("Листы успешно перенумерованы", "Перенумерование завершено");
+			BalloonNotifier notifier = new BalloonNotifier("Перенумерование завершено", "Перенумерование завершено");
+			notifier.Notify("Листы успешно перенумерованы");
 		});
 
 		

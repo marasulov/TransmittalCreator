@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.AutoCAD.DatabaseServices;
+using Gile.AutoCAD.Extension;
 using TransmittalCreator.Models;
 using TransmittalCreator.ViewModels.ViewModels;
 
 namespace TransmittalCreator.Services;
 
-public class FileNameCreator
+public class FileNameCreator : IFileNameCreator
 {
 	private readonly string _attributeName;
 	private readonly bool _isAttrChecked;
@@ -44,13 +45,13 @@ public class FileNameCreator
 			var btr = (BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, OpenMode.ForRead);
 
 			var docNumber = GetBlockAttributeValue(blkRef);
-			
+
 			_printModels.Add(new PrintModel(docNumber, blkId));
 			btr.Dispose();
 		}
 	}
 
-	private string GetFileName(PrintModel printModel)
+	public string GetFileName(PrintModel printModel)
 	{
 		var filename = _prefix + printModel.DocNumber + NumberingValue + _sufix;
 		if (_isNumberingChecked) NumberingValue++;
