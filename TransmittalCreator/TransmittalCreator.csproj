@@ -179,7 +179,6 @@
     <Compile Include="Resources\WindowResources.xaml.cs">
       <DependentUpon>WindowResources.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Services\Blocks\BlockAttributeEnumerator.cs" />
     <Compile Include="Services\ExtensionMethods.cs" />
     <Compile Include="Hvac.cs" />
     <Compile Include="Models\Layouts\LayoutModel.cs" />
@@ -191,8 +190,6 @@
     <Compile Include="Models\HvacTable.cs" />
     <Compile Include="Services\Blocks\BlockSelector.cs" />
     <Compile Include="Services\Blocks\DynamicBlockFinder.cs" />
-    <Compile Include="Services\CheckListCreator\CheckListCreator.cs" />
-    <Compile Include="Services\CheckListCreator\CheckListModel.cs" />
     <Compile Include="Services\FileEditor.cs" />
     <Compile Include="Services\FileNameCreator.cs" />
     <Compile Include="Services\Files\FileManager.cs" />
@@ -219,7 +216,6 @@
     <Compile Include="Services\Serializers\TransmJsonSerializer.cs" />
     <Compile Include="Services\Serializers\SerializeManager.cs" />
     <Compile Include="Services\StandartCopier.cs" />
-    <Compile Include="Services\StringToVisibilityConverter.cs" />
     <Compile Include="Styles\VS2012\VS2012WindowStyle.cs" />
     <Compile Include="Styles\VS2012\VS2012WindowStyle.xaml.cs">
       <DependentUpon>VS2012WindowStyle.xaml</DependentUpon>
@@ -233,19 +229,19 @@
     <Compile Include="Utils\LayerUtils.cs" />
     <Compile Include="ViewModel\LayoutTreeViewModel.cs" />
     <Compile Include="ViewModel\VirtualToggleButton.cs" />
-    <Compile Include="View\RenumberPagesInLayoutSpaceView.xaml.cs">
+    <Compile Include="View2323\RenumberPagesInLayoutSpaceView.xaml.cs">
       <DependentUpon>RenumberPagesInLayoutSpaceView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\RenumberPagesInModelSpaceView.xaml.cs">
+    <Compile Include="View2323\RenumberPagesInModelSpaceView.xaml.cs">
       <DependentUpon>RenumberPagesInModelSpaceView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\LayoutTreeView.xaml.cs">
+    <Compile Include="View2323\LayoutTreeView.xaml.cs">
       <DependentUpon>LayoutTreeView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\ObjectDividerView.xaml.cs">
+    <Compile Include="View2323\ObjectDividerView.xaml.cs">
       <DependentUpon>ObjectDividerView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\CreatePdfView.xaml.cs">
+    <Compile Include="View2323\CreatePdfView.xaml.cs">
       <DependentUpon>CreatePdfView.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -299,23 +295,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="View\RenumberPagesInLayoutSpaceView.xaml">
+    <Page Include="View2323\RenumberPagesInLayoutSpaceView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="View\RenumberPagesInModelSpaceView.xaml">
+    <Page Include="View2323\RenumberPagesInModelSpaceView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\LayoutTreeView.xaml">
+    <Page Include="View2323\LayoutTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\ObjectDividerView.xaml">
+    <Page Include="View2323\ObjectDividerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\CreatePdfView.xaml">
+    <Page Include="View2323\CreatePdfView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -8,8 +8,6 @@ namespace TransmittalCreator.Services.Blocks;
 
 public class BlockSelector
 {
-	public ObjectId[] SelObjectIds { get; set; }
-
 	public PromptSelectionResult SelectionResult { get; set; }
 
 	public void GetFilterForSelectBlockId(string blockName = "")
