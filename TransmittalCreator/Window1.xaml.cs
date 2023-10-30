@@ -62,17 +62,17 @@ public partial class Window1 : Window
 	}
 }
 
-internal class ProxyDomain : MarshalByRefObject
-{
-	public Assembly GetAssembly(string assemblyPath)
-	{
-		try
-		{
-			return Assembly.LoadFrom(assemblyPath);
-		}
-		catch (Exception ex)
-		{
-			throw new InvalidOperationException(ex.Message);
-		}
-	}
-}
+//internal class ProxyDomain : MarshalByRefObject
+//{
+//	public Assembly GetAssembly(string assemblyPath)
+//	{
+//		try
+//		{
+//			return Assembly.LoadFrom(assemblyPath);
+//		}
+//		catch (Exception ex)
+//		{
+//			throw new InvalidOperationException(ex.Message);
+//		}
+//	}
+//}
