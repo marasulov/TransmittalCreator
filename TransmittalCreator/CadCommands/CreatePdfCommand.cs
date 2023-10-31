@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Autodesk.AutoCAD.ApplicationServices;
+﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Runtime;
+using System.Collections.Generic;
+using System.IO;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Informers;
 using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
-using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
 using TransmittalCreator.ViewModels.Models;
 using TransmittalCreator.ViewModels.View;
@@ -21,52 +20,52 @@ public static class CreatePdfCommand
 	{
 		var printedPages = new List<string>();
 		Active.Document.SendStringToExecute("REGENALL ", true, false, true);
-		Active.UsingTransaction(tr =>
+		using var tr = Active.Database.TransactionManager.StartTransaction();
+
+		var selectAllBlocks = BlockUtils.SelectBlocksWithFilter();
+
+		var selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
+
+		var blockRef = (BlockReference)tr.GetObject(selectedBlocksByName[0], OpenMode.ForWrite);
+
+		var attributeCollection = blockRef.AttributeCollection;
+		//var blockAttributes = new ObservableCollection<BlockAttribute> { new("", "") };
+		var blockAttributes = GetListBlockAttributeFromAttributeCollection(attributeCollection, tr);
+
+		var pdfCreatorVm = new CreatePdfVm();
+		pdfCreatorVm.Attributes = blockAttributes;
+
+		var pdfCreatorView = new CreatePdfView(pdfCreatorVm);
+		pdfCreatorVm.OnRequestClose += (s, e) => pdfCreatorView.Close();
+		pdfCreatorView.ShowDialog();
+		if (!pdfCreatorVm.ButtonClicked) return;
+
+		selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
+		if (selectAllBlocks == null) return;
+
+		selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
+		if (selectedBlocksByName.Count <= 0) return;
+
+		var fileNameCreator = new FileNameCreator(pdfCreatorVm, selectedBlocksByName);
+
+		fileNameCreator.GetPrintParametersToPdf(tr);
+
+		var printModels = fileNameCreator.GetPrintModels();
+		if (pdfCreatorVm.IsX) printModels.Sort((x, y) => x.MinPointX.CompareTo(y.MinPointX));
+
+		if (pdfCreatorVm.IsY) printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
+
+
+		foreach (var printModel in printModels)
 		{
-			var selectAllBlocks = BlockUtils.SelectBlocksWithFilter();
-
-			var selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
-
-			var blockRef = (BlockReference)tr.GetObject(selectedBlocksByName[0], OpenMode.ForWrite);
-
-			var attributeCollection = blockRef.AttributeCollection;
-			//var blockAttributes = new ObservableCollection<BlockAttribute> { new("", "") };
-			var blockAttributes = GetListBlockAttributeFromAttributeCollection(attributeCollection, tr);
-
-			var pdfCreatorVm = new CreatePdfVm();
-			pdfCreatorVm.Attributes = blockAttributes;
-
-			var pdfCreatorView = new CreatePdfView(pdfCreatorVm);
-			pdfCreatorVm.OnRequestClose += (s, e) => pdfCreatorView.Close();
-			pdfCreatorView.ShowDialog();
-			if (!pdfCreatorVm.ButtonClicked) return;
-
-			selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
-			if (selectAllBlocks == null) return;
-
-			selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
-			if (selectedBlocksByName.Count <= 0) return;
-
-			var fileNameCreator = new FileNameCreator(pdfCreatorVm, selectedBlocksByName);
-
-			fileNameCreator.GetPrintParametersToPdf(tr);
-
-			var printModels = fileNameCreator.GetPrintModels();
-			if (pdfCreatorVm.IsX) printModels.Sort((x, y) => x.MinPointX.CompareTo(y.MinPointX));
-
-			if (pdfCreatorVm.IsY) printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
+			PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+			printedPages.Add(printModel.DocNumber + ".pdf создан");
+		}
 
 
-			foreach (var printModel in printModels)
-			{
-				PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-				printedPages.Add(printModel.DocNumber + ".pdf создан");
-			}
-		});
-		
 		var joinedBubbleTexts = string.Join("\n", printedPages);
-		string drawingPath =  Path.GetDirectoryName(Application.DocumentManager. CurrentDocument.Database.Filename);
-		
+		string drawingPath = Path.GetDirectoryName(Application.DocumentManager.CurrentDocument.Database.Filename);
+
 		BalloonNotifier notifier = new BalloonNotifier("Создание файлов успешно завершено", "Создание файлов успешно завершено", drawingPath);
 		notifier.Notify(joinedBubbleTexts);
 	}

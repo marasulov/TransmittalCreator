@@ -25,27 +25,6 @@ public class RenumberBlockPagesCommand
 		if (!renumberVm.ButtonClicked) return;
 		using var tr = Active.Database.TransactionManager.StartTransaction();
 
-		//SelectionFilter sFilter = new SelectionFilter(
-		//	new TypedValue[2]
-		//	{
-		//		new TypedValue(0, "INSERT"),
-		//		new TypedValue(66,1)
-		//	}
-		//);
-
-		//PromptSelectionOptions psOptions = new PromptSelectionOptions();
-		//psOptions.MessageForAdding = "\nSelect stamp block : ";
-		//psOptions.MessageForRemoval = "\nRemove from selection : ";
-
-		//var selResult = Active.Editor.GetSelection(psOptions, sFilter);
-
-		//if (selResult.Status != PromptStatus.OK)
-		//{
-		//	return;
-		//}
-
-		//SelectionSet selSet = selResult.Value;
-		//ObjectId[] allSelectedBlocks = selSet.GetObjectIds();
 		var allSelectedBlocks = BlockUtils.SelectBlocksWithFilter(true);
 
 		if (allSelectedBlocks == null) return;
