@@ -229,20 +229,8 @@
     <Compile Include="Utils\LayerUtils.cs" />
     <Compile Include="ViewModel\LayoutTreeViewModel.cs" />
     <Compile Include="ViewModel\VirtualToggleButton.cs" />
-    <Compile Include="View2323\RenumberPagesInLayoutSpaceView.xaml.cs">
-      <DependentUpon>RenumberPagesInLayoutSpaceView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View2323\RenumberPagesInModelSpaceView.xaml.cs">
-      <DependentUpon>RenumberPagesInModelSpaceView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View2323\LayoutTreeView.xaml.cs">
+    <Compile Include="View\LayoutTreeView.xaml.cs">
       <DependentUpon>LayoutTreeView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View2323\ObjectDividerView.xaml.cs">
-      <DependentUpon>ObjectDividerView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="View2323\CreatePdfView.xaml.cs">
-      <DependentUpon>CreatePdfView.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -295,23 +283,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="View2323\RenumberPagesInLayoutSpaceView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View2323\RenumberPagesInModelSpaceView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View2323\LayoutTreeView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View2323\ObjectDividerView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View2323\CreatePdfView.xaml">
+    <Page Include="View\LayoutTreeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

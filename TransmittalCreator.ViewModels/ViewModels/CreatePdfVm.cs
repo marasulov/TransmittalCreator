@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Input;
+using TransmittalCreator.ViewModels.Base;
 using TransmittalCreator.ViewModels.Enums;
+using TransmittalCreator.ViewModels.Models;
 using TransmittalCreator.ViewModels.ViewModels;
 
 

@@ -17,8 +17,7 @@
         TextOptions.TextRenderingMode="Auto"
         Background="{DynamicResource MaterialDesignPaper}"
         FontFamily="{materialDesign:MaterialDesignFont}">
-
-    <Window.Resources>
+<Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
 

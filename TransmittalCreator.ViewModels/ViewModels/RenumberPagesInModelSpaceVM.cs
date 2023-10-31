@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Windows.Input;
+using TransmittalCreator.ViewModels.Base;
 using TransmittalCreator.ViewModels.Enums;
 
 namespace TransmittalCreator.ViewModels.ViewModels
 {
-	public class RenumberPagesInModelSpaceVM : ViewModel
+	public class RenumberPagesInModelSpaceVM : Base.ViewModel
 	{
 		private int _renumberStartValue = 1;
 		private bool _insertTotalPages;

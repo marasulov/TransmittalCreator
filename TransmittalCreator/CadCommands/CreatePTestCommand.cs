@@ -6,6 +6,8 @@ using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
+using TransmittalCreator.ViewModels.Models;
+using TransmittalCreator.ViewModels.View;
 
 namespace TransmittalCreator.CadCommands;
 

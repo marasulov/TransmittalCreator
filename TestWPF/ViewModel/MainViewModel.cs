@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TestWPF.Models;
 using TransmittalCreator.ViewModels;
+using TransmittalCreator.ViewModels.Models;
 
 
 namespace TestWPF.ViewModel

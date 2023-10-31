@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 
 
-namespace TransmittalCreator.ViewModels;
+namespace TransmittalCreator.ViewModels.View;
 
 /// <summary>
 ///     Логика взаимодействия для PdfCreatorView.xaml
