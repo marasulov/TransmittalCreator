@@ -18,11 +18,12 @@ namespace TransmittalCreator.ViewModels
 		private string _fileName;
 		private string _suffix;
 		private string _prefix;
-		private string _renumberStartValue = "0";
+		private string _renumberStartValue;
 		private bool _isCheckedNumbering;
 		private bool _insertTotalPages;
 		private Ordering _ordering = Ordering.IsSelectedOrder;
 		private bool _isAttributeChecked;
+		private bool _isCombinePrintedFiles;
 
 		public CreatePdfVm()
 		{
@@ -101,6 +102,10 @@ namespace TransmittalCreator.ViewModels
 				if (IsCheckedNumbering & value == null)
 				{
 					_renumberStartValue = "0";
+				}
+				else
+				{
+					_renumberStartValue = value;
 				}
 				OnPropertyChanged();
 				FileName = Prefix + SelectedAttr?.AttributeValue + value + Suffix;
@@ -191,6 +196,12 @@ namespace TransmittalCreator.ViewModels
 				FileName = Prefix + SelectedAttr?.AttributeValue + RenumberStartValue + value;
 				OnPropertyChanged(nameof(FileName));
 			}
+		}
+
+		public bool IsCombinePrintedFiles
+		{
+			get => _isCombinePrintedFiles;
+			set => Set(ref _isCombinePrintedFiles, value);
 		}
 
 		public bool ButtonClicked

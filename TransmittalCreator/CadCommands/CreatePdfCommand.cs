@@ -3,6 +3,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Runtime;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Informers;
 using TransmittalCreator.Services;
@@ -51,9 +52,9 @@ public static class CreatePdfCommand
 		fileNameCreator.GetPrintParametersToPdf(tr);
 
 		var printModels = fileNameCreator.GetPrintModels();
-		if (pdfCreatorVm.IsX) printModels.Sort((x, y) => x.MinPointX.CompareTo(y.MinPointX));
+		//if (pdfCreatorVm.IsX) printModels.Sort((x, y) => x.MinPointX.CompareTo(y.MinPointX));
 
-		if (pdfCreatorVm.IsY) printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
+		//if (pdfCreatorVm.IsY) printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
 
 
 		foreach (var printModel in printModels)
@@ -62,6 +63,37 @@ public static class CreatePdfCommand
 			printedPages.Add(printModel.DocNumber + ".pdf создан");
 		}
 
+		if (pdfCreatorVm.IsCombinePrintedFiles)
+		{
+			var combinedFileName = Path.Combine(Path.GetDirectoryName(Active.Document.Name),
+				$"{Path.GetFileNameWithoutExtension(Active.Document.Name)}.pdf");
+			if (File.Exists(combinedFileName))
+				try
+				{
+					File.Delete(combinedFileName);
+				}
+				catch (Exception e)
+				{
+					Active.WriteMessage(e.Message);
+				}
+			var filenames = printModels
+				.Select(x => Path.Combine(Path.GetDirectoryName(Active.Document.Name), $"{x.DocNumber}.pdf")).ToList();
+			
+			var isSuccessPrinted = PrintUtils.UnitePages(filenames, combinedFileName);
+
+			foreach (var file in filenames.Where(file => File.Exists(file)))
+				try
+				{
+					File.Delete(file);
+				}
+				catch (Exception e)
+				{
+					Active.WriteMessage(e.Message);
+				}
+
+			Active.WriteMessage(isSuccessPrinted ? "Все файлы распечатаны\n" : "Произошла ошибка\n");
+			printedPages = new List<string>() { combinedFileName };
+		}
 
 		var joinedBubbleTexts = string.Join("\n", printedPages);
 		string drawingPath = Path.GetDirectoryName(Application.DocumentManager.CurrentDocument.Database.Filename);

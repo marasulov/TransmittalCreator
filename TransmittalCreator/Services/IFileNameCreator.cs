@@ -10,7 +10,7 @@ namespace TransmittalCreator.Services
 {
 	public interface IFileNameCreator
 	{
-		int NumberingValue { get; set; }
+
 		//void GetPrintParametersToPdf(Transaction tr);
 		string GetFileName(PrintModel printModel);
 		List<PrintModel> GetPrintModels();

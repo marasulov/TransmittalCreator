@@ -20,6 +20,7 @@ public class FileNameCreator : IFileNameCreator
 	private readonly ObjectIdCollection _objectIdCollection;
 
 	private List<PrintModel> _printModels = new();
+	private int _numberingValue;
 
 	public FileNameCreator(ICreatePdfVm createPdf, ObjectIdCollection ids)
 	{
@@ -30,12 +31,12 @@ public class FileNameCreator : IFileNameCreator
 		_isXChecked = createPdf.IsX;
 		_isYChecked = createPdf.IsY;
 		_attributeName = createPdf?.SelectedAttr?.AttributeName;
-		NumberingValue = createPdf.RenumberStartValue == null ? 0 : Int32.Parse(createPdf.RenumberStartValue);
+		_numberingValue = createPdf.RenumberStartValue == null ? 0 : Int32.Parse(createPdf.RenumberStartValue);
 
 		_objectIdCollection = ids;
 	}
 
-	public int NumberingValue { get; set; }
+
 
 	public void GetPrintParametersToPdf(Transaction tr)
 	{
@@ -53,8 +54,8 @@ public class FileNameCreator : IFileNameCreator
 
 	public string GetFileName(PrintModel printModel)
 	{
-		var filename = _prefix + printModel.DocNumber + NumberingValue + _sufix;
-		if (_isNumberingChecked) NumberingValue++;
+		var filename = _prefix + printModel.DocNumber + _numberingValue + _sufix;
+		if (_isNumberingChecked) _numberingValue ++;
 
 		return filename;
 

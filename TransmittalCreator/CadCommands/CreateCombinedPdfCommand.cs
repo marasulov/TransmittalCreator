@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Runtime;
 using Newtonsoft.Json;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
 using TransmittalCreator.Services;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Utils;
+using Exception = System.Exception;
 
 namespace TransmittalCreator.CadCommands;
 
@@ -57,7 +58,6 @@ public class CreateCombinedPdfCommand
 		PrintUtils.GetSheetsFromBlocks(Active.Editor, dict, tr, idArray);
 		var selAttrName = "НОМЕР_ЛИСТА";
 		PrintUtils.GetPrintParametersToPdf(Active.Editor, printModels, tr, idArray, selAttrName);
-
 
 		//utils.CreateOnlyVed(dict);
 		PrintUtils.CreateJsonFile(dict);
