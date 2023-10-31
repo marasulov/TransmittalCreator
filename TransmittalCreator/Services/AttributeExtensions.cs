@@ -16,12 +16,12 @@ public static class AttributeExtensions
 		}
 	}
 
-	public static Dictionary<string, string> GetAttributesValues(this BlockReference br)
-	{
-		return br.AttributeCollection
-			.GetAttributes()
-			.ToDictionary(att => att.Tag, att => att.TextString);
-	}
+	//public static Dictionary<string, string> GetAttributesValues(this BlockReference br)
+	//{
+	//	return br.AttributeCollection
+	//		.GetAttributes()
+	//		.ToDictionary(att => att.Tag, att => att.TextString);
+	//}
 
 
 	public static void SetAttributesValues(this BlockReference br, Dictionary<string, string> atts)

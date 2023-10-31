@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Autodesk.AutoCAD.ApplicationServices;
+﻿using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Runtime;
+using System.Collections.Generic;
+using System.IO;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Informers;
 using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
-using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
+using TransmittalCreator.ViewModels.Models;
+using TransmittalCreator.ViewModels.View;
 
 namespace TransmittalCreator.CadCommands;
 
@@ -19,6 +21,7 @@ public static class CreatePdfCommand
 		var printedPages = new List<string>();
 		Active.Document.SendStringToExecute("REGENALL ", true, false, true);
 		using var tr = Active.Database.TransactionManager.StartTransaction();
+
 		var selectAllBlocks = BlockUtils.SelectBlocksWithFilter();
 
 		var selectedBlocksByName = BlockUtils.GetDynBlocksByName(selectAllBlocks, tr);
@@ -36,8 +39,6 @@ public static class CreatePdfCommand
 		pdfCreatorVm.OnRequestClose += (s, e) => pdfCreatorView.Close();
 		pdfCreatorView.ShowDialog();
 		if (!pdfCreatorVm.ButtonClicked) return;
-
-		Active.WriteMessageInDebug($"{pdfCreatorVm.Prefix}");
 
 		selectAllBlocks = BlockUtils.SelectBlocksWithFilter(true);
 		if (selectAllBlocks == null) return;
@@ -58,16 +59,16 @@ public static class CreatePdfCommand
 		foreach (var printModel in printModels)
 		{
 			PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-			printedPages.Add(printModel.DocNumber +".pdf создан");
+			printedPages.Add(printModel.DocNumber + ".pdf создан");
 		}
 
-		tr.Commit();
 
 		var joinedBubbleTexts = string.Join("\n", printedPages);
-		string drawingPath =  Path.GetDirectoryName(Application.DocumentManager. CurrentDocument.Database.Filename);
-		AcadUtils.GetInfoBubble("Создание файлов успешно завершено", joinedBubbleTexts, drawingPath);
-	}
+		string drawingPath = Path.GetDirectoryName(Application.DocumentManager.CurrentDocument.Database.Filename);
 
+		BalloonNotifier notifier = new BalloonNotifier("Создание файлов успешно завершено", "Создание файлов успешно завершено", drawingPath);
+		notifier.Notify(joinedBubbleTexts);
+	}
 
 	private static List<BlockAttribute> GetListBlockAttributeFromAttributeCollection(
 		AttributeCollection attributeCollection, Transaction tr)

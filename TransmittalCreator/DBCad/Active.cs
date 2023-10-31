@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Xml.Linq;
 using Autodesk.AutoCAD.ApplicationServices;
@@ -116,6 +117,8 @@ public static class Active
 		Database.SaveAs(path, true, DwgVersion.Current, Database.SecurityParameters);
 	}
 
+
+
 	public static void UsingTransaction(TransactionDelegate action)
 	{
 		using var tr = Database.TransactionManager.StartTransaction();
@@ -129,6 +132,38 @@ public static class Active
 			tr.Abort();
 		}
 	}
+
+	public static void UsingCurrentSpace(this Database database, Action<Transaction, BlockTableRecord> action)
+	{
+		database.UsingTableRecord(BlockTableRecord.ModelSpace, action);
+	}
+
+	public static void UsingModelSpace(this Database database, Action<Transaction, BlockTableRecord> action)
+	{
+		database.UsingTableRecord(BlockTableRecord.ModelSpace, action);
+	}
+
+	public static void UsingTableRecord(this Database database, string tableName,
+		Action<Transaction, BlockTableRecord> action)
+	{
+		UsingTransaction(
+			tr =>
+			{
+				// Get the block table for the current database
+				var blockTable =
+					(BlockTable) tr.GetObject(
+						database.BlockTableId, OpenMode.ForRead);
+
+				// Get the model space block table record
+				var tableRecord =
+					(BlockTableRecord) tr.GetObject(
+						blockTable[tableName],
+						OpenMode.ForRead);
+
+				action(tr, tableRecord);
+			});
+	}
+
 
 	/// <summary>Применение стиля к блоку согласно стиля</summary>
 	/// <param name="blkRefObjectId">ObjectId of block reference</param>

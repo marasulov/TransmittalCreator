@@ -12,8 +12,8 @@ public class PrintPackageModel
 		Layouts = layouts;
 	}
 
-	public string PdfFileName { get; set; }
-	public List<LayoutModel> Layouts { get; set; }
+	public string PdfFileName { get; }
+	public List<LayoutModel> Layouts { get; }
 	public string DwgFileName { get; } = (string)Application.GetSystemVariable("DWGNAME");
-	public string DwgPath { get; set; } = (string)Application.GetSystemVariable("DWGPREFIX");
+	public string DwgPath { get; } = (string)Application.GetSystemVariable("DWGPREFIX");
 }

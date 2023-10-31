@@ -1,14 +1,11 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-
-namespace TransmittalCreator.ViewModels
+﻿namespace TransmittalCreator.ViewModels.Models
 {
 	public class BlockAttribute//: INotifyPropertyChanged
 	{
 
 		private string _attributeName;
 		private string _attributeValue;
-        
+
 		/// <summary>
 		/// Название атрибута
 		/// </summary>
@@ -40,17 +37,5 @@ namespace TransmittalCreator.ViewModels
 			this.AttributeName = attrName;
 			this.AttributeValue = attrValue;
 		}
-
-		//public string GetAttrName(BlockAttribute blockAttribute)
-		//{
-		//	return blockAttribute.AttributeName;
-		//}
-
-		//public event PropertyChangedEventHandler PropertyChanged;
-		//public void OnPropertyChanged([CallerMemberName] string prop = "")
-		//{
-		//	PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
-		//}
-
 	}
 }

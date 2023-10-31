@@ -4,6 +4,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Informers;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels.ViewModels;
@@ -24,27 +25,6 @@ public class RenumberBlockPagesCommand
 		if (!renumberVm.ButtonClicked) return;
 		using var tr = Active.Database.TransactionManager.StartTransaction();
 
-		//SelectionFilter sFilter = new SelectionFilter(
-		//	new TypedValue[2]
-		//	{
-		//		new TypedValue(0, "INSERT"),
-		//		new TypedValue(66,1)
-		//	}
-		//);
-
-		//PromptSelectionOptions psOptions = new PromptSelectionOptions();
-		//psOptions.MessageForAdding = "\nSelect stamp block : ";
-		//psOptions.MessageForRemoval = "\nRemove from selection : ";
-
-		//var selResult = Active.Editor.GetSelection(psOptions, sFilter);
-
-		//if (selResult.Status != PromptStatus.OK)
-		//{
-		//	return;
-		//}
-
-		//SelectionSet selSet = selResult.Value;
-		//ObjectId[] allSelectedBlocks = selSet.GetObjectIds();
 		var allSelectedBlocks = BlockUtils.SelectBlocksWithFilter(true);
 
 		if (allSelectedBlocks == null) return;
@@ -75,8 +55,8 @@ public class RenumberBlockPagesCommand
 
 		tr.Commit();
 		
-
-		AcadUtils.GetInfoBubble("Листы успешно перенумерованы", "Перенумерование завершено");
+		BalloonNotifier notifier = new BalloonNotifier("Листы успешно перенумерованы", "Листы успешно перенумерованы");
+		notifier.Notify("Перенумерование завершено");
 	}
 
 	private static Point3d GetUcsPoint3d(BlockReference blockReference)

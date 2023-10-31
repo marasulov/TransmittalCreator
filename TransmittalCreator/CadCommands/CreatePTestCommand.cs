@@ -6,6 +6,8 @@ using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
 using TransmittalCreator.View;
 using TransmittalCreator.ViewModels;
+using TransmittalCreator.ViewModels.Models;
+using TransmittalCreator.ViewModels.View;
 
 namespace TransmittalCreator.CadCommands;
 
@@ -49,16 +51,16 @@ public class CreatePTestCommand
 			Active.WriteMessageInDebug($"{pdfCreatorVm.Prefix}");
 
 			var allSelectedBlocks = BlockUtils.SelectBlocksWithFilter();
-			var fileNameCreator = new FileNameCreator(pdfCreatorVm, new ObjectIdCollection(allSelectedBlocks));
+			//var fileNameCreator = new FileNameCreator(pdfCreatorVm, new ObjectIdCollection(allSelectedBlocks));
 
-			fileNameCreator.GetPrintParametersToPdf(tr);
+			//fileNameCreator.GetPrintParametersToPdf(tr);
 
-			foreach (var printModel in fileNameCreator.GetPrintModels())
-				PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+			//foreach (var printModel in fileNameCreator.GetPrintModels())
+			//	PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
 
-			if (allSelectedBlocks == null) return;
+			//if (allSelectedBlocks == null) return;
 
-			if (pdfCreatorVm.IsSelectedOrder) Active.WriteMessageInDebug($"{pdfCreatorVm.SelectedAttr.AttributeName}");
+			//if (pdfCreatorVm.IsSelectedOrder) Active.WriteMessageInDebug($"{pdfCreatorVm.SelectedAttr.AttributeName}");
 
 			tr.Commit();
 

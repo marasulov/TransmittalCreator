@@ -5,6 +5,7 @@ using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
+using Gile.AutoCAD.Extension;
 using iTextSharp.text.pdf;
 using Newtonsoft.Json;
 using System;
@@ -14,7 +15,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using TransmittalCreator.Models;
-using TransmittalCreator.Services;
 using Active = TransmittalCreator.DBCad.Active;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 using Db = Autodesk.AutoCAD.DatabaseServices;
@@ -243,16 +243,6 @@ public static class PrintUtils
 	public static void GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Db.Transaction tr,
 		Db.ObjectIdCollection idArray)
 	{
-		// Build a filter list so that only
-		// block references are selected
-
-		//string sheetNumber = "",
-		//	docNumber = "",
-		//	objectNameEng = "",
-		//	docTitleEng = "",
-		//	objectNameRu = "",
-		//	docTitleRu = "";
-
 		foreach (Db.ObjectId blkId in idArray)
 			//TODO Check this point
 			if (blkId != Db.ObjectId.Null)
@@ -317,66 +307,6 @@ public static class PrintUtils
 			objectNameRu.Trim(), docTitleRu.Trim(), stampViewValue.Trim(), minPointX);
 	}
 
-	/// <summary>
-	///     создает колекцию листов из блоков штампа
-	/// </summary>
-	/// <param name="ed">editor</param>
-	/// <param name="dict"> коллекция листов</param>
-	/// <param name="tr"> транзакция </param>
-	/// <returns>коллекция листов </returns>
-	public static List<Sheet> GetSheetsFromBlocks(Editor ed, List<Sheet> dict, Db.Transaction tr,
-		Db.ObjectIdCollection objectIdCollection, AttributModel attributModel)
-	{
-		var objectNameEn = attributModel.ObjectNameEn;
-		var objectNameRu = attributModel.ObjectNameRu;
-		var listNumber = attributModel.Position;
-		var nomination = attributModel.Nomination;
-		var commentAttr = attributModel.Comment;
-		var trDocTitleEn = attributModel.TrDocTitleEn;
-		var trDocTitleRu = attributModel.TrDocTitleRu;
-
-		string sheetNumber = "",
-			docNumber = "",
-			comment = "",
-			objectNameEng = "",
-			docTitleEng = "",
-			objectNameRus = "",
-			docTitleRu = "";
-
-		foreach (Db.ObjectId blkId in objectIdCollection)
-		{
-			var blkRef = (Db.BlockReference)tr.GetObject(blkId, Db.OpenMode.ForRead);
-
-			var btr = (Db.BlockTableRecord)tr.GetObject(blkRef.BlockTableRecord, Db.OpenMode.ForRead);
-
-			var extents3d = blkRef.GeometricExtents;
-			ed.WriteMessage("\nBlock:{0} габариты {1} ", btr.Name, extents3d.MinPoint.ToString(),
-				extents3d.MaxPoint.ToString());
-			btr.Dispose();
-
-			var attCol = blkRef.AttributeCollection;
-
-
-			var attrDict = blkRef.GetAttributesValues();
-
-			docTitleEng = attrDict.FirstOrDefault(x => x.Key == objectNameEn).Value;
-			docTitleRu = attrDict.FirstOrDefault(x => x.Key == objectNameRu).Value;
-
-
-			sheetNumber = attrDict.FirstOrDefault(x => x.Key == listNumber).Value;
-			docNumber = attrDict.FirstOrDefault(x => x.Key == nomination).Value;
-
-			comment = attrDict.FirstOrDefault(x => x.Key == commentAttr).Value;
-
-			//transItem = attrDict.FirstOrDefault(x => x.Key == trItem).Value;
-			objectNameEng = attrDict.FirstOrDefault(x => x.Key == trDocTitleEn).Value;
-			objectNameRus = attrDict.FirstOrDefault(x => x.Key == trDocTitleRu).Value;
-		}
-
-		return dict;
-	}
-
-
 	public static Db.Database CreateDatabaseFromTemplate(string templateName, string password)
 	{
 		if (templateName == null || templateName.Trim() == string.Empty) return null;
@@ -391,7 +321,7 @@ public static class PrintUtils
 
 
 	/// <summary>
-	///     find print area and pdf name by block id
+	/// find print area and pdf name by block id
 	/// </summary>
 	public static List<PrintModel> GetPrintParametersToPdf(Editor ed, List<PrintModel> printModels, Db.Transaction tr,
 		Db.ObjectIdCollection objectIdCollection, string selAttrName)
@@ -421,15 +351,17 @@ public static class PrintUtils
 		var attrDict = blkRef.GetAttributesValues();
 		var docNumber = "";
 
-		if (blockStamp == "Форма 3 ГОСТ Р 21.1101-2009 M25" || blockStamp == "Форма 3 ГОСТ Р 21.1101-2009")
+		switch (blockStamp)
 		{
-			docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
-		}
-		else if (blockStamp == "Форма 6 ГОСТ Р 21.1101-2009")
-		{
-			selAttrName = "НОМЕР_ЛИСТА_2";
-			docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
-			docNumber += "-page" + attrDict.FirstOrDefault(x => x.Key == "ЛИСТ2_СПЕЦ").Value;
+			case "Форма 3 ГОСТ Р 21.1101-2009 M25":
+			case "Форма 3 ГОСТ Р 21.1101-2009":
+				docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
+				break;
+			case "Форма 6 ГОСТ Р 21.1101-2009":
+				selAttrName = "НОМЕР_ЛИСТА_2";
+				docNumber = attrDict.FirstOrDefault(x => x.Key == selAttrName).Value;
+				docNumber += "-page" + attrDict.FirstOrDefault(x => x.Key == "ЛИСТ2_СПЕЦ").Value;
+				break;
 		}
 
 		return docNumber;
@@ -551,23 +483,6 @@ public static class PrintUtils
 		}
 	}
 
-	public static void CreateOnlytrans(List<Sheet> dict)
-	{
-		var ed = Active.Editor;
-		//Transaction tr = Active.Database.TransactionManager.StartTransaction();
-		// Start the transaction
-		try
-		{
-			//GetSheetsFromBlocks(ed, dict, tr);
-			//tr.Commit();
-			Sheet.WriteToExcel(dict);
-		}
-		catch (Exception ex)
-		{
-			ed.WriteMessage("Exception: " + ex.Message + " " + ex.InnerException);
-		}
-	}
-
 	private static void CreateTableFromList(List<Sheet> pagesValues, double scale = 1)
 	{
 		try
@@ -581,7 +496,8 @@ public static class PrintUtils
 					Database db = HostApplicationServices.WorkingDatabase;
 					using (Transaction tr = db.TransactionManager.StartTransaction())
 					{
-						BlockTableRecord btr = (BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite);
+						BlockTableRecord btr = db.GetCurrentSpace(OpenMode.ForWrite);
+						//BlockTableRecord btr = (BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite);
 						btr.AppendEntity(jig.GetEntity());
 						tr.AddNewlyCreatedDBObject(jig.GetEntity(), true);
 						tr.Commit();

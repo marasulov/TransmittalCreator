@@ -10,15 +10,15 @@ public class DynamicBlockFinder
 {
 	private readonly string[] _blockNameToSearch;
 
+	private ObjectIdCollection _blockRefIds;
+
 	public DynamicBlockFinder(string[] blockNames)
 	{
 		_blockNameToSearch = blockNames;
 	}
 
-	public ObjectIdCollection BlockRefIds { get; set; }
-
 	/// <summary>
-	///     Получает листы содержащие блоки со штампами
+	/// Получает листы содержащие блоки со штампами
 	/// </summary>
 	/// <param name="trans"></param>
 	/// <param name="layoutModels"></param>
@@ -40,7 +40,7 @@ public class DynamicBlockFinder
 				var anonymousBtr =
 					(BlockTableRecord)trans.GetObject(anonymousBtrId, OpenMode.ForRead);
 				// получаем все вставки этого блока
-				BlockRefIds = anonymousBtr.GetBlockReferenceIds(true, true);
+				_blockRefIds = anonymousBtr.GetBlockReferenceIds(true, true);
 
 				GetBlockInLayout(trans, layoutModels);
 			}
@@ -54,7 +54,7 @@ public class DynamicBlockFinder
 	/// <param name="layoutModels"></param>
 	private void GetBlockInLayout(Transaction trans, List<LayoutModel> layoutModels)
 	{
-		foreach (ObjectId id in BlockRefIds)
+		foreach (ObjectId id in _blockRefIds)
 		{
 			var blockReference = (BlockReference)trans.GetObject(id, OpenMode.ForRead);
 			var blockOwnerId = blockReference.OwnerId;

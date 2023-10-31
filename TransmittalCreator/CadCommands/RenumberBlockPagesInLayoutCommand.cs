@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using TransmittalCreator.DBCad;
+using TransmittalCreator.Informers;
 using TransmittalCreator.Models.Layouts;
 using TransmittalCreator.Services.Blocks;
 using TransmittalCreator.Services.Files;
@@ -35,7 +36,8 @@ public class RenumberBlockPagesInLayoutCommand
 
 		var blockNames = FileManager.GetBlockNames();
 		var dynamicBlocks = new DynamicBlockFinder(blockNames);
-		using (var trans = Active.Database.TransactionManager.StartTransaction())
+
+		Active.UsingTransaction(trans =>
 		{
 			var layoutModelCollection = new LayoutModelCollection(dynamicBlocks);
 			layoutModelCollection.ListLayouts("Model");
@@ -79,7 +81,7 @@ public class RenumberBlockPagesInLayoutCommand
 					//var layouts = DatabaseExtension.GetLayouts(Active.Database, mode:OpenMode.ForWrite);
 					foreach (var layoutModel in layoutModelCollection.LayoutModels)
 					{
-						foreach (var page in new string[]{"Лист2_Спец","Лист"})
+						foreach (var page in new []{"Лист2_Спец","Лист"})
 						{
 							var attributeValue = GetAttributeValueByTag(layoutModel.BlocksObjectId, page);
 							var btr =
@@ -117,11 +119,13 @@ public class RenumberBlockPagesInLayoutCommand
 
 			}
 
-			trans.Commit();
 			Active.Editor.Regen();
 
-			AcadUtils.GetInfoBubble("Листы успешно перенумерованы", "Перенумерование завершено");
-		}
+			BalloonNotifier notifier = new BalloonNotifier("Перенумерование завершено", "Перенумерование завершено");
+			notifier.Notify("Листы успешно перенумерованы");
+		});
+
+		
 	}
 
 	private static string GetAttributeValueByTag(ObjectId blockRefId, string tag)

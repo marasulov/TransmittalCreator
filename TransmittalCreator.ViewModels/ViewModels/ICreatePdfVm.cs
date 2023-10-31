@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TransmittalCreator.ViewModels.Models;
 
 namespace TransmittalCreator.ViewModels.ViewModels
 {
