@@ -119,35 +119,33 @@ public class PrintModel
 		{
 			var pattern = new Regex(pat, RegexOptions.Compiled |
 			                             RegexOptions.Singleline);
-			if (pattern.IsMatch(line))
+			if (!pattern.IsMatch(line)) continue;
+			var items = DivideStringToWidthAndHeight(pattern, line);
+			double curWidth;
+			double curHeight;
+
+			if (IsFormatHorizontal())
 			{
-				var items = DivideStringToWidthAndHeight(pattern, line);
-				double curWidth;
-				double curHeight;
+				curWidth = Math.Round(Width / _scaleX);
+				curHeight = Math.Round(Height / _scaleX);
+			}
+			else
+			{
+				curWidth = Math.Round(Height / _scaleX);
+				curHeight = Math.Round(Width / _scaleX);
+			}
 
-				if (IsFormatHorizontal())
-				{
-					curWidth = Math.Round(Width / _scaleX);
-					curHeight = Math.Round(Height / _scaleX);
-				}
-				else
-				{
-					curWidth = Math.Round(Height / _scaleX);
-					curHeight = Math.Round(Width / _scaleX);
-				}
-
-				if ((items.Item1 == curWidth) & (items.Item2 == curHeight))
-				{
-					canonName = line;
-					break;
-				}
+			if ((items.Item1 == curWidth) & (items.Item2 == curHeight))
+			{
+				canonName = line;
+				break;
 			}
 		}
 
 		return canonName;
 	}
 
-	private (double, double) DivideStringToWidthAndHeight(Regex pattern, string line)
+	private static (double, double) DivideStringToWidthAndHeight(Regex pattern, string line)
 	{
 		var str2 = pattern.Matches(line, 0);
 

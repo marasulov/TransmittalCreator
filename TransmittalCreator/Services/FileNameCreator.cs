@@ -11,7 +11,6 @@ namespace TransmittalCreator.Services;
 public class FileNameCreator : IFileNameCreator
 {
 	private readonly string _attributeName;
-	private readonly bool _isAttrChecked;
 	private readonly bool _isNumberingChecked;
 	private readonly bool _isXChecked;
 	private readonly bool _isYChecked;
@@ -27,7 +26,6 @@ public class FileNameCreator : IFileNameCreator
 		_isNumberingChecked = createPdf.IsCheckedNumbering;
 		_prefix = createPdf.Prefix;
 		_sufix = createPdf.Suffix;
-		_isAttrChecked = createPdf.IsAttributeChecked;
 		_isXChecked = createPdf.IsX;
 		_isYChecked = createPdf.IsY;
 		_attributeName = createPdf?.SelectedAttr?.AttributeName;

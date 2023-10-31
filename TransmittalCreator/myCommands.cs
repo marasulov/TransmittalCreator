@@ -17,7 +17,6 @@ using System.Text;
 using System.Windows.Forms;
 using TransmittalCreator.DBCad;
 using TransmittalCreator.Models;
-using TransmittalCreator.Resources;
 using TransmittalCreator.Services;
 using TransmittalCreator.Utils;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;

@@ -152,15 +152,10 @@
     <Compile Include="CadCommands\BlockExtCommand.cs" />
     <Compile Include="CadCommands\CreateCombinedPdfCommand.cs" />
     <Compile Include="CadCommands\CreateDwgCommand.cs" />
-    <Compile Include="CadCommands\CreateLayoutsForStamps.cs" />
     <Compile Include="CadCommands\CreateLayoutTrCommand.cs" />
-    <Compile Include="CadCommands\CreatePdfWithRenumberingCommand.cs" />
-    <Compile Include="CadCommands\CreatePTestCommand.cs" />
     <Compile Include="CadCommands\CreateTransPdfCommand.cs" />
     <Compile Include="CadCommands\CreateVedCommand.cs" />
     <Compile Include="CadCommands\CreateVedFromLayoutPages.cs" />
-    <Compile Include="CadCommands\CtTransmCommand.cs" />
-    <Compile Include="CadCommands\PrintStampCommand.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesInLayoutCommand.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesCommand.cs" />
     <Compile Include="CommandsWatcher.cs" />
@@ -222,7 +217,6 @@
     </Compile>
     <Compile Include="Jigs\SpesTableJig.cs" />
     <Compile Include="Utils\BlockUtils.cs" />
-    <Compile Include="Utils\Controls\NumberOnly.cs" />
     <Compile Include="Utils\LayoutUtils.cs" />
     <Compile Include="Utils\PrintUtils.cs" />
     <Compile Include="Utils\AcadUtils.cs" />

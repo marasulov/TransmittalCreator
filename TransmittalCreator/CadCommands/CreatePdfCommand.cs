@@ -52,10 +52,6 @@ public static class CreatePdfCommand
 		fileNameCreator.GetPrintParametersToPdf(tr);
 
 		var printModels = fileNameCreator.GetPrintModels();
-		//if (pdfCreatorVm.IsX) printModels.Sort((x, y) => x.MinPointX.CompareTo(y.MinPointX));
-
-		//if (pdfCreatorVm.IsY) printModels.Sort((x, y) => x.MinPointY.CompareTo(y.MinPointY));
-
 
 		foreach (var printModel in printModels)
 		{

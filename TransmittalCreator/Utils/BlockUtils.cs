@@ -11,6 +11,7 @@ namespace TransmittalCreator.Utils;
 public static class BlockUtils
 {
 	/// <summary>
+	/// 
 	/// </summary>
 	/// <param name="blocks"></param>
 	/// <param name="attributeNames"></param>
