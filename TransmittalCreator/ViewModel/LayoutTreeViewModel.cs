@@ -42,15 +42,15 @@ internal class LayoutTreeViewModel : INotifyPropertyChanged
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
-	private bool OnCreateCommand(object arg)
-	{
-		return true;
-	}
+	//private bool OnCreateCommand(object arg)
+	//{
+	//	return true;
+	//}
 
-	private void CreateCommand(object obj)
-	{
-		var v = obj.ToString();
-	}
+	//private void CreateCommand(object obj)
+	//{
+	//	var v = obj.ToString();
+	//}
 
 
 	public List<LayoutTreeViewModel> CreateTree(IList<PrintPackageModel> printPackages)
