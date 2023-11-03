@@ -2,24 +2,24 @@
 
 namespace TransmittalCreator.Services.Serializers;
 
-public class SerializeManager
-{
-	private readonly ISerializer _serializer;
+//public class SerializeManager
+//{
+//	private readonly ISerializer _serializer;
 
-	public SerializeManager(ISerializer serializer)
-	{
-		_serializer = serializer;
-	}
+//	public SerializeManager(ISerializer serializer)
+//	{
+//		_serializer = serializer;
+//	}
 
-	public string Filename => _serializer.Filename;
+//	public string Filename => _serializer.Filename;
 
-	public string Serialize<T>(T item)
-	{
-		return _serializer.Serialize(item);
-	}
+//	public string Serialize<T>(T item)
+//	{
+//		return _serializer.Serialize(item);
+//	}
 
-	public T Deserialize<T>(Stream stream)
-	{
-		return _serializer.Deserialize<T>(stream);
-	}
-}
+//	public T Deserialize<T>(Stream stream)
+//	{
+//		return _serializer.Deserialize<T>(stream);
+//	}
+//}

@@ -7,24 +7,24 @@ namespace TransmittalCreator.Services.Files;
 
 public class FileManager : IFileManager
 {
-	public FileManager()
-	{
-		FilePath = GetFilePath();
-	}
+	//public FileManager()
+	//{
+	//	FilePath = GetFilePath();
+	//}
 
 	public string FilePath { get; }
 	public string[] BlockNames { get; set; }
 	public string FileName { get; set; }
 	public string DirPath { get; set; }
 
-	public static string GetFilePath()
-	{
-		//return Path.Combine((string)Application.GetSystemVariable("DWGNAME"), (string)Application.GetSystemVariable("DWGPREFIX"));
-		var fileName = (string)Application.GetSystemVariable("DWGNAME");
-		var dirPath = (string)Application.GetSystemVariable("DWGPREFIX");
+	//public static string GetFilePath()
+	//{
+	//	//return Path.Combine((string)Application.GetSystemVariable("DWGNAME"), (string)Application.GetSystemVariable("DWGPREFIX"));
+	//	var fileName = (string)Application.GetSystemVariable("DWGNAME");
+	//	var dirPath = (string)Application.GetSystemVariable("DWGPREFIX");
 
-		return Path.Combine(dirPath, fileName);
-	}
+	//	return Path.Combine(dirPath, fileName);
+	//}
 
 	public static string[] GetBlockNames()
 	{

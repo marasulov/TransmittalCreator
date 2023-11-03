@@ -63,11 +63,9 @@ public class StandartCopier
 		{
 			if (IsFileCopied(Pc3Source, Pc3Destination))
 				Active.Editor.WriteMessage($"Файл {Pc3Source} скопирован в {Pc3Destination}");
-			if (IsFileCopied(PmpSource, PmpDestination))
-				Active.Editor.WriteMessage($"Файл {PmpSource} скопирован в {PmpDestination}");
-			else
-				Active.Editor.WriteMessage(
-					$"Не удалось скопировать файлы настройки, скопируйте с сервера \\\\uz-fs\\install\\CAD\\Blocks файлы {Pc3Source}  в {Pc3Destination} и {PmpDestination}");
+			Active.Editor.WriteMessage(IsFileCopied(PmpSource, PmpDestination)
+				? $"Файл {PmpSource} скопирован в {PmpDestination}"
+				: $"Не удалось скопировать файлы настройки, скопируйте с сервера \\\\uz-fs\\install\\CAD\\Blocks файлы {Pc3Source}  в {Pc3Destination} и {PmpDestination}");
 		}
 		else
 		{

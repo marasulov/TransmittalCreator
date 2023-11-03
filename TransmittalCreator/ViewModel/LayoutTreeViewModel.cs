@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using TransmittalCreator.Models;
-using TransmittalCreator.Services;
 
 namespace TransmittalCreator.ViewModel;
 
@@ -29,8 +28,6 @@ internal class LayoutTreeViewModel : INotifyPropertyChanged
 		Name = name;
 	}
 
-	public PrintPackageCreator PrintPackage { get; set; }
-
 	public List<LayoutTreeViewModel> Children { get; set; }
 
 	public bool IsInitiallySelected { get; private set; }
@@ -41,20 +38,6 @@ internal class LayoutTreeViewModel : INotifyPropertyChanged
 	{
 		get => _isChecked;
 		set => SetIsChecked(value, true, true);
-	}
-
-	public RelayCommand AddCommand =>
-		addCommand ??
-		(addCommand = new RelayCommand(CreateCommand, OnCreateCommand));
-
-	public IObservable<PrintPackageModel> PrintPackages
-	{
-		get => _printPackages;
-		set
-		{
-			_printPackages = value;
-			OnPropertyChanged("printPackages");
-		}
 	}
 
 	public event PropertyChangedEventHandler PropertyChanged;
