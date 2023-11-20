@@ -32,7 +32,10 @@ public class FileManager : IFileManager
 			"conf.json");
 
 #if DEBUG
-		confFilePath = "D:\\data\\source\\repos\\TransmittalCreator\\TransmittalCreator\\conf.json";
+        var path = System.IO.Path.GetDirectoryName(
+            System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
+        path = path?.Substring(6);
+        confFilePath = Path.Combine(path,"conf.json");
 #endif
 		var jsonFile = File.ReadAllText(confFilePath);
 		var deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);

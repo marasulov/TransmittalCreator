@@ -65,21 +65,23 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AcCoreMgd">
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\accoremgd.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+    <Reference Include="accoremgd, Version=24.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ModPlus.AutoCAD.API.2022.2.0.0\lib\accoremgd.dll</HintPath>
     </Reference>
-    <Reference Include="AcDbMgd">
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\acdbmgd.dll</HintPath>
+    <Reference Include="AcCui, Version=24.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ModPlus.AutoCAD.API.2022.2.0.0\lib\AcCui.dll</HintPath>
     </Reference>
-    <Reference Include="AcMgd">
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-      <HintPath>C:\Program Files\Autodesk\AutoCAD 2019\acmgd.dll</HintPath>
+    <Reference Include="acdbmgd, Version=24.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ModPlus.AutoCAD.API.2022.2.0.0\lib\acdbmgd.dll</HintPath>
+    </Reference>
+    <Reference Include="acdbmgdbrep, Version=24.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ModPlus.AutoCAD.API.2022.2.0.0\lib\acdbmgdbrep.dll</HintPath>
+    </Reference>
+    <Reference Include="acmgd, Version=24.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\ModPlus.AutoCAD.API.2022.2.0.0\lib\acmgd.dll</HintPath>
+    </Reference>
+    <Reference Include="AdWindows, Version=3.1.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ModPlus.AutoCAD.API.2022.2.0.0\lib\AdWindows.dll</HintPath>
     </Reference>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.9.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>..\packages\BouncyCastle.1.8.9\lib\BouncyCastle.Crypto.dll</HintPath>
@@ -158,6 +160,7 @@
     <Compile Include="CadCommands\CreateVedFromLayoutPages.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesInLayoutCommand.cs" />
     <Compile Include="CadCommands\RenumberBlockPagesCommand.cs" />
+    <Compile Include="CadCommands\SysVarListCommmand.cs" />
     <Compile Include="CommandsWatcher.cs" />
     <Compile Include="CadCommands\CreatePdfCommand.cs" />
     <Compile Include="Converters\RatioConverter.cs" />
