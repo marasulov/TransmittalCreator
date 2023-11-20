@@ -21,6 +21,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmittalCreator.AutocadT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmittalCreator.Infrastructure", "TransmittalCreator.Infrastructure\TransmittalCreator.Infrastructure.csproj", "{DF39F0C9-6543-462A-B509-094ED0AF7FEF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmittalCreator.View", "TransmittalCreator.View\TransmittalCreator.View.csproj", "{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestNet7InAutocad", "TestNet7InAutocad\TestNet7InAutocad.csproj", "{05F22982-75FE-4820-A368-99A480B9AD39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,6 +130,30 @@ Global
 		{DF39F0C9-6543-462A-B509-094ED0AF7FEF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DF39F0C9-6543-462A-B509-094ED0AF7FEF}.Release|x86.ActiveCfg = Release|Any CPU
 		{DF39F0C9-6543-462A-B509-094ED0AF7FEF}.Release|x86.Build.0 = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Debug|x86.Build.0 = Debug|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.R2015|Any CPU.ActiveCfg = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.R2015|Any CPU.Build.0 = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.R2015|x86.ActiveCfg = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.R2015|x86.Build.0 = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Release|x86.ActiveCfg = Release|Any CPU
+		{73F65EFD-9BDB-4249-8E57-13F7FCDDF42B}.Release|x86.Build.0 = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Debug|x86.Build.0 = Debug|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.R2015|Any CPU.ActiveCfg = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.R2015|Any CPU.Build.0 = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.R2015|x86.ActiveCfg = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.R2015|x86.Build.0 = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Release|x86.ActiveCfg = Release|Any CPU
+		{05F22982-75FE-4820-A368-99A480B9AD39}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
