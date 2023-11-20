@@ -5,7 +5,7 @@ using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.PlottingServices;
 using Autodesk.AutoCAD.Runtime;
-using Gile.AutoCAD.Extension;
+
 using iTextSharp.text.pdf;
 using Newtonsoft.Json;
 using System;
@@ -14,6 +14,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using Gile.AutoCAD.Extension;
 using TransmittalCreator.Models;
 using Active = TransmittalCreator.DBCad.Active;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>11.0</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  
+  
+  <ItemGroup>
+    <PackageReference Include="AutoCAD-2016.Net.Base" Version="1.0.0" />
+  </ItemGroup>
+  
+  
+
+
+</Project>
