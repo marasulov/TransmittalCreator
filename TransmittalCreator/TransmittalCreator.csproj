@@ -92,8 +92,9 @@
     <Reference Include="EPPlus, Version=5.4.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.5.4.0\lib\net45\EPPlus.dll</HintPath>
     </Reference>
-    <Reference Include="Gile.AutoCAD.Extension">
-      <HintPath>..\..\..\..\..\docs\Downloads\Gile.AutoCAD.Extension\Gile.AutoCAD.Extension.dll</HintPath>
+    <Reference Include="Gile.AutoCAD.Extension, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>D:\from comp\source\repos\Gile.AutoCAD.Extension\Gile.AutoCAD.Extension\bin\Debug\Gile.AutoCAD.Extension.dll</HintPath>
     </Reference>
     <Reference Include="itextsharp, Version=5.5.13.3, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
       <HintPath>..\packages\iTextSharp.5.5.13.3\lib\itextsharp.dll</HintPath>
@@ -144,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\Blocks\" />
+    <Folder Include="Utils\Extensions\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="conf.json">
@@ -218,7 +220,6 @@
     </Compile>
     <Compile Include="Jigs\SpesTableJig.cs" />
     <Compile Include="Utils\BlockUtils.cs" />
-    <Compile Include="Utils\Extensions\BlockReferenceExtension.cs" />
     <Compile Include="Utils\LayoutUtils.cs" />
     <Compile Include="Utils\PrintUtils.cs" />
     <Compile Include="Utils\AcadUtils.cs" />
