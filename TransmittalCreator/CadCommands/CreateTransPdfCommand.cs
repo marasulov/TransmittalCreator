@@ -47,8 +47,10 @@ public class CreateTransPdfCommand
 
 			foreach (var printModel in printModels)
 			{
-				PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
-				printedPages.Add(printModel.DocNumber + ".pdf создан");
+				var printStatus = PrintUtils.PlotCurrentLayout(printModel.DocNumber, printModel);
+                var printText = "создан";
+				if(!printStatus) printText = "не создан";
+                printedPages.Add($"{printModel.DocNumber}.pdf {printText}");
 			}
 
 			tr.Commit();

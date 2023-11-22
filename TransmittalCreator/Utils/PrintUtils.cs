@@ -16,7 +16,6 @@ using System.Linq;
 using System.Windows;
 using Gile.AutoCAD.Extension;
 using TransmittalCreator.Models;
-
 using Active = TransmittalCreator.DBCad.Active;
 using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 using Db = Autodesk.AutoCAD.DatabaseServices;
@@ -31,13 +30,14 @@ public static class PrintUtils
 	/// </summary>
 	/// <param name="pdfFileName"> name</param>
 	/// <param name="printModel">print param model</param>
-	public static void PlotCurrentLayout(string pdfFileName, PrintModel printModel)
+	public static bool PlotCurrentLayout(string pdfFileName, PrintModel printModel)
 	{
 		// Get the current document and database, and start a transaction
 		var acDoc = Application.DocumentManager.MdiActiveDocument;
 		var acCurDb = acDoc.Database;
 		//short bgPlot = (short)Application.GetSystemVariable("BACKGROUNDPLOT");
 		Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+		bool printStatus = false;
 		try
 		{
 			using (var acTrans = acCurDb.TransactionManager.StartTransaction())
@@ -59,10 +59,8 @@ public static class PrintUtils
 				acPlSet.CopyFrom(acLayout);
 				// Update the PlotSettings object
 				var acPlSetVdr = Db.PlotSettingsValidator.Current;
-				var sheetList = acPlSetVdr.GetPlotStyleSheetList();
-				//acPlSetVdr.SetCurrentStyleSheet(acPlSet, "monochrome.ctb");
-
-				var points = new Db.Extents2d(printModel.BlockPosition, printModel.BlockDimensions);
+                
+				var points = new Extents2d(printModel.BlockPosition, printModel.BlockDimensions);
 
 				var isHor = printModel.IsFormatHorizontal();
 				//pdfCreator.GetBlockDimensions();
@@ -71,22 +69,17 @@ public static class PrintUtils
 				//acDoc.Utility.TranslateCoordinates(point1, acWorld, acDisplayDCS, False);
 				acPlSetVdr.SetPlotWindowArea(acPlSet, points);
 				acPlSetVdr.SetPlotType(acPlSet, Db.PlotType.Window);
-				if (!isHor)
-					acPlSetVdr.SetPlotRotation(acPlSet, Db.PlotRotation.Degrees090);
-				//else if(canonName =="ISO_full_bleed_A4_(297.00_x_210.00_MM)")
-				//    acPlSetVdr.SetPlotRotation(acPlSet, PlotRotation.Degrees090);
-				else
-					acPlSetVdr.SetPlotRotation(acPlSet, Db.PlotRotation.Degrees000);
+                acPlSetVdr.SetPlotRotation(acPlSet, !isHor ? Db.PlotRotation.Degrees090 : Db.PlotRotation.Degrees000);
 
-				// Set the plot scale
+                // Set the plot scale
 				acPlSetVdr.SetUseStandardScale(acPlSet, false);
-				acPlSetVdr.SetStdScaleType(acPlSet, Db.StdScaleType.ScaleToFit);
+				acPlSetVdr.SetStdScaleType(acPlSet, StdScaleType.ScaleToFit);
 				// Center the plot
 				acPlSetVdr.SetPlotCentered(acPlSet, true);
-				//acPlSetVdr.SetClosestMediaName(acPlSet,printModel.width,printModel.height,PlotPaperUnit.Millimeters,true);
+				//acPlSetVdr.SetClosestMediaName(acPlSet,printModel.Width,printModel.Height,PlotPaperUnit.Millimeters,true);
 				//string curCanonName = PdfCreator.GetLocalNameByAtrrValue(formatValue);
 				acPlSetVdr.SetPlotConfigurationName(acPlSet, "DWG_To_PDF_Uzle.pc3", canonName);
-				//acPlSetVdr.SetCanonicalMediaName(acPlSet, curCanonName);
+				//acPlSetVdr.SetCanonicalMediaName(acPlSet, canonName);
 
 				// Set the plot device to use
 
@@ -124,11 +117,7 @@ public static class PrintUtils
 							acPlEng.BeginPlot(acPlProgDlg, null);
 							// Define the plot output
 							var filename = Path.Combine(Path.GetDirectoryName(acDoc.Name), pdfFileName);
-							//if (filename.Contains("."))
-							//{
-							//    filename.Replace(".", "_");
-							//}
-
+							
 							filename += ".pdf";
 							Active.Editor.WriteMessage(filename);
 
@@ -156,7 +145,8 @@ public static class PrintUtils
 							acPlProgDlg.PlotProgressPos = 100;
 							acPlProgDlg.OnEndPlot();
 							acPlEng.EndPlot(null);
-						}
+							printStatus = true;
+                        }
 					}
 			}
 		}
@@ -165,8 +155,11 @@ public static class PrintUtils
 			if (e.ErrorStatus == ErrorStatus.InvalidInput)
 				Application.ShowAlertDialog(
 					$"{e.Message} : {printModel.Height} - {printModel.Width} не найден в настройках принтера");
-		}
-	}
+            printStatus = false;
+        }
+
+		return printStatus;
+    }
 
 
 	/// <summary>

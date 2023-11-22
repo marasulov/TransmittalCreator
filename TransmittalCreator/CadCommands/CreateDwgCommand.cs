@@ -60,7 +60,7 @@ public class CreateDwgCommand
 					var objectCopier = new ObjectCopier(objectId);
 					var objectIds = objectCopier.SelectCrossingWindow();
 					var blkRef = (BlockReference)tr.GetObject(objectId, OpenMode.ForRead);
-					var selAttrName = "НАЗВАНИЕ_ЛИСТАRU";
+					var selAttrName = "НОМЕР_ЛИСТА";
 					var fileName = PrintUtils.GetBlockAttributeValue(blkRef, selAttrName);
 
 
@@ -81,7 +81,7 @@ public class CreateDwgCommand
 
 			Active.Document.LockLayers(layersDictionary);
 			tr.Commit();
-
+			if(createdFiles.Count == 0) return;
 			var joinedBubbleTexts = string.Join("\n", createdFiles);
 
 			BalloonNotifier notifier = new BalloonNotifier("Создание файлов успешно завершено", "Создание файлов успешно завершено", drawingPath);

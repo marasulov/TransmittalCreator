@@ -28,16 +28,13 @@ public class FileManager : IFileManager
 
 	public static string[] GetBlockNames()
 	{
-		var confFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
+		var confFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
 			"conf.json");
 
 #if DEBUG
-        var path = System.IO.Path.GetDirectoryName(
-            System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
-        path = path?.Substring(6);
-        confFilePath = Path.Combine(path,"conf.json");
+        confFile = StandartCopier.GetConfFileInDebug();
 #endif
-		var jsonFile = File.ReadAllText(confFilePath);
+        var jsonFile = File.ReadAllText(confFile);
 		var deserializeObject = JsonConvert.DeserializeObject<Params>(jsonFile);
 		return deserializeObject.StampName;
 	}
