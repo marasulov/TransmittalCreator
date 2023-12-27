@@ -32,7 +32,7 @@ namespace TestConsole
 
 
 			var anagrams = ams.Select(s => new string(s.OrderBy(x => x).ToArray()));
-			var arCount = anagrams.GroupBy(x => x);
+			
 			const string filepath = @"conf.json";
 
 			// Чтение файла
