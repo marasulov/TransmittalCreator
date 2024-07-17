@@ -159,6 +159,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CadCommands\ArmSpes\AssignArmCommand.cs" />
     <Compile Include="CadCommands\BlockExtCommand.cs" />
     <Compile Include="CadCommands\CreateCombinedPdfCommand.cs" />
     <Compile Include="CadCommands\CreateDwgCommand.cs" />

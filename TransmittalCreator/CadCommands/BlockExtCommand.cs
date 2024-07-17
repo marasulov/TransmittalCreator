@@ -7,7 +7,7 @@ using TransmittalCreator.DBCad;
 //[assembly: CommandClass(typeof(BlockExtCommand))]
 namespace TransmittalCreator.CadCommands;
 
-public static class BlockExtCommand
+public static class AssignArmCommand
 {
 	//[CommandMethod("BlockExt")]
 	public static void BlockExt()
