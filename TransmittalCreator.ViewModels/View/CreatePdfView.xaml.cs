@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 
-
 namespace TransmittalCreator.ViewModels.View;
 
 /// <summary>
@@ -8,16 +7,16 @@ namespace TransmittalCreator.ViewModels.View;
 /// </summary>
 public partial class CreatePdfView : Window
 {
-	public CreatePdfView(CreatePdfVm pdfCreatorViewModel)
-	{
-		InitializeComponent();
+    public CreatePdfView(CreatePdfVm pdfCreatorViewModel)
+    {
+        InitializeComponent();
 
-		DataContext = pdfCreatorViewModel;
-		Loaded += On_Loaded;
-	}
+        DataContext = pdfCreatorViewModel;
+        Loaded += On_Loaded;
+    }
 
-	private void On_Loaded(object sender, RoutedEventArgs e)
-	{
-		Style = (Style)FindResource("WindowElementStyle");
-	}
+    private void On_Loaded(object sender, RoutedEventArgs e)
+    {
+        Style = (Style)FindResource("WindowElementStyle");
+    }
 }

@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.ComponentModel;
-using TestWPF.Models;
-using TransmittalCreator.ViewModels;
+﻿using System.Collections.Generic;
 using TransmittalCreator.ViewModels.Models;
 
 
 namespace TestWPF.ViewModel
 {
 	
-	public partial class MainViewModel : ObservableObject
+	public partial class MainViewModel 
 	{
 		private bool _isChecked;
 		private BlockAttribute  _selectedBlockAttribute;
@@ -35,7 +28,7 @@ namespace TestWPF.ViewModel
 			{
 				if(_isChecked==value) return;
 				_isChecked = value;
-				OnPropertyChanged();
+				
 
 				if(!value) SelectedAttr = null;
 			}
@@ -52,20 +45,14 @@ namespace TestWPF.ViewModel
 					return;
 				}
 				_selectedBlockAttribute = value;
-				OnPropertyChanged();
+
 			}
 		}
 
-		public void Load()
-		{
-			
-			
-		}
 
-		[ObservableProperty]
-		private string firstname;
+        private string firstname;
 
-		[ObservableProperty]
+		
 		private string lastname;
 
 	}

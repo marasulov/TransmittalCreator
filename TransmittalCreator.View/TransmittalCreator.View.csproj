@@ -43,16 +43,7 @@
   <ItemGroup>
     <Compile Include="Controls\NumberOnly.cs" />
     <Compile Include="Controls\VirtualToggleButton.cs" />
-    <Compile Include="CreatePdfView.xaml.cs">
-      <DependentUpon>CreatePdfView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="CreatePdfView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
